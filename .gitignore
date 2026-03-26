@@ -10,3 +10,5 @@ build/
 .env
 .env.*
 dist/
+# Windows Zone.Identifier metadata files
+*:Zone.Identifier
