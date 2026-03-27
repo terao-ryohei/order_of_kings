@@ -11,6 +11,7 @@ import {
 } from "@chakra-ui/react";
 import type { MetaFunction } from "@remix-run/cloudflare";
 import { Link } from "@remix-run/react";
+import updates from "~/data/updates.json";
 
 export const meta: MetaFunction = () => [
   { title: "王の勅命" },
@@ -97,20 +98,6 @@ export default function Index() {
             gap={{ base: 10, lg: 16 }}
           >
             <VStack align="flex-start" gap={6} maxW="3xl">
-              <HStack
-                px={4}
-                py={2}
-                rounded="full"
-                borderWidth="1px"
-                borderColor="whiteAlpha.300"
-                bg="whiteAlpha.100"
-                color="yellow.200"
-                fontSize="sm"
-                letterSpacing="0.24em"
-                textTransform="uppercase"
-              >
-                <Text>Imperial Command</Text>
-              </HStack>
               <Box>
                 <Text
                   color="yellow.300"
@@ -119,7 +106,7 @@ export default function Index() {
                   textTransform="uppercase"
                   mb={3}
                 >
-                  Royal Edict
+                  Order of Kings
                 </Text>
                 <Heading
                   as="h1"
@@ -132,9 +119,6 @@ export default function Index() {
                   王の勅命
                 </Heading>
               </Box>
-              <Text fontSize={{ base: "xl", md: "2xl" }} color="gray.200" fontWeight="medium">
-                天下の英傑を、汝の手で導け。
-              </Text>
               <Text maxW="2xl" color="gray.400" lineHeight="1.9">
                 墨色の戦場に金の采配を走らせ、英傑・技能・編成を一望する戦略書。
                 静かに構え、一手で戦局を変えるための御前会議がここにある。
@@ -180,34 +164,33 @@ export default function Index() {
               p={{ base: 6, md: 8 }}
             >
               <VStack align="stretch" gap={6}>
-                <Text color="yellow.200" fontSize="sm" letterSpacing="0.28em" textTransform="uppercase">
-                  Campaign Ledger
+                <Text
+                  color="yellow.200"
+                  fontSize="sm"
+                  letterSpacing="0.28em"
+                  textTransform="uppercase"
+                >
+                  更新一覧
                 </Text>
                 <VStack align="stretch" gap={4}>
-                  <Box pb={4} borderBottomWidth="1px" borderColor="whiteAlpha.200">
-                    <Text color="gray.400" fontSize="sm">
-                      主戦場
-                    </Text>
-                    <Text fontSize="2xl" fontWeight="bold">
-                      英傑図鑑 / 編成 / 書庫
-                    </Text>
-                  </Box>
-                  <Box pb={4} borderBottomWidth="1px" borderColor="whiteAlpha.200">
-                    <Text color="gray.400" fontSize="sm">
-                      推奨の初手
-                    </Text>
-                    <Text fontSize="lg" fontWeight="semibold">
-                      武将確認から部隊設計へ
-                    </Text>
-                  </Box>
-                  <Box>
-                    <Text color="gray.400" fontSize="sm">
-                      戦略信条
-                    </Text>
-                    <Text color="gray.200" lineHeight="1.8">
-                      情報を集め、相性を読み、静かに勝つ。王の勅命は、その一連の判断を磨くための戦略盤である。
-                    </Text>
-                  </Box>
+                  {updates.slice(0, 3).map((entry, i) => (
+                    <Box
+                      key={i}
+                      pb={4}
+                      borderBottomWidth={i < 2 ? "1px" : "0"}
+                      borderColor="whiteAlpha.200"
+                    >
+                      <Text color="gray.400" fontSize="sm">
+                        {entry.date}
+                      </Text>
+                      <Text fontSize="lg" fontWeight="semibold">
+                        {entry.title}
+                      </Text>
+                      <Text color="gray.200" lineHeight="1.8" fontSize="sm">
+                        {entry.description}
+                      </Text>
+                    </Box>
+                  ))}
                 </VStack>
               </VStack>
             </Box>
@@ -223,7 +206,13 @@ export default function Index() {
           >
             <VStack align="stretch" gap={8}>
               <Box>
-                <Text color="yellow.300" fontSize="sm" letterSpacing="0.28em" textTransform="uppercase" mb={3}>
+                <Text
+                  color="yellow.300"
+                  fontSize="sm"
+                  letterSpacing="0.28em"
+                  textTransform="uppercase"
+                  mb={3}
+                >
                   Strategic Gateways
                 </Text>
                 <Heading size="2xl" fontWeight="extrabold">
@@ -232,7 +221,11 @@ export default function Index() {
               </Box>
               <SimpleGrid columns={{ base: 1, md: 2 }} gap={5}>
                 {features.map((feature) => (
-                  <Link key={feature.href} to={feature.href} style={{ textDecoration: "none" }}>
+                  <Link
+                    key={feature.href}
+                    to={feature.href}
+                    style={{ textDecoration: "none" }}
+                  >
                     <Box
                       h="full"
                       rounded="2xl"
@@ -268,7 +261,12 @@ export default function Index() {
                             {feature.description}
                           </Text>
                         </Box>
-                        <Text color="red.300" fontWeight="bold" fontSize="sm" letterSpacing="0.08em">
+                        <Text
+                          color="red.300"
+                          fontWeight="bold"
+                          fontSize="sm"
+                          letterSpacing="0.08em"
+                        >
                           進む
                         </Text>
                       </VStack>

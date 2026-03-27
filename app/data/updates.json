@@ -1,0 +1,5 @@
+[
+  { "date": "2026-03-27", "title": "ランディングページ追加", "description": "和風モダンのトップページを新設。英傑図鑑・軍略編成・技能書庫・所持武将への導線を整備" },
+  { "date": "2026-03-27", "title": "Cloudflare Workers移行", "description": "デプロイ基盤をCloudflare Pagesから Workersへ移行。本番D1データベースも整備完了" },
+  { "date": "2026-03-27", "title": "初回公開", "description": "武将86名・スキル261件を収録した武将一覧・スキル検索・編成ビルダーを公開" }
+]
