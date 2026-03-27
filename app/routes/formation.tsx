@@ -19,7 +19,7 @@ import { useState } from "react";
 import { useMyWarriors } from "../hooks/useMyWarriors";
 import { useSavedFormations } from "../hooks/useSavedFormations";
 import type { SavedFormation } from "../hooks/useSavedFormations";
-import { warriors, weaponAptitudes } from "../../server/db/schema";
+import { warriors, weaponAptitudes, warriorSkills, skills } from "../../server/db/schema";
 
 const SQUAD_SLOTS = [
   { role: "主将" as const, label: "主将", description: "怒気スキル発動・部隊の核" },
@@ -37,6 +37,8 @@ type WarriorData = {
   guts: number;
   era: string | null;
   aptitudes: string[];
+  skill1_name: string | null;
+  skill2_name: string | null;
 };
 
 interface FormationSlot {
@@ -75,18 +77,45 @@ export async function loader({ context }: LoaderFunctionArgs) {
     aptitudeMap.set(aptitude.warrior_id, current);
   }
 
+  const skillRows = ids.length
+    ? await db
+        .select({
+          warrior_id: warriorSkills.warrior_id,
+          slot: warriorSkills.slot,
+          skill_name: skills.name,
+          is_unique: warriorSkills.is_unique,
+        })
+        .from(warriorSkills)
+        .innerJoin(skills, eq(warriorSkills.skill_id, skills.id))
+        .where(inArray(warriorSkills.warrior_id, ids))
+    : [];
+
+  const skillMap = new Map<number, { skill1: string | null; skill2: string | null }>();
+  for (const row of skillRows) {
+    if (!row.is_unique) continue;
+    const current = skillMap.get(row.warrior_id) ?? { skill1: null, skill2: null };
+    if (row.slot === 1) current.skill1 = row.skill_name;
+    if (row.slot === 2) current.skill2 = row.skill_name;
+    skillMap.set(row.warrior_id, current);
+  }
+
   return {
-    warriors: warriorRows.map((warrior) => ({
-      id: warrior.id,
-      name: warrior.name,
-      reading: warrior.reading,
-      rarity: warrior.rarity,
-      atk: warrior.atk,
-      int: warrior.int,
-      guts: warrior.guts,
-      era: warrior.era,
-      aptitudes: aptitudeMap.get(warrior.id) ?? [],
-    })),
+    warriors: warriorRows.map((warrior) => {
+      const uniqueSkills = skillMap.get(warrior.id);
+      return {
+        id: warrior.id,
+        name: warrior.name,
+        reading: warrior.reading,
+        rarity: warrior.rarity,
+        atk: warrior.atk,
+        int: warrior.int,
+        guts: warrior.guts,
+        era: warrior.era,
+        aptitudes: aptitudeMap.get(warrior.id) ?? [],
+        skill1_name: uniqueSkills?.skill1 ?? null,
+        skill2_name: uniqueSkills?.skill2 ?? null,
+      };
+    }),
   };
 }
 
@@ -375,6 +404,22 @@ export default function FormationBuilderPage() {
                           <Text fontSize="xs" color="gray.300">
                             兵種: {slot.warrior.aptitudes.length > 0 ? slot.warrior.aptitudes.join(" / ") : "未登録"}
                           </Text>
+                          {(() => {
+                            const skillName = slot.role === "軍師"
+                              ? slot.warrior.skill2_name
+                              : slot.warrior.skill1_name;
+                            const skillLabel = slot.role === "軍師" ? "軍師スキル" : "統率スキル";
+                            return skillName ? (
+                              <Badge
+                                colorPalette={slot.role === "軍師" ? "purple" : "teal"}
+                                variant="subtle"
+                                fontSize="xs"
+                                mt={1}
+                              >
+                                {skillLabel}: {skillName}
+                              </Badge>
+                            ) : null;
+                          })()}
                           {slot.role !== "軍師" && (
                             <VStack align="start" gap={0} mt={1}>
                               <Text fontSize="xs" color="gray.400">武{slot.warrior.atk}</Text>
