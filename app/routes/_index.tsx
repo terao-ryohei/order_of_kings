@@ -13,7 +13,7 @@ import type { MetaFunction } from "@remix-run/cloudflare";
 import { Link } from "@remix-run/react";
 
 export const meta: MetaFunction = () => [
-  { title: "order-of-kings" },
+  { title: "order of kings" },
   { name: "description", content: "英傑・技能・編成をひとまとめに見られる戦略ツール。" },
 ];
 
@@ -86,7 +86,7 @@ export default function Index() {
                   lineHeight="1.05"
                   fontSize={{ base: "4xl", md: "5xl", xl: "6xl" }}
                 >
-                  order-of-kings
+                  order of kings
                 </Heading>
               </Box>
               <Text fontSize={{ base: "lg", md: "xl" }} color="gray.700" fontWeight="medium">
@@ -233,7 +233,7 @@ export default function Index() {
           </Box>
 
           <Text textAlign="center" color="gray.500" fontSize="sm">
-            © order-of-kings
+            © order of kings
           </Text>
         </VStack>
       </Container>
