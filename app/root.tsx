@@ -6,8 +6,10 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLocation,
 } from "@remix-run/react";
 import { ThemeProvider } from "next-themes";
+import Header from "~/components/Header";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -63,9 +65,13 @@ const system = createSystem(defaultConfig, {
 });
 
 export default function App() {
+  const { pathname } = useLocation();
+  const isLandingPage = pathname === "/";
+
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
       <ChakraProvider value={system}>
+        {!isLandingPage && <Header />}
         <Outlet />
       </ChakraProvider>
     </ThemeProvider>
