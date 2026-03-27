@@ -11,7 +11,9 @@ import {
 } from "@chakra-ui/react";
 import type { MetaFunction } from "@remix-run/cloudflare";
 import { Link } from "@remix-run/react";
-import updates from "~/data/updates.json";
+import updatesData from "~/data/updates.json";
+
+const updates = updatesData.updates;
 
 export const meta: MetaFunction = () => [
   { title: "王の勅命" },
