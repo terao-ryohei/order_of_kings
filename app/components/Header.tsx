@@ -5,8 +5,8 @@ const navItems = [
   { label: "武将一覧", shortLabel: "武将", to: "/warriors" },
   { label: "編成", shortLabel: "編成", to: "/formation" },
   { label: "スキル", shortLabel: "技能", to: "/skills" },
-  { label: "手持ち", shortLabel: "手持ち", to: "/my-warriors" },
-  { label: "手持ちスキル", shortLabel: "技能帳", to: "/my-skills" },
+  { label: "手持ち武将", shortLabel: "手持ち武将", to: "/my-warriors" },
+  { label: "手持ちスキル", shortLabel: "手持ちスキル", to: "/my-skills" },
   { label: "共有", shortLabel: "共有", to: "/share" },
 ] as const;
 
@@ -56,7 +56,11 @@ export default function Header() {
               const active = isActivePath(pathname, item.to);
 
               return (
-                <Link key={item.to} to={item.to} style={{ textDecoration: "none" }}>
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  style={{ textDecoration: "none" }}
+                >
                   <Box
                     as="span"
                     display="inline-flex"
@@ -77,8 +81,12 @@ export default function Header() {
                       bg: "rgba(236, 201, 75, 0.1)",
                     }}
                   >
-                    <Text display={{ base: "none", sm: "inline" }}>{item.label}</Text>
-                    <Text display={{ base: "inline", sm: "none" }}>{item.shortLabel}</Text>
+                    <Text display={{ base: "none", sm: "inline" }}>
+                      {item.label}
+                    </Text>
+                    <Text display={{ base: "inline", sm: "none" }}>
+                      {item.shortLabel}
+                    </Text>
                   </Box>
                 </Link>
               );
