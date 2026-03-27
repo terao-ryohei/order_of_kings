@@ -62,13 +62,20 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     ? JSON.parse(profile.formations)
     : [];
 
-  const ownedWarriorIds: number[] = profile.warriorIds
+  const rawWarriorIds: number[] = profile.warriorIds
     ? JSON.parse(profile.warriorIds)
     : [];
 
-  // 保有武将のみ取得
+  // 出現回数を集計してユニークIDを取得
+  const warriorCountMap: Record<number, number> = {};
+  for (const id of rawWarriorIds) {
+    warriorCountMap[id] = (warriorCountMap[id] ?? 0) + 1;
+  }
+  const uniqueWarriorIds = Object.keys(warriorCountMap).map(Number);
+
+  // 保有武将のみ取得（ユニークIDでDB検索）
   const ownedWarriorRows: WarriorRow[] =
-    ownedWarriorIds.length > 0
+    uniqueWarriorIds.length > 0
       ? await db
           .select({
             id: warriors.id,
@@ -83,7 +90,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
             era: warriors.era,
           })
           .from(warriors)
-          .where(inArray(warriors.id, ownedWarriorIds))
+          .where(inArray(warriors.id, uniqueWarriorIds))
       : [];
 
   const skillIds: number[] = profile.skillIds
@@ -113,6 +120,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 
   return {
     ownedWarriorRows,
+    warriorCountMap,
     hasWarriorShare: !!profile.warriorIds,
     formations,
     sharedSkills,
@@ -133,11 +141,17 @@ function RarityStars({ rarity }: { rarity: number }) {
 export default function ShareViewPage() {
   const {
     ownedWarriorRows,
+    warriorCountMap,
     hasWarriorShare,
     formations,
     sharedSkills,
     createdAtFormatted,
   } = useLoaderData<typeof loader>();
+
+  const totalWarriorCount = Object.values(warriorCountMap).reduce(
+    (a, b) => a + b,
+    0
+  );
 
   const handleCopyFormation = (formation: SavedFormation) => {
     try {
@@ -196,7 +210,7 @@ export default function ShareViewPage() {
           <VStack align="stretch" gap={4}>
             <Heading size="md" color="yellow.300">
               {hasWarriorShare
-                ? `手持ち武将 (${ownedWarriorRows.length}種)`
+                ? `手持ち武将 (${totalWarriorCount}体)`
                 : "武将一覧"}
             </Heading>
 
@@ -217,9 +231,16 @@ export default function ShareViewPage() {
                   >
                     <VStack gap={1} align="start">
                       <RarityStars rarity={warrior.rarity} />
-                      <Text fontWeight="bold" fontSize="sm" lineClamp={1}>
-                        {warrior.name}
-                      </Text>
+                      <Flex align="center" gap={1} wrap="wrap">
+                        <Text fontWeight="bold" fontSize="sm" lineClamp={1}>
+                          {warrior.name}
+                        </Text>
+                        {warriorCountMap[warrior.id] > 1 && (
+                          <Badge colorPalette="orange" size="sm">
+                            ×{warriorCountMap[warrior.id]}
+                          </Badge>
+                        )}
+                      </Flex>
                       <Text fontSize="xs" color="gray.400">
                         {warrior.reading}
                       </Text>

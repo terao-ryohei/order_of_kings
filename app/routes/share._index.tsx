@@ -41,7 +41,7 @@ export const meta: MetaFunction = () => [
 
 export default function ShareIndexPage() {
   const { warriors: allWarriors, allSkills } = useLoaderData<typeof loader>();
-  const { myWarriorIds, isHydrated, getCount } = useMyWarriors();
+  const { myWarriorIds, warriorCounts, isHydrated, getCount } = useMyWarriors();
   const { mySkillIds, isHydrated: skillsHydrated } = useMySkills();
   const { savedFormations } = useSavedFormations();
 
@@ -78,12 +78,18 @@ export default function ShareIndexPage() {
         selectedFormationIds.has(f.id)
       );
 
+      const warriorIdsWithCounts = Object.entries(warriorCounts).flatMap(
+        ([id, count]) => Array(count).fill(Number(id))
+      );
+
       const res = await fetch("/api/share-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           warrior_ids:
-            includeWarriors && myWarriorIds.length > 0 ? myWarriorIds : null,
+            includeWarriors && warriorIdsWithCounts.length > 0
+              ? warriorIdsWithCounts
+              : null,
           formations: selectedFormations,
           skill_ids:
             includeSkills && mySkillIds.length > 0 ? mySkillIds : null,
