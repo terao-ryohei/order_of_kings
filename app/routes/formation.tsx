@@ -13,7 +13,7 @@ import {
 } from "@chakra-ui/react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { Link, useLoaderData, useNavigate } from "@remix-run/react";
-import { asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { useState } from "react";
 import { useMyWarriors } from "../hooks/useMyWarriors";
@@ -109,6 +109,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
     skillMap.set(row.warrior_id, current);
   }
 
+  // 固有スキル除外: LEFT JOIN + IS NULL (warrior_skillsに紐づくスキルを除外)
   const allSkills = await db
     .select({
       id: skills.id,
@@ -117,7 +118,8 @@ export async function loader({ context }: LoaderFunctionArgs) {
       color: skills.color,
     })
     .from(skills)
-    .where(eq(skills.is_delete, false))
+    .leftJoin(warriorSkills, eq(skills.id, warriorSkills.skill_id))
+    .where(and(eq(skills.is_delete, false), isNull(warriorSkills.skill_id)))
     .orderBy(asc(skills.sort_order));
 
   return {
