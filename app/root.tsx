@@ -12,6 +12,7 @@ import { ThemeProvider } from "next-themes";
 import Header from "~/components/Header";
 
 export const links: LinksFunction = () => [
+  { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
     rel: "preconnect",
