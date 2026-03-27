@@ -35,7 +35,7 @@ export const meta: MetaFunction = () => [
 
 export default function ShareIndexPage() {
   const { warriors: allWarriors } = useLoaderData<typeof loader>();
-  const { myWarriorIds, isHydrated } = useMyWarriors();
+  const { myWarriorIds, isHydrated, getCount } = useMyWarriors();
   const { savedFormations } = useSavedFormations();
 
   const [includeWarriors, setIncludeWarriors] = useState(true);
@@ -167,7 +167,7 @@ export default function ShareIndexPage() {
                         .filter((w) => myWarriorIds.includes(w.id))
                         .map((w) => (
                           <Badge key={w.id} colorPalette="yellow" variant="subtle" fontSize="xs">
-                            {w.name}
+                            {getCount(w.id) > 1 ? `${w.name}×${getCount(w.id)}` : w.name}
                           </Badge>
                         ))}
                     </Flex>
