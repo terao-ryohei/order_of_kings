@@ -6,6 +6,7 @@ const navItems = [
   { label: "編成", shortLabel: "編成", to: "/formation" },
   { label: "スキル", shortLabel: "技能", to: "/skills" },
   { label: "手持ち", shortLabel: "手持ち", to: "/my-warriors" },
+  { label: "手持ちスキル", shortLabel: "技能帳", to: "/my-skills" },
   { label: "共有", shortLabel: "共有", to: "/share" },
 ] as const;
 
