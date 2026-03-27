@@ -14,7 +14,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { warriors } from "../../server/db/schema";
 
 export const meta: MetaFunction = () => [
-  { title: "検索 - 王の勅命" },
+  { title: "検索 - 王の算盤" },
   { name: "description", content: "武将検索ページ" },
 ];
 

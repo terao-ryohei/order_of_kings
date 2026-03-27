@@ -25,7 +25,7 @@ import { useMyWarriors } from "../hooks/useMyWarriors";
 import { warriors, warriorRoles, weaponAptitudes, warriorSkills, skills } from "../../server/db/schema";
 
 export const meta: MetaFunction = () => [
-  { title: "編成相談 - 王の勅命" },
+  { title: "編成相談 - 王の算盤" },
   { name: "description", content: "手持ち武将から最適な3スロット編成を提案します" },
 ];
 

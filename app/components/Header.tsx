@@ -47,7 +47,7 @@ export default function Header() {
               textTransform="uppercase"
               whiteSpace="nowrap"
             >
-              王の勅命
+              王の算盤
             </Text>
           </Link>
 

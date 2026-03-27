@@ -19,7 +19,7 @@ function toKatakana(str: string): string {
 }
 
 export const meta: MetaFunction = () => [
-  { title: "スキル一覧 - 王の勅命" },
+  { title: "スキル一覧 - 王の算盤" },
   { name: "description", content: "スキル一覧ページ" },
 ];
 

@@ -60,7 +60,7 @@ interface FormationSlot {
 }
 
 export const meta: MetaFunction = () => [
-  { title: "編成ビルダー - 王の勅命" },
+  { title: "編成ビルダー - 王の算盤" },
   { name: "description", content: "手持ち武将から3枠編成（主将/副将/軍師）を組むページ" },
 ];
 

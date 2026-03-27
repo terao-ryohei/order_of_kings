@@ -43,7 +43,7 @@ type SkillDetail = {
 };
 
 export const meta: MetaFunction = () => [
-  { title: "共有プロフィール - 王の勅命" },
+  { title: "共有プロフィール - 王の算盤" },
   { name: "description", content: "共有された手持ち武将と編成の閲覧ページ" },
 ];
 

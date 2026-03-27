@@ -16,7 +16,7 @@ import updatesData from "~/data/updates.json";
 const updates = updatesData.updates;
 
 export const meta: MetaFunction = () => [
-  { title: "王の勅命" },
+  { title: "王の算盤" },
   { name: "description", content: "天下の英傑を、汝の手で導く戦略絵巻。" },
 ];
 
@@ -118,7 +118,7 @@ export default function Index() {
                   fontSize={{ base: "4xl", md: "6xl", xl: "7xl" }}
                   textTransform="uppercase"
                 >
-                  王の勅命
+                  王の算盤
                 </Heading>
               </Box>
               <Text maxW="2xl" color="gray.400" lineHeight="1.9">
@@ -280,7 +280,7 @@ export default function Index() {
           </Box>
 
           <Text textAlign="center" color="gray.500" fontSize="sm">
-            © 王の勅命
+            © 王の算盤
           </Text>
         </VStack>
       </Container>

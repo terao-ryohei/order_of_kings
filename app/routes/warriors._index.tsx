@@ -15,7 +15,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { warriorRoles, warriors } from "../../server/db/schema";
 
 export const meta: MetaFunction = () => [
-  { title: "武将一覧 - 王の勅命" },
+  { title: "武将一覧 - 王の算盤" },
   { name: "description", content: "武将一覧ページ" },
 ];
 

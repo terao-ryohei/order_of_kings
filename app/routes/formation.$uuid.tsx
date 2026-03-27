@@ -20,7 +20,7 @@ type Slot = {
 };
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => [
-  { title: `${data?.formation.name ?? "共有編成"} - 王の勅命` },
+  { title: `${data?.formation.name ?? "共有編成"} - 王の算盤` },
 ];
 
 export async function loader({ params, context }: LoaderFunctionArgs) {

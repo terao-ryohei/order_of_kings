@@ -17,7 +17,7 @@ import { useMySkills } from "../hooks/useMySkills";
 import { skills } from "../../server/db/schema";
 
 export const meta: MetaFunction = () => [
-  { title: "手持ちスキル - 王の勅命" },
+  { title: "手持ちスキル - 王の算盤" },
   { name: "description", content: "手持ちスキル管理ページ" },
 ];
 

@@ -17,7 +17,7 @@ import { useMyWarriors } from "../hooks/useMyWarriors";
 import { warriors } from "../../server/db/schema";
 
 export const meta: MetaFunction = () => [
-  { title: "手持ち武将 - 王の勅命" },
+  { title: "手持ち武将 - 王の算盤" },
   { name: "description", content: "手持ち武将の登録ページ" },
 ];
 

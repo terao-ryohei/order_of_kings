@@ -35,7 +35,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
 }
 
 export const meta: MetaFunction = () => [
-  { title: "共有 - 王の勅命" },
+  { title: "共有 - 王の算盤" },
   { name: "description", content: "手持ち武将と保存編成を共有するページ" },
 ];
 
