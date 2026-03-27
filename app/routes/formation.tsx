@@ -12,7 +12,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
-import { Link, useLoaderData } from "@remix-run/react";
+import { Link, useLoaderData, useNavigate } from "@remix-run/react";
 import { asc, eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { useState } from "react";
@@ -114,6 +114,7 @@ export default function FormationBuilderPage() {
   const { myWarriorIds, isHydrated } = useMyWarriors();
   const [slots, setSlots] = useState<FormationSlot[]>(() => createEmptySlots());
 
+  const navigate = useNavigate();
   const {
     savedFormations,
     isFull,
@@ -277,7 +278,11 @@ export default function FormationBuilderPage() {
                   >
                     {saveMode ? "キャンセル" : "保存"}
                   </Button>
-                  <Button variant="subtle" disabled>
+                  <Button
+                    variant="subtle"
+                    disabled={!slots.some((s) => s.warrior)}
+                    onClick={() => navigate("/share")}
+                  >
                     共有する
                   </Button>
                 </Flex>
