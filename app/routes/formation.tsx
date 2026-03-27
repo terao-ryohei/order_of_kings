@@ -7,6 +7,7 @@ import {
   Heading,
   HStack,
   Input,
+  NativeSelect,
   SimpleGrid,
   Text,
   VStack,
@@ -46,6 +47,7 @@ type SkillData = {
   name: string;
   skill_type: string;
   color: string | null;
+  description: string;
 };
 
 interface FormationSlot {
@@ -116,6 +118,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
       name: skills.name,
       skill_type: skills.skill_type,
       color: skills.color,
+      description: skills.description,
     })
     .from(skills)
     .leftJoin(warriorSkills, eq(skills.id, warriorSkills.skill_id))
@@ -359,6 +362,25 @@ export default function FormationBuilderPage() {
           </HStack>
         </Flex>
 
+        {/* 改善3: 合計ステータスを最上部に表示 */}
+        <SimpleGrid columns={{ base: 3 }} gap={3}>
+          <Box bg="whiteAlpha.100" borderRadius="xl" p={4} borderWidth="1px" borderColor="whiteAlpha.200">
+            <Text fontSize="sm" color="gray.400">武力合計</Text>
+            <Text fontSize="2xl" fontWeight="bold">{totals.atk}</Text>
+            <Text fontSize="xs" color="gray.500">主将+副将</Text>
+          </Box>
+          <Box bg="whiteAlpha.100" borderRadius="xl" p={4} borderWidth="1px" borderColor="whiteAlpha.200">
+            <Text fontSize="sm" color="gray.400">知略合計</Text>
+            <Text fontSize="2xl" fontWeight="bold">{totals.int}</Text>
+            <Text fontSize="xs" color="gray.500">主将+副将</Text>
+          </Box>
+          <Box bg="whiteAlpha.100" borderRadius="xl" p={4} borderWidth="1px" borderColor="whiteAlpha.200">
+            <Text fontSize="sm" color="gray.400">胆力合計</Text>
+            <Text fontSize="2xl" fontWeight="bold">{totals.guts}</Text>
+            <Text fontSize="xs" color="gray.500">主将+副将</Text>
+          </Box>
+        </SimpleGrid>
+
         <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6} alignItems="start">
           <VStack gap={4} align="stretch">
             <Box
@@ -459,167 +481,180 @@ export default function FormationBuilderPage() {
                 </Box>
               )}
 
-              <SimpleGrid columns={{ base: 1, md: 3 }} gap={3} mt={5}>
+              <VStack gap={3} mt={5} align="stretch">
                 {slots.map((slot) => (
-                  <Box
-                    key={slot.index}
-                    textAlign="left"
-                    bg={slot.warrior ? "blue.950" : "gray.900"}
-                    borderRadius="xl"
-                    borderWidth="1px"
-                    borderColor={slot.warrior ? "blue.300" : "whiteAlpha.200"}
-                    p={4}
-                    transition="all 0.2s"
-                  >
-                    <VStack align="start" gap={1}>
-                      <Flex justify="space-between" w="100%" align="center">
-                        <Badge colorPalette={slot.warrior ? "blue" : "gray"}>{slot.roleLabel}</Badge>
-                        {slot.warrior && (
-                          <Button size="xs" variant="ghost" colorPalette="red" onClick={() => clearSlot(slot.index)}>
-                            解除
-                          </Button>
-                        )}
-                      </Flex>
-                      <Text fontSize="xs" color="gray.400">
-                        {slot.description}
-                      </Text>
-                      {slot.warrior ? (
-                        <>
-                          <Flex align="center" gap={2} w="100%">
-                            <Text fontWeight="bold" fontSize="sm">{slot.warrior.name}</Text>
-                            <RarityStars rarity={slot.warrior.rarity} />
+                  <Collapsible.Root key={slot.index} defaultOpen>
+                    <Box
+                      textAlign="left"
+                      bg={slot.warrior ? "blue.950" : "gray.900"}
+                      borderRadius="xl"
+                      borderWidth="1px"
+                      borderColor={slot.warrior ? "blue.300" : "whiteAlpha.200"}
+                      p={4}
+                      transition="all 0.2s"
+                    >
+                      <Collapsible.Trigger asChild>
+                        <Flex
+                          as="button"
+                          type="button"
+                          justify="space-between"
+                          w="100%"
+                          align="center"
+                          cursor="pointer"
+                          _hover={{ opacity: 0.8 }}
+                        >
+                          <Flex align="center" gap={2}>
+                            <Badge colorPalette={slot.warrior ? "blue" : "gray"}>{slot.roleLabel}</Badge>
+                            {slot.warrior ? (
+                              <>
+                                <Text fontWeight="bold" fontSize="sm">{slot.warrior.name}</Text>
+                                <RarityStars rarity={slot.warrior.rarity} />
+                                <Text fontSize="xs" color="gray.400">Lv.{slot.warriorLevel}</Text>
+                              </>
+                            ) : (
+                              <Text fontSize="sm" color="gray.400">未配置</Text>
+                            )}
                           </Flex>
-                          <Flex align="center" gap={2} mt={1}>
-                            <Text fontSize="xs" color="gray.400" flexShrink={0}>Lv.</Text>
-                            <Input
-                              type="number"
-                              min={1}
-                              max={40}
-                              value={slot.warriorLevel}
-                              onChange={(e) => updateWarriorLevel(slot.index, Number(e.target.value))}
-                              size="xs"
-                              w="60px"
-                              textAlign="center"
-                              bg="gray.900"
-                              borderColor="whiteAlpha.300"
-                            />
-                          </Flex>
-                          <Text fontSize="xs" color="gray.300">
-                            兵種: {slot.warrior.aptitudes.length > 0 ? slot.warrior.aptitudes.join(" / ") : "未登録"}
+                          <Text fontSize="xs" color="gray.500">▼</Text>
+                        </Flex>
+                      </Collapsible.Trigger>
+                      <Collapsible.Content>
+                        <VStack align="start" gap={1} mt={3}>
+                          <Text fontSize="xs" color="gray.400">
+                            {slot.description}
                           </Text>
-                          {(() => {
-                            const skillName = slot.role === "軍師"
-                              ? slot.warrior.skill2_name
-                              : slot.warrior.skill1_name;
-                            const skillLabel = slot.role === "軍師" ? "軍師スキル" : "統率スキル";
-                            return skillName ? (
-                              <Badge
-                                colorPalette={slot.role === "軍師" ? "purple" : "teal"}
-                                variant="subtle"
-                                fontSize="xs"
-                                mt={1}
-                              >
-                                {skillLabel}: {skillName}
-                              </Badge>
-                            ) : null;
-                          })()}
-                          <Box w="100%" mt={2}>
-                            <Text fontSize="xs" color="gray.400" mb={1}>
-                              装備スキル（{slot.skillIds.length}/{maxSkillSlots(slot.role)}枠）
-                            </Text>
-                            {slot.skillIds.map((skId, i) => (
-                              <Flex key={i} gap={1} align="center" mb={1}>
-                                <select
-                                  value={skId}
-                                  onChange={(e) => {
-                                    const v = Number(e.target.value);
-                                    updateSkillId(slot.index, i, v || null);
-                                  }}
-                                  style={{
-                                    flex: 1,
-                                    fontSize: "12px",
-                                    background: "#1a1a2e",
-                                    color: "white",
-                                    border: "1px solid rgba(255,255,255,0.2)",
-                                    borderRadius: "6px",
-                                    padding: "4px 6px",
-                                  }}
-                                >
-                                  <option value={0}>-- 選択 --</option>
-                                  {allSkills.map((sk) => (
-                                    <option key={sk.id} value={sk.id}>{sk.name}</option>
-                                  ))}
-                                </select>
-                                <Input
-                                  type="number"
-                                  min={1}
-                                  max={10}
-                                  value={slot.skillLevels[i] ?? 1}
-                                  onChange={(e) => updateSkillLevel(slot.index, i, Number(e.target.value))}
-                                  size="xs"
-                                  w="50px"
-                                  textAlign="center"
-                                  bg="gray.900"
-                                  borderColor="whiteAlpha.300"
-                                />
-                                <Button
-                                  size="xs"
-                                  variant="ghost"
-                                  colorPalette="red"
-                                  onClick={() => updateSkillId(slot.index, i, null)}
-                                >
-                                  ×
+                          {slot.warrior ? (
+                            <>
+                              <Flex justify="space-between" w="100%" align="center">
+                                <Flex align="center" gap={2}>
+                                  <Text fontSize="xs" color="gray.400" flexShrink={0}>Lv.</Text>
+                                  <NativeSelect.Root size="xs" w="80px">
+                                    <NativeSelect.Field
+                                      value={String(slot.warriorLevel)}
+                                      onChange={(e) => updateWarriorLevel(slot.index, Number(e.target.value))}
+                                      bg="gray.900"
+                                      borderColor="whiteAlpha.300"
+                                    >
+                                      {Array.from({ length: 40 }, (_, i) => i + 1).map((lv) => (
+                                        <option key={lv} value={String(lv)}>Lv.{lv}</option>
+                                      ))}
+                                    </NativeSelect.Field>
+                                  </NativeSelect.Root>
+                                </Flex>
+                                <Button size="xs" variant="ghost" colorPalette="red" onClick={() => clearSlot(slot.index)}>
+                                  解除
                                 </Button>
                               </Flex>
-                            ))}
-                            {slot.skillIds.length < maxSkillSlots(slot.role) && (
-                              <Button
-                                size="xs"
-                                variant="outline"
-                                colorPalette="teal"
-                                onClick={() => updateSkillId(slot.index, slot.skillIds.length, 0)}
-                                mt={1}
-                              >
-                                ＋スキルを追加
-                              </Button>
-                            )}
-                          </Box>
-                          {slot.role !== "軍師" && (
-                            <VStack align="start" gap={0} mt={1}>
-                              <Text fontSize="xs" color="gray.400">武{slot.warrior.atk}</Text>
-                              <Text fontSize="xs" color="gray.400">知{slot.warrior.int}</Text>
-                              <Text fontSize="xs" color="gray.400">胆{slot.warrior.guts}</Text>
-                            </VStack>
+                              <Text fontSize="xs" color="gray.300">
+                                兵種: {slot.warrior.aptitudes.length > 0 ? slot.warrior.aptitudes.join(" / ") : "未登録"}
+                              </Text>
+                              {(() => {
+                                const skillName = slot.role === "軍師"
+                                  ? slot.warrior.skill2_name
+                                  : slot.warrior.skill1_name;
+                                const skillLabel = slot.role === "軍師" ? "軍師スキル" : "統率スキル";
+                                return skillName ? (
+                                  <Badge
+                                    colorPalette={slot.role === "軍師" ? "purple" : "teal"}
+                                    variant="subtle"
+                                    fontSize="xs"
+                                    mt={1}
+                                  >
+                                    {skillLabel}: {skillName}
+                                  </Badge>
+                                ) : null;
+                              })()}
+                              <Box w="100%" mt={2}>
+                                <Text fontSize="xs" color="gray.400" mb={1}>
+                                  装備スキル（{slot.skillIds.length}/{maxSkillSlots(slot.role)}枠）
+                                </Text>
+                                {slot.skillIds.map((skId, i) => {
+                                  const selectedSkill = allSkills.find((sk) => sk.id === skId);
+                                  return (
+                                    <Box key={i} mb={2}>
+                                      <Flex gap={1} align="center">
+                                        <select
+                                          value={skId}
+                                          onChange={(e) => {
+                                            const v = Number(e.target.value);
+                                            updateSkillId(slot.index, i, v || null);
+                                          }}
+                                          style={{
+                                            flex: 1,
+                                            fontSize: "12px",
+                                            background: "#1a1a2e",
+                                            color: "white",
+                                            border: "1px solid rgba(255,255,255,0.2)",
+                                            borderRadius: "6px",
+                                            padding: "4px 6px",
+                                          }}
+                                        >
+                                          <option value={0}>-- 選択 --</option>
+                                          {allSkills.map((sk) => (
+                                            <option key={sk.id} value={sk.id}>{sk.name}</option>
+                                          ))}
+                                        </select>
+                                        <NativeSelect.Root size="xs" w="70px">
+                                          <NativeSelect.Field
+                                            value={String(slot.skillLevels[i] ?? 1)}
+                                            onChange={(e) => updateSkillLevel(slot.index, i, Number(e.target.value))}
+                                            bg="gray.900"
+                                            borderColor="whiteAlpha.300"
+                                          >
+                                            {Array.from({ length: 10 }, (_, j) => j + 1).map((lv) => (
+                                              <option key={lv} value={String(lv)}>Lv.{lv}</option>
+                                            ))}
+                                          </NativeSelect.Field>
+                                        </NativeSelect.Root>
+                                        <Button
+                                          size="xs"
+                                          variant="ghost"
+                                          colorPalette="red"
+                                          onClick={() => updateSkillId(slot.index, i, null)}
+                                        >
+                                          ×
+                                        </Button>
+                                      </Flex>
+                                      {selectedSkill && skId !== 0 && (
+                                        <Text fontSize="xs" color="gray.500" mt={1} pl={1}>
+                                          {selectedSkill.description}
+                                        </Text>
+                                      )}
+                                    </Box>
+                                  );
+                                })}
+                                {slot.skillIds.length < maxSkillSlots(slot.role) && (
+                                  <Button
+                                    size="xs"
+                                    variant="outline"
+                                    colorPalette="teal"
+                                    onClick={() => updateSkillId(slot.index, slot.skillIds.length, 0)}
+                                    mt={1}
+                                  >
+                                    ＋スキルを追加
+                                  </Button>
+                                )}
+                              </Box>
+                              {slot.role !== "軍師" && (
+                                <VStack align="start" gap={0} mt={1}>
+                                  <Text fontSize="xs" color="gray.400">武{slot.warrior.atk}</Text>
+                                  <Text fontSize="xs" color="gray.400">知{slot.warrior.int}</Text>
+                                  <Text fontSize="xs" color="gray.400">胆{slot.warrior.guts}</Text>
+                                </VStack>
+                              )}
+                            </>
+                          ) : (
+                            <Text fontSize="sm" color="gray.400" mt={1}>
+                              武将を選ぶとここに配置される
+                            </Text>
                           )}
-                        </>
-                      ) : (
-                        <Text fontSize="sm" color="gray.400" mt={1}>
-                          武将を選ぶとここに配置される
-                        </Text>
-                      )}
-                    </VStack>
-                  </Box>
+                        </VStack>
+                      </Collapsible.Content>
+                    </Box>
+                  </Collapsible.Root>
                 ))}
-              </SimpleGrid>
+              </VStack>
             </Box>
-
-            <SimpleGrid columns={{ base: 1, md: 3 }} gap={3}>
-              <Box bg="whiteAlpha.100" borderRadius="xl" p={4} borderWidth="1px" borderColor="whiteAlpha.200">
-                <Text fontSize="sm" color="gray.400">武力合計</Text>
-                <Text fontSize="2xl" fontWeight="bold">{totals.atk}</Text>
-                <Text fontSize="xs" color="gray.500">主将+副将</Text>
-              </Box>
-              <Box bg="whiteAlpha.100" borderRadius="xl" p={4} borderWidth="1px" borderColor="whiteAlpha.200">
-                <Text fontSize="sm" color="gray.400">知略合計</Text>
-                <Text fontSize="2xl" fontWeight="bold">{totals.int}</Text>
-                <Text fontSize="xs" color="gray.500">主将+副将</Text>
-              </Box>
-              <Box bg="whiteAlpha.100" borderRadius="xl" p={4} borderWidth="1px" borderColor="whiteAlpha.200">
-                <Text fontSize="sm" color="gray.400">胆力合計</Text>
-                <Text fontSize="2xl" fontWeight="bold">{totals.guts}</Text>
-                <Text fontSize="xs" color="gray.500">主将+副将</Text>
-              </Box>
-            </SimpleGrid>
 
             {savedFormations.length > 0 && (
               <Collapsible.Root>
