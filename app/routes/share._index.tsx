@@ -14,7 +14,8 @@ import { Link, useLoaderData } from "@remix-run/react";
 import { asc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { useState } from "react";
-import { warriors } from "../../server/db/schema";
+import { skills, warriors } from "../../server/db/schema";
+import { useMySkills } from "../hooks/useMySkills";
 import { useMyWarriors } from "../hooks/useMyWarriors";
 import { useSavedFormations } from "../hooks/useSavedFormations";
 
@@ -25,7 +26,12 @@ export async function loader({ context }: LoaderFunctionArgs) {
     .from(warriors)
     .where(eq(warriors.is_delete, false))
     .orderBy(asc(warriors.sort_order));
-  return { warriors: result };
+  const allSkills = await db
+    .select({ id: skills.id, name: skills.name, skill_type: skills.skill_type })
+    .from(skills)
+    .where(eq(skills.is_delete, false))
+    .orderBy(asc(skills.sort_order));
+  return { warriors: result, allSkills };
 }
 
 export const meta: MetaFunction = () => [
@@ -34,11 +40,13 @@ export const meta: MetaFunction = () => [
 ];
 
 export default function ShareIndexPage() {
-  const { warriors: allWarriors } = useLoaderData<typeof loader>();
+  const { warriors: allWarriors, allSkills } = useLoaderData<typeof loader>();
   const { myWarriorIds, isHydrated, getCount } = useMyWarriors();
+  const { mySkillIds, isHydrated: skillsHydrated } = useMySkills();
   const { savedFormations } = useSavedFormations();
 
   const [includeWarriors, setIncludeWarriors] = useState(true);
+  const [includeSkills, setIncludeSkills] = useState(true);
   const [selectedFormationIds, setSelectedFormationIds] = useState<Set<string>>(
     new Set()
   );
@@ -77,6 +85,8 @@ export default function ShareIndexPage() {
           warrior_ids:
             includeWarriors && myWarriorIds.length > 0 ? myWarriorIds : null,
           formations: selectedFormations,
+          skill_ids:
+            includeSkills && mySkillIds.length > 0 ? mySkillIds : null,
         }),
       });
 
@@ -140,7 +150,7 @@ export default function ShareIndexPage() {
                   to="/my-warriors"
                   style={{ color: "#ECC94B", marginLeft: "4px" }}
                 >
-                  /my-warriors で登録
+                  手持ち武将を登録
                 </Link>
               </Text>
             ) : (
@@ -183,6 +193,80 @@ export default function ShareIndexPage() {
                             {getCount(w.id) > 1
                               ? `${w.name}×${getCount(w.id)}`
                               : w.name}
+                          </Badge>
+                        ))}
+                    </Flex>
+                  </Box>
+                )}
+              </VStack>
+            )}
+          </VStack>
+        </Box>
+
+        {/* 手持ちスキル */}
+        <Box
+          bg="whiteAlpha.100"
+          borderRadius="2xl"
+          borderWidth="1px"
+          borderColor="whiteAlpha.200"
+          p={5}
+        >
+          <VStack align="stretch" gap={3}>
+            <Heading size="md" color="yellow.300">
+              手持ちスキル
+            </Heading>
+            {!skillsHydrated ? (
+              <Text color="gray.400" fontSize="sm">
+                読み込み中...
+              </Text>
+            ) : mySkillIds.length === 0 ? (
+              <Text color="gray.400" fontSize="sm">
+                手持ちスキルが登録されていません。
+                <Link
+                  to="/my-skills"
+                  style={{ color: "#ECC94B", marginLeft: "4px" }}
+                >
+                  手持ちスキルを登録
+                </Link>
+              </Text>
+            ) : (
+              <VStack align="stretch" gap={3}>
+                <Flex align="center" gap={3}>
+                  <Checkbox.Root
+                    checked={includeSkills}
+                    onCheckedChange={(e) => setIncludeSkills(!!e.checked)}
+                  >
+                    <Checkbox.HiddenInput />
+                    <Checkbox.Control />
+                    <Checkbox.Label>
+                      <Text color="white" fontSize="sm">
+                        手持ちスキルを含める（{mySkillIds.length}個）
+                      </Text>
+                    </Checkbox.Label>
+                  </Checkbox.Root>
+                </Flex>
+                {includeSkills && (
+                  <Box
+                    bg="whiteAlpha.50"
+                    borderRadius="lg"
+                    borderWidth="1px"
+                    borderColor="whiteAlpha.100"
+                    p={3}
+                  >
+                    <Text fontSize="xs" color="gray.400" mb={2}>
+                      共有されるスキル ({mySkillIds.length}個)
+                    </Text>
+                    <Flex gap={2} flexWrap="wrap">
+                      {allSkills
+                        .filter((s) => mySkillIds.includes(s.id))
+                        .map((s) => (
+                          <Badge
+                            key={s.id}
+                            colorPalette="purple"
+                            variant="subtle"
+                            fontSize="xs"
+                          >
+                            {s.name}
                           </Badge>
                         ))}
                     </Flex>
@@ -268,7 +352,7 @@ export default function ShareIndexPage() {
           size="lg"
           onClick={handleShare}
           loading={isLoading}
-          disabled={!includeWarriors && selectedFormationIds.size === 0}
+          disabled={!includeWarriors && !includeSkills && selectedFormationIds.size === 0}
         >
           共有URLを発行
         </Button>

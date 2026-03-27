@@ -10,9 +10,9 @@ import {
 } from "@chakra-ui/react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { sharedProfiles, warriors } from "../../server/db/schema";
+import { sharedProfiles, skills, warriors } from "../../server/db/schema";
 
 type WarriorRow = {
   id: number;
@@ -33,6 +33,13 @@ type SavedFormation = {
   slots: Array<{ warrior_id: number; role_label: string }>;
   total_score: { atk: number; int: number; guts: number };
   created_at: string;
+};
+
+type SkillDetail = {
+  id: number;
+  name: string;
+  skill_type: string;
+  color: string | null;
 };
 
 export const meta: MetaFunction = () => [
@@ -77,6 +84,22 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     })
     .from(warriors);
 
+  const skillIds: number[] = profile.skillIds
+    ? JSON.parse(profile.skillIds)
+    : [];
+  const sharedSkills: SkillDetail[] =
+    skillIds.length > 0
+      ? await db
+          .select({
+            id: skills.id,
+            name: skills.name,
+            skill_type: skills.skill_type,
+            color: skills.color,
+          })
+          .from(skills)
+          .where(inArray(skills.id, skillIds))
+      : [];
+
   // Date formatting on server to avoid hydration mismatch (toLocaleString differs server vs client)
   const createdAtFormatted = (() => {
     const d = new Date(profile.createdAt);
@@ -89,6 +112,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     ownedWarriorIds,
     hasWarriorShare,
     formations,
+    sharedSkills,
     createdAtFormatted,
   };
 }
@@ -103,7 +127,7 @@ function RarityStars({ rarity }: { rarity: number }) {
 }
 
 export default function ShareViewPage() {
-  const { allWarriorRows, ownedWarriorIds, hasWarriorShare, formations, createdAtFormatted } =
+  const { allWarriorRows, ownedWarriorIds, hasWarriorShare, formations, sharedSkills, createdAtFormatted } =
     useLoaderData<typeof loader>();
 
   const ownedSet = new Set(ownedWarriorIds);
@@ -321,6 +345,55 @@ export default function ShareViewPage() {
             )}
           </VStack>
         </Box>
+        {/* 手持ちスキル */}
+        {sharedSkills.length > 0 && (
+          <Box
+            bg="whiteAlpha.100"
+            borderRadius="2xl"
+            borderWidth="1px"
+            borderColor="whiteAlpha.200"
+            p={5}
+          >
+            <VStack align="stretch" gap={4}>
+              <Heading size="md" color="yellow.300">
+                手持ちスキル ({sharedSkills.length}個)
+              </Heading>
+              <Flex gap={2} flexWrap="wrap">
+                {sharedSkills.map((skill) => (
+                  <Box
+                    key={skill.id}
+                    bg="gray.900"
+                    borderRadius="xl"
+                    borderWidth="1px"
+                    borderColor="whiteAlpha.200"
+                    px={3}
+                    py={2}
+                  >
+                    <Flex align="center" gap={2}>
+                      <Text fontWeight="bold" fontSize="sm" color="white">
+                        {skill.name}
+                      </Text>
+                      <Badge
+                        colorPalette={
+                          skill.skill_type === "パッシブ"
+                            ? "green"
+                            : skill.skill_type === "能動"
+                              ? "blue"
+                              : skill.skill_type === "連鎖"
+                                ? "orange"
+                                : "red"
+                        }
+                        size="sm"
+                      >
+                        {skill.skill_type}
+                      </Badge>
+                    </Flex>
+                  </Box>
+                ))}
+              </Flex>
+            </VStack>
+          </Box>
+        )}
       </VStack>
     </Box>
   );
