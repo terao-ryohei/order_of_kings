@@ -161,22 +161,22 @@ export default function FormationBuilderPage() {
   };
 
   return (
-    <Box minH="100vh" bg={{ base: "gray.50", _dark: "gray.900" }} p={4}>
+    <Box minH="100vh" bg="gray.950" p={4}>
       <VStack gap={6} align="stretch" maxW="1200px" mx="auto">
         <Flex align="center" justify="space-between" flexWrap="wrap" gap={3}>
           <VStack align="start" gap={1}>
-            <Heading size="xl" color={{ base: "gray.800", _dark: "white" }}>
+            <Heading size="xl" color="white">
               編成ビルダー
             </Heading>
-            <Text fontSize="sm" color={{ base: "gray.600", _dark: "gray.400" }}>
+            <Text fontSize="sm" color="gray.400">
               主将・副将・軍師の3スロット編成を組み、合計能力を即時確認できるでござる
             </Text>
           </VStack>
           <HStack gap={4} wrap="wrap">
-            <Link to="/my-warriors" style={{ color: "#3182ce", fontSize: "14px", fontWeight: 700 }}>
+            <Link to="/my-warriors" style={{ color: "#ECC94B", fontSize: "14px", fontWeight: 700 }}>
               手持ち武将管理へ
             </Link>
-            <Link to="/" style={{ color: "#718096", fontSize: "14px" }}>
+            <Link to="/" style={{ color: "#A0AEC0", fontSize: "14px" }}>
               ← 武将一覧へ戻る
             </Link>
           </HStack>
@@ -185,16 +185,16 @@ export default function FormationBuilderPage() {
         <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6} alignItems="start">
           <VStack gap={4} align="stretch">
             <Box
-              bg={{ base: "white", _dark: "gray.800" }}
+              bg="whiteAlpha.100"
               borderRadius="2xl"
               borderWidth="1px"
-              borderColor={{ base: "gray.200", _dark: "gray.700" }}
+              borderColor="whiteAlpha.200"
               p={5}
             >
               <Flex justify="space-between" align={{ base: "start", md: "center" }} flexWrap="wrap" gap={3}>
                 <VStack align="start" gap={1}>
                   <Heading size="md">編成スロット</Heading>
-                  <Text fontSize="sm" color={{ base: "gray.600", _dark: "gray.400" }}>
+                  <Text fontSize="sm" color="gray.400">
                     配置済み {assignedIds.size}/3人
                   </Text>
                 </VStack>
@@ -219,36 +219,36 @@ export default function FormationBuilderPage() {
                     type="button"
                     onClick={() => clearSlot(slot.index)}
                     textAlign="left"
-                    bg={slot.warrior ? { base: "blue.50", _dark: "blue.950" } : { base: "gray.50", _dark: "gray.900" }}
+                    bg={slot.warrior ? "blue.950" : "gray.900"}
                     borderRadius="xl"
                     borderWidth="1px"
-                    borderColor={slot.warrior ? "blue.300" : { base: "gray.200", _dark: "gray.700" }}
+                    borderColor={slot.warrior ? "blue.300" : "whiteAlpha.200"}
                     p={4}
                     _hover={{ borderColor: "blue.400", transform: "translateY(-1px)" }}
                     transition="all 0.2s"
                   >
                     <VStack align="start" gap={1}>
                       <Badge colorPalette={slot.warrior ? "blue" : "gray"}>{slot.roleLabel}</Badge>
-                      <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }}>
+                      <Text fontSize="xs" color="gray.400">
                         {slot.description}
                       </Text>
                       {slot.warrior ? (
                         <>
                           <Text fontWeight="bold" fontSize="sm">{slot.warrior.name}</Text>
                           <RarityStars rarity={slot.warrior.rarity} />
-                          <Text fontSize="xs" color={{ base: "gray.600", _dark: "gray.300" }}>
+                          <Text fontSize="xs" color="gray.300">
                             兵種: {slot.warrior.aptitudes.length > 0 ? slot.warrior.aptitudes.join(" / ") : "未登録"}
                           </Text>
                           {slot.role !== "軍師" && (
                             <VStack align="start" gap={0} mt={1}>
-                              <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }}>武{slot.warrior.atk}</Text>
-                              <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }}>知{slot.warrior.int}</Text>
-                              <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }}>胆{slot.warrior.guts}</Text>
+                              <Text fontSize="xs" color="gray.400">武{slot.warrior.atk}</Text>
+                              <Text fontSize="xs" color="gray.400">知{slot.warrior.int}</Text>
+                              <Text fontSize="xs" color="gray.400">胆{slot.warrior.guts}</Text>
                             </VStack>
                           )}
                         </>
                       ) : (
-                        <Text fontSize="sm" color={{ base: "gray.500", _dark: "gray.400" }} mt={1}>
+                        <Text fontSize="sm" color="gray.400" mt={1}>
                           武将を選ぶとここに配置される
                         </Text>
                       )}
@@ -259,49 +259,49 @@ export default function FormationBuilderPage() {
             </Box>
 
             <SimpleGrid columns={{ base: 1, md: 3 }} gap={3}>
-              <Box bg={{ base: "white", _dark: "gray.800" }} borderRadius="xl" p={4} borderWidth="1px" borderColor={{ base: "gray.200", _dark: "gray.700" }}>
-                <Text fontSize="sm" color={{ base: "gray.500", _dark: "gray.400" }}>武力合計</Text>
+              <Box bg="whiteAlpha.100" borderRadius="xl" p={4} borderWidth="1px" borderColor="whiteAlpha.200">
+                <Text fontSize="sm" color="gray.400">武力合計</Text>
                 <Text fontSize="2xl" fontWeight="bold">{totals.atk}</Text>
-                <Text fontSize="xs" color={{ base: "gray.400", _dark: "gray.500" }}>主将+副将</Text>
+                <Text fontSize="xs" color="gray.500">主将+副将</Text>
               </Box>
-              <Box bg={{ base: "white", _dark: "gray.800" }} borderRadius="xl" p={4} borderWidth="1px" borderColor={{ base: "gray.200", _dark: "gray.700" }}>
-                <Text fontSize="sm" color={{ base: "gray.500", _dark: "gray.400" }}>知略合計</Text>
+              <Box bg="whiteAlpha.100" borderRadius="xl" p={4} borderWidth="1px" borderColor="whiteAlpha.200">
+                <Text fontSize="sm" color="gray.400">知略合計</Text>
                 <Text fontSize="2xl" fontWeight="bold">{totals.int}</Text>
-                <Text fontSize="xs" color={{ base: "gray.400", _dark: "gray.500" }}>主将+副将</Text>
+                <Text fontSize="xs" color="gray.500">主将+副将</Text>
               </Box>
-              <Box bg={{ base: "white", _dark: "gray.800" }} borderRadius="xl" p={4} borderWidth="1px" borderColor={{ base: "gray.200", _dark: "gray.700" }}>
-                <Text fontSize="sm" color={{ base: "gray.500", _dark: "gray.400" }}>胆力合計</Text>
+              <Box bg="whiteAlpha.100" borderRadius="xl" p={4} borderWidth="1px" borderColor="whiteAlpha.200">
+                <Text fontSize="sm" color="gray.400">胆力合計</Text>
                 <Text fontSize="2xl" fontWeight="bold">{totals.guts}</Text>
-                <Text fontSize="xs" color={{ base: "gray.400", _dark: "gray.500" }}>主将+副将</Text>
+                <Text fontSize="xs" color="gray.500">主将+副将</Text>
               </Box>
             </SimpleGrid>
           </VStack>
 
           <Box
-            bg={{ base: "white", _dark: "gray.800" }}
+            bg="whiteAlpha.100"
             borderRadius="2xl"
             borderWidth="1px"
-            borderColor={{ base: "gray.200", _dark: "gray.700" }}
+            borderColor="whiteAlpha.200"
             p={5}
           >
             <VStack align="stretch" gap={4}>
               <VStack align="start" gap={1}>
                 <Heading size="md">手持ち武将</Heading>
-                <Text fontSize="sm" color={{ base: "gray.600", _dark: "gray.400" }}>
+                <Text fontSize="sm" color="gray.400">
                   空きスロットへ自動配置。配置済み武将は再選択不可。
                 </Text>
               </VStack>
 
               {!isHydrated ? (
                 <Box py={10} textAlign="center">
-                  <Text color={{ base: "gray.500", _dark: "gray.400" }}>手持ち武将を読み込み中...</Text>
+                  <Text color="gray.400">手持ち武将を読み込み中...</Text>
                 </Box>
               ) : myWarriors.length === 0 ? (
                 <Box py={10} textAlign="center">
                   <Text fontWeight="bold" mb={3}>
                     まず手持ち武将を登録してください
                   </Text>
-                  <Link to="/my-warriors" style={{ color: "#3182ce", fontWeight: 700 }}>
+                  <Link to="/my-warriors" style={{ color: "#ECC94B", fontWeight: 700 }}>
                     /my-warriors へ移動
                   </Link>
                 </Box>
@@ -317,10 +317,10 @@ export default function FormationBuilderPage() {
                         onClick={() => assignWarrior(warrior)}
                         disabled={isAssigned || assignedIds.size >= 3}
                         textAlign="left"
-                        bg={isAssigned ? { base: "gray.100", _dark: "gray.700" } : { base: "gray.50", _dark: "gray.900" }}
+                        bg={isAssigned ? "gray.700" : "gray.900"}
                         borderRadius="xl"
                         borderWidth="1px"
-                        borderColor={isAssigned ? { base: "gray.200", _dark: "gray.600" } : { base: "gray.200", _dark: "gray.700" }}
+                        borderColor={isAssigned ? "gray.600" : "whiteAlpha.200"}
                         opacity={isAssigned ? 0.55 : 1}
                         p={4}
                         _hover={isAssigned ? undefined : { borderColor: "blue.400", transform: "translateY(-1px)" }}
@@ -335,7 +335,7 @@ export default function FormationBuilderPage() {
                                 {isAssigned ? "配置済み" : "配置可能"}
                               </Badge>
                             </Flex>
-                            <Text fontSize="sm" color={{ base: "gray.500", _dark: "gray.400" }}>
+                            <Text fontSize="sm" color="gray.400">
                               {warrior.reading}
                             </Text>
                             <Flex gap={2} wrap="wrap">
@@ -346,9 +346,9 @@ export default function FormationBuilderPage() {
                             </Flex>
                           </VStack>
                           <VStack align="end" gap={1}>
-                            <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }}>武{warrior.atk}</Text>
-                            <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }}>知{warrior.int}</Text>
-                            <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }}>胆{warrior.guts}</Text>
+                            <Text fontSize="xs" color="gray.400">武{warrior.atk}</Text>
+                            <Text fontSize="xs" color="gray.400">知{warrior.int}</Text>
+                            <Text fontSize="xs" color="gray.400">胆{warrior.guts}</Text>
                           </VStack>
                         </Flex>
                       </Box>

@@ -48,22 +48,22 @@ export default function SkillsIndex() {
   const { skills: data, filters } = useLoaderData<typeof loader>();
 
   return (
-    <Box minH="100vh" bg={{ base: "gray.50", _dark: "gray.900" }} p={4}>
+    <Box minH="100vh" bg="gray.950" p={4}>
       <VStack gap={6} align="stretch">
         <Flex align="center" justify="space-between" flexWrap="wrap" gap={2}>
-          <Heading size="xl" color={{ base: "gray.800", _dark: "white" }}>スキル一覧</Heading>
-          <Link to="/" style={{ color: "#3182ce", fontSize: "14px" }}>← 武将一覧</Link>
+          <Heading size="xl" color="white">スキル一覧</Heading>
+          <Link to="/" style={{ color: "#ECC94B", fontSize: "14px" }}>← 武将一覧</Link>
         </Flex>
 
         {/* フィルタ */}
         <Form method="get">
           <Flex gap={3} flexWrap="wrap" align="center">
             <Box>
-              <Text fontSize="sm" mb={1} color={{ base: "gray.600", _dark: "gray.400" }}>スキルタイプ</Text>
+              <Text fontSize="sm" mb={1} color="gray.400">スキルタイプ</Text>
               <select
                 name="skill_type"
                 defaultValue={filters.skill_type ?? ""}
-                style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid #ccc", background: "transparent" }}
+                style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.2)", background: "transparent", color: "white" }}
               >
                 <option value="">全て</option>
                 <option value="パッシブ">パッシブ</option>
@@ -73,11 +73,11 @@ export default function SkillsIndex() {
               </select>
             </Box>
             <Box>
-              <Text fontSize="sm" mb={1} color={{ base: "gray.600", _dark: "gray.400" }}>兵種制限</Text>
+              <Text fontSize="sm" mb={1} color="gray.400">兵種制限</Text>
               <select
                 name="weapon_restriction"
                 defaultValue={filters.weapon_restriction ?? ""}
-                style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid #ccc", background: "transparent" }}
+                style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.2)", background: "transparent", color: "white" }}
               >
                 <option value="">全て</option>
                 <option value="刀">刀</option>
@@ -96,7 +96,7 @@ export default function SkillsIndex() {
             </Box>
             {(filters.skill_type || filters.weapon_restriction) && (
               <Box alignSelf="flex-end">
-                <Link to="/skills" style={{ padding: "8px 16px", color: "#3182ce", textDecoration: "underline", fontSize: "14px" }}>
+                <Link to="/skills" style={{ padding: "8px 16px", color: "#ECC94B", textDecoration: "underline", fontSize: "14px" }}>
                   クリア
                 </Link>
               </Box>
@@ -104,16 +104,16 @@ export default function SkillsIndex() {
           </Flex>
         </Form>
 
-        <Text fontSize="sm" color={{ base: "gray.500", _dark: "gray.400" }}>{data.length}件</Text>
+        <Text fontSize="sm" color="gray.400">{data.length}件</Text>
 
         <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} gap={4}>
           {data.map((skill) => (
             <Link key={skill.id} to={`/skills/${skill.id}`}>
               <Box
-                bg={{ base: "white", _dark: "gray.800" }}
+                bg="whiteAlpha.100"
                 borderRadius="xl"
                 borderWidth="1px"
-                borderColor={{ base: "gray.200", _dark: "gray.700" }}
+                borderColor="whiteAlpha.200"
                 p={4}
                 h="full"
                 _hover={{ shadow: "lg", transform: "translateY(-2px)", borderColor: "blue.400" }}
@@ -135,7 +135,7 @@ export default function SkillsIndex() {
                   <Text fontWeight="bold" fontSize="md">{skill.name}</Text>
                   <Text
                     fontSize="xs"
-                    color={{ base: "gray.600", _dark: "gray.400" }}
+                    color="gray.400"
                     lineClamp={3}
                   >
                     {skill.description}
@@ -147,7 +147,7 @@ export default function SkillsIndex() {
         </SimpleGrid>
 
         {data.length === 0 && (
-          <Box textAlign="center" py={12} color={{ base: "gray.500", _dark: "gray.400" }}>
+          <Box textAlign="center" py={12} color="gray.400">
             <Text>スキルが見つかりません</Text>
           </Box>
         )}

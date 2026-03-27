@@ -68,20 +68,20 @@ export default function FormationPage() {
   }
 
   return (
-    <Box minH="100vh" bg={{ base: "gray.50", _dark: "gray.900" }} p={4}>
+    <Box minH="100vh" bg="gray.950" p={4}>
       <VStack gap={6} align="stretch" maxW="600px" mx="auto">
-        <Heading size="xl" color={{ base: "gray.800", _dark: "white" }}>
+        <Heading size="xl" color="white">
           {formation.name ?? "共有編成"}
         </Heading>
 
         {formation.purpose && (
-          <Text color={{ base: "gray.600", _dark: "gray.300" }}>
+          <Text color="gray.300">
             目的: {formation.purpose}
           </Text>
         )}
 
         {formation.total_score != null && (
-          <Text fontWeight="bold" color={{ base: "gray.700", _dark: "gray.200" }}>
+          <Text fontWeight="bold" color="gray.200">
             総合スコア: {formation.total_score}
           </Text>
         )}
@@ -90,10 +90,10 @@ export default function FormationPage() {
           {(formation.slots as Slot[]).map((slot, i) => (
             <Box
               key={i}
-              bg={{ base: "white", _dark: "gray.800" }}
+              bg="whiteAlpha.100"
               borderRadius="lg"
               borderWidth="1px"
-              borderColor={{ base: "gray.200", _dark: "gray.700" }}
+              borderColor="whiteAlpha.200"
               p={4}
             >
               <Flex justify="space-between" align="center">
@@ -107,7 +107,7 @@ export default function FormationPage() {
         </VStack>
 
         {(formation.slots as Slot[]).length === 0 && (
-          <Text color={{ base: "gray.400", _dark: "gray.500" }} textAlign="center">
+          <Text color="gray.500" textAlign="center">
             スロットが空です
           </Text>
         )}
@@ -116,7 +116,7 @@ export default function FormationPage() {
           この編成をコピー
         </Button>
 
-        <Text fontSize="xs" color={{ base: "gray.400", _dark: "gray.600" }}>
+        <Text fontSize="xs" color="gray.500">
           作成日時: {formation.created_at ?? "—"}
         </Text>
       </VStack>

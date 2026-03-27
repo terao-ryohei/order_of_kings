@@ -45,12 +45,12 @@ export default function SkillDetail() {
   const { skill, warriors: warriorList } = useLoaderData<typeof loader>();
 
   return (
-    <Box minH="100vh" bg={{ base: "gray.50", _dark: "gray.900" }} p={4}>
+    <Box minH="100vh" bg="gray.950" p={4}>
       <VStack gap={6} align="stretch" maxW="800px" mx="auto">
-        <Link to="/skills" style={{ color: "#3182ce", fontSize: "14px" }}>← スキル一覧</Link>
+        <Link to="/skills" style={{ color: "#ECC94B", fontSize: "14px" }}>← スキル一覧</Link>
 
         {/* スキル詳細 */}
-        <Box bg={{ base: "white", _dark: "gray.800" }} borderRadius="xl" p={6} borderWidth="1px" borderColor={{ base: "gray.200", _dark: "gray.700" }}>
+        <Box bg="whiteAlpha.100" borderRadius="xl" p={6} borderWidth="1px" borderColor="whiteAlpha.200">
           <VStack gap={4} align="start">
             <HStack gap={2} flexWrap="wrap">
               <Badge colorPalette={SKILL_TYPE_COLOR[skill.skill_type] ?? "gray"} size="lg">
@@ -67,8 +67,8 @@ export default function SkillDetail() {
               )}
             </HStack>
             <Heading size="2xl">{skill.name}</Heading>
-            <Box bg={{ base: "gray.50", _dark: "gray.700" }} borderRadius="lg" p={4} w="full">
-              <Text color={{ base: "gray.700", _dark: "gray.200" }} lineHeight="tall" whiteSpace="pre-wrap">
+            <Box bg="whiteAlpha.100" borderRadius="lg" p={4} w="full">
+              <Text color="gray.200" lineHeight="tall" whiteSpace="pre-wrap">
                 {skill.description}
               </Text>
             </Box>
@@ -77,16 +77,16 @@ export default function SkillDetail() {
 
         {/* このスキルを持つ武将 */}
         {warriorList.length > 0 && (
-          <Box bg={{ base: "white", _dark: "gray.800" }} borderRadius="xl" p={6} borderWidth="1px" borderColor={{ base: "gray.200", _dark: "gray.700" }}>
+          <Box bg="whiteAlpha.100" borderRadius="xl" p={6} borderWidth="1px" borderColor="whiteAlpha.200">
             <Heading size="md" mb={4}>このスキルを持つ武将</Heading>
             <SimpleGrid columns={{ base: 2, sm: 3, md: 4 }} gap={3}>
               {warriorList.map((w) => (
                 <Link key={w.warrior.id} to={`/warriors/${w.warrior.id}`}>
                   <Box
-                    bg={{ base: "gray.50", _dark: "gray.700" }}
+                    bg="whiteAlpha.100"
                     borderRadius="lg"
                     p={3}
-                    _hover={{ bg: { base: "blue.50", _dark: "gray.600" }, transform: "translateY(-1px)" }}
+                    _hover={{ bg: "whiteAlpha.200", transform: "translateY(-1px)" }}
                     transition="all 0.2s"
                     cursor="pointer"
                   >

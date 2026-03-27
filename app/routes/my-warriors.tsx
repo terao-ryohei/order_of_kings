@@ -53,18 +53,18 @@ export default function MyWarriorsPage() {
   };
 
   return (
-    <Box minH="100vh" bg={{ base: "gray.50", _dark: "gray.900" }} p={4}>
+    <Box minH="100vh" bg="gray.950" p={4}>
       <VStack gap={6} align="stretch" maxW="1200px" mx="auto">
         <Flex align="center" justify="space-between" flexWrap="wrap" gap={3}>
           <VStack align="start" gap={1}>
-            <Heading size="xl" color={{ base: "gray.800", _dark: "white" }}>
+            <Heading size="xl" color="white">
               手持ち武将管理
             </Heading>
-            <Text fontSize="sm" color={{ base: "gray.600", _dark: "gray.400" }}>
+            <Text fontSize="sm" color="gray.400">
               選択中: {isHydrated ? count : 0}/{data.length}人
             </Text>
           </VStack>
-          <Link to="/" style={{ color: "#3182ce", fontSize: "14px" }}>
+          <Link to="/" style={{ color: "#ECC94B", fontSize: "14px" }}>
             ← 武将一覧へ戻る
           </Link>
         </Flex>
@@ -92,10 +92,10 @@ export default function MyWarriorsPage() {
                 type="button"
                 onClick={() => toggle(warrior.id)}
                 textAlign="left"
-                bg={{ base: "white", _dark: "gray.800" }}
+                bg="whiteAlpha.100"
                 borderRadius="xl"
                 borderWidth="2px"
-                borderColor={selected ? "blue.400" : { base: "gray.200", _dark: "gray.700" }}
+                borderColor={selected ? "blue.400" : "whiteAlpha.200"}
                 p={4}
                 _hover={{ shadow: "lg", transform: "translateY(-2px)", borderColor: "blue.400" }}
                 transition="all 0.2s"
@@ -111,15 +111,15 @@ export default function MyWarriorsPage() {
                   <Text fontWeight="bold" fontSize="sm" lineClamp={1}>
                     {warrior.name}
                   </Text>
-                  <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }}>
+                  <Text fontSize="xs" color="gray.400">
                     {warrior.reading}
                   </Text>
                   {warrior.era && <Badge colorPalette="blue" size="sm">{warrior.era}</Badge>}
                   <Flex gap={2} wrap="wrap">
-                    <Text fontSize="xs" color={{ base: "gray.600", _dark: "gray.300" }}>武{warrior.atk}</Text>
-                    <Text fontSize="xs" color={{ base: "gray.600", _dark: "gray.300" }}>知{warrior.int}</Text>
-                    <Text fontSize="xs" color={{ base: "gray.600", _dark: "gray.300" }}>胆{warrior.guts}</Text>
-                    <Text fontSize="xs" color={{ base: "gray.600", _dark: "gray.300" }}>政{warrior.pol}</Text>
+                    <Text fontSize="xs" color="gray.300">武{warrior.atk}</Text>
+                    <Text fontSize="xs" color="gray.300">知{warrior.int}</Text>
+                    <Text fontSize="xs" color="gray.300">胆{warrior.guts}</Text>
+                    <Text fontSize="xs" color="gray.300">政{warrior.pol}</Text>
                   </Flex>
                 </VStack>
               </Box>

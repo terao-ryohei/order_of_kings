@@ -90,10 +90,10 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
   const clamped = Math.max(0, Math.min(100, value));
   return (
     <Flex align="center" gap={2} fontSize="xs">
-      <Text w="60px" color={{ base: "gray.600", _dark: "gray.400" }}>
+      <Text w="60px" color="gray.400">
         {label}
       </Text>
-      <Box flex={1} bg={{ base: "gray.200", _dark: "gray.700" }} borderRadius="full" h="8px">
+      <Box flex={1} bg="gray.700" borderRadius="full" h="8px">
         <Box
           bg={clamped >= 70 ? "green.400" : clamped >= 40 ? "yellow.400" : "red.400"}
           h="100%"
@@ -145,25 +145,25 @@ export default function FormationConsultPage() {
   const canConsult = isHydrated && count > 0 && squadType !== null;
 
   return (
-    <Box minH="100vh" bg={{ base: "gray.50", _dark: "gray.900" }} p={4}>
+    <Box minH="100vh" bg="gray.950" p={4}>
       <VStack gap={6} align="stretch" maxW="900px" mx="auto">
         {/* ヘッダー */}
         <Flex align="center" justify="space-between" flexWrap="wrap" gap={3}>
-          <Heading size="xl" color={{ base: "gray.800", _dark: "white" }}>
+          <Heading size="xl" color="white">
             編成相談
           </Heading>
-          <Link to="/my-warriors" style={{ color: "#3182ce", fontSize: "14px" }}>
+          <Link to="/my-warriors" style={{ color: "#ECC94B", fontSize: "14px" }}>
             ← 手持ち武将管理へ
           </Link>
         </Flex>
 
         {/* Step1: 部隊タイプ選択 */}
         <Box
-          bg={{ base: "white", _dark: "gray.800" }}
+          bg="whiteAlpha.100"
           borderRadius="xl"
           p={5}
           borderWidth="1px"
-          borderColor={{ base: "gray.200", _dark: "gray.700" }}
+          borderColor="whiteAlpha.200"
         >
           <Text fontWeight="bold" mb={3}>
             Step 1: 部隊タイプを選択
@@ -181,13 +181,13 @@ export default function FormationConsultPage() {
                 textAlign="center"
                 bg={
                   squadType === opt.type
-                    ? { base: "blue.50", _dark: "blue.900" }
-                    : { base: "gray.50", _dark: "gray.700" }
+                    ? "blue.900"
+                    : "gray.700"
                 }
                 borderRadius="lg"
                 borderWidth="2px"
                 borderColor={
-                  squadType === opt.type ? "blue.400" : { base: "gray.200", _dark: "gray.600" }
+                  squadType === opt.type ? "blue.400" : "gray.600"
                 }
                 p={3}
                 _hover={{ borderColor: "blue.400" }}
@@ -198,7 +198,7 @@ export default function FormationConsultPage() {
                 <Text fontWeight="bold" fontSize="sm">
                   {opt.type}
                 </Text>
-                <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }}>
+                <Text fontSize="xs" color="gray.400">
                   {opt.desc}
                 </Text>
               </Box>
@@ -208,11 +208,11 @@ export default function FormationConsultPage() {
 
         {/* Step2: 想定敵兵種 */}
         <Box
-          bg={{ base: "white", _dark: "gray.800" }}
+          bg="whiteAlpha.100"
           borderRadius="xl"
           p={5}
           borderWidth="1px"
-          borderColor={{ base: "gray.200", _dark: "gray.700" }}
+          borderColor="whiteAlpha.200"
         >
           <Text fontWeight="bold" mb={3}>
             Step 2: 想定敵兵種（任意）
@@ -237,11 +237,11 @@ export default function FormationConsultPage() {
 
         {/* Step3: コスト上限 */}
         <Box
-          bg={{ base: "white", _dark: "gray.800" }}
+          bg="whiteAlpha.100"
           borderRadius="xl"
           p={5}
           borderWidth="1px"
-          borderColor={{ base: "gray.200", _dark: "gray.700" }}
+          borderColor="whiteAlpha.200"
         >
           <Text fontWeight="bold" mb={3}>
             Step 3: コスト上限（任意）
@@ -260,17 +260,17 @@ export default function FormationConsultPage() {
 
         {/* Step4: 手持ち武将確認 */}
         <Box
-          bg={{ base: "white", _dark: "gray.800" }}
+          bg="whiteAlpha.100"
           borderRadius="xl"
           p={5}
           borderWidth="1px"
-          borderColor={{ base: "gray.200", _dark: "gray.700" }}
+          borderColor="whiteAlpha.200"
         >
           <Text fontWeight="bold" mb={2}>
             Step 4: 手持ち武将
           </Text>
           {!isHydrated ? (
-            <Text fontSize="sm" color={{ base: "gray.500", _dark: "gray.400" }}>
+            <Text fontSize="sm" color="gray.400">
               読み込み中...
             </Text>
           ) : count === 0 ? (
@@ -280,13 +280,13 @@ export default function FormationConsultPage() {
               </Text>
               <Link
                 to="/my-warriors"
-                style={{ color: "#3182ce", fontSize: "14px", fontWeight: "bold" }}
+                style={{ color: "#ECC94B", fontSize: "14px", fontWeight: "bold" }}
               >
                 先に手持ち武将を登録してください →
               </Link>
             </VStack>
           ) : (
-            <Text fontSize="sm" color={{ base: "gray.600", _dark: "gray.300" }}>
+            <Text fontSize="sm" color="gray.300">
               手持ち {count}人 から相談します
             </Text>
           )}
@@ -306,23 +306,23 @@ export default function FormationConsultPage() {
         {/* 推薦結果TOP3 */}
         {result && (
           <VStack gap={4} align="stretch">
-            <Heading size="lg" color={{ base: "gray.800", _dark: "white" }}>
+            <Heading size="lg" color="white">
               推薦部隊 TOP3
             </Heading>
 
             {result.top3.length === 0 ? (
-              <Text color={{ base: "gray.500", _dark: "gray.400" }}>
+              <Text color="gray.400">
                 手持ち武将が少なく、編成を構築できませんでした
               </Text>
             ) : (
               result.top3.map((squad) => (
                 <Box
                   key={squad.rank}
-                  bg={{ base: "white", _dark: "gray.800" }}
+                  bg="whiteAlpha.100"
                   borderRadius="xl"
                   p={5}
                   borderWidth="1px"
-                  borderColor={{ base: "gray.200", _dark: "gray.700" }}
+                  borderColor="whiteAlpha.200"
                 >
                   <Flex justify="space-between" align="center" mb={3}>
                     <Flex align="center" gap={2}>
@@ -341,7 +341,7 @@ export default function FormationConsultPage() {
                       <Badge colorPalette="blue" variant="outline">
                         {squadType}
                       </Badge>
-                      <Text fontSize="sm" color={{ base: "gray.600", _dark: "gray.300" }}>
+                      <Text fontSize="sm" color="gray.300">
                         DPS指標: {squad.dpsEstimate}
                       </Text>
                     </Flex>
@@ -354,7 +354,7 @@ export default function FormationConsultPage() {
                         key={i}
                         align="center"
                         gap={3}
-                        bg={{ base: "gray.50", _dark: "gray.700" }}
+                        bg="whiteAlpha.100"
                         borderRadius="md"
                         px={3}
                         py={2}
@@ -382,7 +382,7 @@ export default function FormationConsultPage() {
                   </VStack>
 
                   {/* 説明文 */}
-                  <Text fontSize="sm" color={{ base: "gray.600", _dark: "gray.300" }} mb={3}>
+                  <Text fontSize="sm" color="gray.300" mb={3}>
                     {squad.description}
                   </Text>
 
@@ -417,11 +417,11 @@ export default function FormationConsultPage() {
             {/* 未所持おすすめ武将 */}
             {result.missingWarriors.length > 0 && (
               <Box
-                bg={{ base: "white", _dark: "gray.800" }}
+                bg="whiteAlpha.100"
                 borderRadius="xl"
                 p={5}
                 borderWidth="1px"
-                borderColor={{ base: "yellow.300", _dark: "yellow.600" }}
+                borderColor="yellow.600"
               >
                 <Text fontWeight="bold" mb={3}>
                   この武将がいると更に強くなります
@@ -432,7 +432,7 @@ export default function FormationConsultPage() {
                       <Text fontWeight="bold" fontSize="sm">
                         {mw.name}
                       </Text>
-                      <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }}>
+                      <Text fontSize="xs" color="gray.400">
                         — {mw.reason}
                       </Text>
                     </Flex>
