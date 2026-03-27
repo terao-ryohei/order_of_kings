@@ -141,14 +141,20 @@ export default function WarriorDetail() {
                 .sort((a, b) => a.slot - b.slot)
                 .map((s) => (
                   <Box key={s.skill.id} p={4} bg="whiteAlpha.100" borderRadius="lg">
-                    <HStack gap={2} mb={2}>
-                      <Badge colorPalette="gray">スキル{s.slot}</Badge>
-                      {s.is_unique && <Badge colorPalette="orange">固有</Badge>}
-                      <Badge colorPalette="green">{s.skill.skill_type}</Badge>
-                      {s.skill.weapon_restriction && (
-                        <Badge colorPalette="blue">{s.skill.weapon_restriction}</Badge>
-                      )}
-                    </HStack>
+                    <VStack align="start" gap={1} mb={2}>
+                      <HStack gap={2}>
+                        <Badge colorPalette="gray">
+                          {s.slot === 1 ? "統率スキル" : s.slot === 2 ? "軍師スキル" : `スキル${s.slot}`}
+                        </Badge>
+                        <Badge colorPalette="green">{s.skill.skill_type}</Badge>
+                        {s.skill.weapon_restriction && (
+                          <Badge colorPalette="blue">{s.skill.weapon_restriction}</Badge>
+                        )}
+                      </HStack>
+                      <Text fontSize="xs" color="gray.500">
+                        {s.slot === 1 ? "主将・副将時に第一スキル固定" : s.slot === 2 ? "軍師時に第一スキル固定" : ""}
+                      </Text>
+                    </VStack>
                     <Link to={`/skills/${s.skill.id}`}>
                       <Text fontWeight="bold" color="blue.400" _hover={{ textDecoration: "underline" }}>
                         {s.skill.name}
