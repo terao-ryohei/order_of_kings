@@ -47,21 +47,81 @@ export const handleError = (err: Error, c: Context<Env>): Response => {
   return c.text("予期せぬサーバーエラーが発生しました", 500);
 };
 
-const app = new Hono<Env>()
-  .basePath("/")
-  .onError((err, c) => handleError(err, c))
-  .use(cors())
-  .use(poweredBy())
-  .use(prettyJSON())
-  // API routes
-  .get("/api/warriors/search", ...searchWarriors)
-  .get("/api/warriors", ...getWarriors)
-  .get("/api/warriors/:id", ...getWarrior)
-  .get("/api/skills", ...getSkills)
-  .get("/api/skills/:id", ...getSkill)
-  .post("/api/share-formation", ...shareFormation)
-  .get("/api/formation/:uuid", ...getFormation)
-  .get("/api/health", (c) => c.json({ status: "ok" }));
+const BAD_UA_PATTERNS = [/^$/, /python-requests/i, /Go-http-client/i, /curl\//i, /wget\//i, /scrapy/i, /libwww-perl/i];
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 60;
+const WINDOW_MS = 60_000;
+
+const app = new Hono<Env>();
+
+app.basePath("/");
+app.onError((err, c) => handleError(err, c));
+app.use(cors());
+app.use(poweredBy());
+app.use(prettyJSON());
+
+app.use("*", async (c, next) => {
+  await next();
+  c.header("X-Content-Type-Options", "nosniff");
+  c.header("X-Frame-Options", "DENY");
+  c.header("Referrer-Policy", "strict-origin-when-cross-origin");
+  c.header("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  c.header("Cross-Origin-Opener-Policy", "same-origin");
+});
+
+app.use("/api/*", async (c, next) => {
+  const ua = c.req.header("User-Agent") ?? "";
+  if (BAD_UA_PATTERNS.some((pattern) => pattern.test(ua))) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+  await next();
+});
+
+app.use("/api/*", async (c, next) => {
+  const ip = c.req.header("CF-Connecting-IP") ?? "unknown";
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + WINDOW_MS });
+  } else {
+    entry.count += 1;
+    if (entry.count > RATE_LIMIT) {
+      return c.json({ error: "Too Many Requests" }, 429);
+    }
+  }
+
+  await next();
+});
+
+app.use("/api/*", async (c, next) => {
+  if (c.req.method === "POST") {
+    const origin = c.req.header("Origin");
+    const host = c.req.header("Host");
+
+    if (origin && host) {
+      try {
+        if (new URL(origin).host !== host) {
+          return c.json({ error: "CSRF check failed" }, 403);
+        }
+      } catch {
+        return c.json({ error: "CSRF check failed" }, 403);
+      }
+    }
+  }
+
+  await next();
+});
+
+// API routes
+app.get("/api/warriors/search", ...searchWarriors);
+app.get("/api/warriors", ...getWarriors);
+app.get("/api/warriors/:id", ...getWarrior);
+app.get("/api/skills", ...getSkills);
+app.get("/api/skills/:id", ...getSkill);
+app.post("/api/share-formation", ...shareFormation);
+app.get("/api/formation/:uuid", ...getFormation);
+app.get("/api/health", (c) => c.json({ status: "ok" }));
 
 export type AppType = typeof app;
 
