@@ -66,23 +66,25 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     ? JSON.parse(profile.warriorIds)
     : [];
 
-  const hasWarriorShare = !!profile.warriorIds;
-
-  // 全武将を取得してレンダリング側で保有/非保有ハイライト判定
-  const allWarriorRows: WarriorRow[] = await db
-    .select({
-      id: warriors.id,
-      name: warriors.name,
-      reading: warriors.reading,
-      rarity: warriors.rarity,
-      cost: warriors.cost,
-      atk: warriors.atk,
-      int: warriors.int,
-      guts: warriors.guts,
-      pol: warriors.pol,
-      era: warriors.era,
-    })
-    .from(warriors);
+  // 保有武将のみ取得
+  const ownedWarriorRows: WarriorRow[] =
+    ownedWarriorIds.length > 0
+      ? await db
+          .select({
+            id: warriors.id,
+            name: warriors.name,
+            reading: warriors.reading,
+            rarity: warriors.rarity,
+            cost: warriors.cost,
+            atk: warriors.atk,
+            int: warriors.int,
+            guts: warriors.guts,
+            pol: warriors.pol,
+            era: warriors.era,
+          })
+          .from(warriors)
+          .where(inArray(warriors.id, ownedWarriorIds))
+      : [];
 
   const skillIds: number[] = profile.skillIds
     ? JSON.parse(profile.skillIds)
@@ -104,13 +106,14 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   const createdAtFormatted = (() => {
     const d = new Date(profile.createdAt);
     const pad = (n: number) => String(n).padStart(2, "0");
-    return `${d.getUTCFullYear()}/${pad(d.getUTCMonth() + 1)}/${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+    return `${d.getUTCFullYear()}/${pad(d.getUTCMonth() + 1)}/${pad(
+      d.getUTCDate()
+    )} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
   })();
 
   return {
-    allWarriorRows,
-    ownedWarriorIds,
-    hasWarriorShare,
+    ownedWarriorRows,
+    hasWarriorShare: !!profile.warriorIds,
     formations,
     sharedSkills,
     createdAtFormatted,
@@ -118,7 +121,8 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 }
 
 function RarityStars({ rarity }: { rarity: number }) {
-  const color = rarity >= 5 ? "yellow.400" : rarity >= 4 ? "purple.400" : "blue.400";
+  const color =
+    rarity >= 5 ? "yellow.400" : rarity >= 4 ? "purple.400" : "blue.400";
   return (
     <Text color={color} fontWeight="bold" fontSize="sm">
       {"★".repeat(rarity)}
@@ -127,10 +131,13 @@ function RarityStars({ rarity }: { rarity: number }) {
 }
 
 export default function ShareViewPage() {
-  const { allWarriorRows, ownedWarriorIds, hasWarriorShare, formations, sharedSkills, createdAtFormatted } =
-    useLoaderData<typeof loader>();
-
-  const ownedSet = new Set(ownedWarriorIds);
+  const {
+    ownedWarriorRows,
+    hasWarriorShare,
+    formations,
+    sharedSkills,
+    createdAtFormatted,
+  } = useLoaderData<typeof loader>();
 
   const handleCopyFormation = (formation: SavedFormation) => {
     try {
@@ -151,7 +158,10 @@ export default function ShareViewPage() {
         created_at: new Date().toISOString(),
         name: `${formation.name}（コピー）`,
       };
-      localStorage.setItem("saved_formations", JSON.stringify([newEntry, ...existing]));
+      localStorage.setItem(
+        "saved_formations",
+        JSON.stringify([newEntry, ...existing])
+      );
       alert(`「${formation.name}」を編成に取り込みました`);
     } catch {
       alert("コピーに失敗しました");
@@ -184,84 +194,108 @@ export default function ShareViewPage() {
           p={5}
         >
           <VStack align="stretch" gap={4}>
-            <Flex justify="space-between" align="center" flexWrap="wrap" gap={2}>
-              <Heading size="md" color="yellow.300">
-                {hasWarriorShare
-                  ? `手持ち武将 (${ownedWarriorIds.length}種 / 全${allWarriorRows.length}種)`
-                  : "武将一覧"}
-              </Heading>
-              {hasWarriorShare && (
-                <Flex gap={3} fontSize="xs">
-                  <Flex align="center" gap={1}>
-                    <Box w={3} h={3} bg="green.500" borderRadius="sm" />
-                    <Text color="gray.400">保有</Text>
-                  </Flex>
-                  <Flex align="center" gap={1}>
-                    <Box w={3} h={3} bg="gray.600" borderRadius="sm" />
-                    <Text color="gray.400">未保有</Text>
-                  </Flex>
-                </Flex>
-              )}
-            </Flex>
+            <Heading size="md" color="yellow.300">
+              {hasWarriorShare
+                ? `手持ち武将 (${ownedWarriorRows.length}種)`
+                : "武将一覧"}
+            </Heading>
 
-            {allWarriorRows.length === 0 ? (
+            {ownedWarriorRows.length === 0 ? (
               <Text color="gray.400" fontSize="sm">
                 武将データなし
               </Text>
             ) : (
               <SimpleGrid columns={{ base: 2, sm: 3, md: 4, lg: 5 }} gap={3}>
-                {allWarriorRows.map((warrior) => {
-                  const owned = !hasWarriorShare || ownedSet.has(warrior.id);
-                  return (
-                    <Box
-                      key={warrior.id}
-                      bg={owned ? "whiteAlpha.150" : "whiteAlpha.50"}
-                      borderRadius="xl"
-                      borderWidth="1px"
-                      borderColor={owned ? "green.700" : "whiteAlpha.100"}
-                      p={3}
-                      opacity={owned ? 1 : 0.4}
-                      position="relative"
-                      filter={owned ? undefined : "grayscale(60%)"}
-                    >
-                      {hasWarriorShare && ownedSet.has(warrior.id) && (
-                        <Badge
-                          position="absolute"
-                          top={1}
-                          right={1}
-                          colorPalette="green"
-                          size="sm"
-                          borderRadius="full"
-                        >
-                          ✓
+                {ownedWarriorRows.map((warrior) => (
+                  <Box
+                    key={warrior.id}
+                    bg="whiteAlpha.150"
+                    borderRadius="xl"
+                    borderWidth="1px"
+                    borderColor="green.700"
+                    p={3}
+                  >
+                    <VStack gap={1} align="start">
+                      <RarityStars rarity={warrior.rarity} />
+                      <Text fontWeight="bold" fontSize="sm" lineClamp={1}>
+                        {warrior.name}
+                      </Text>
+                      <Text fontSize="xs" color="gray.400">
+                        {warrior.reading}
+                      </Text>
+                      {warrior.era && (
+                        <Badge colorPalette="blue" size="sm">
+                          {warrior.era}
                         </Badge>
                       )}
-                      <VStack gap={1} align="start">
-                        <RarityStars rarity={warrior.rarity} />
-                        <Text fontWeight="bold" fontSize="sm" lineClamp={1}>
-                          {warrior.name}
+                      <Flex gap={2} wrap="wrap">
+                        <Text fontSize="xs" color="gray.300">
+                          武{warrior.atk}
                         </Text>
-                        <Text fontSize="xs" color="gray.400">
-                          {warrior.reading}
+                        <Text fontSize="xs" color="gray.300">
+                          知{warrior.int}
                         </Text>
-                        {warrior.era && (
-                          <Badge colorPalette="blue" size="sm">
-                            {warrior.era}
-                          </Badge>
-                        )}
-                        <Flex gap={2} wrap="wrap">
-                          <Text fontSize="xs" color="gray.300">武{warrior.atk}</Text>
-                          <Text fontSize="xs" color="gray.300">知{warrior.int}</Text>
-                          <Text fontSize="xs" color="gray.300">胆{warrior.guts}</Text>
-                        </Flex>
-                      </VStack>
-                    </Box>
-                  );
-                })}
+                        <Text fontSize="xs" color="gray.300">
+                          胆{warrior.guts}
+                        </Text>
+                      </Flex>
+                    </VStack>
+                  </Box>
+                ))}
               </SimpleGrid>
             )}
           </VStack>
         </Box>
+
+        {/* 手持ちスキル */}
+        {sharedSkills.length > 0 && (
+          <Box
+            bg="whiteAlpha.100"
+            borderRadius="2xl"
+            borderWidth="1px"
+            borderColor="whiteAlpha.200"
+            p={5}
+          >
+            <VStack align="stretch" gap={4}>
+              <Heading size="md" color="yellow.300">
+                手持ちスキル ({sharedSkills.length}個)
+              </Heading>
+              <Flex gap={2} flexWrap="wrap">
+                {sharedSkills.map((skill) => (
+                  <Box
+                    key={skill.id}
+                    bg="gray.900"
+                    borderRadius="xl"
+                    borderWidth="1px"
+                    borderColor="whiteAlpha.200"
+                    px={3}
+                    py={2}
+                  >
+                    <Flex align="center" gap={2}>
+                      <Text fontWeight="bold" fontSize="sm" color="white">
+                        {skill.name}
+                      </Text>
+                      <Badge
+                        colorPalette={
+                          skill.skill_type === "パッシブ"
+                            ? "green"
+                            : skill.skill_type === "能動"
+                            ? "blue"
+                            : skill.skill_type === "連鎖"
+                            ? "orange"
+                            : "red"
+                        }
+                        size="sm"
+                      >
+                        {skill.skill_type}
+                      </Badge>
+                    </Flex>
+                  </Box>
+                ))}
+              </Flex>
+            </VStack>
+          </Box>
+        )}
 
         {/* 共有編成 */}
         <Box
@@ -345,55 +379,6 @@ export default function ShareViewPage() {
             )}
           </VStack>
         </Box>
-        {/* 手持ちスキル */}
-        {sharedSkills.length > 0 && (
-          <Box
-            bg="whiteAlpha.100"
-            borderRadius="2xl"
-            borderWidth="1px"
-            borderColor="whiteAlpha.200"
-            p={5}
-          >
-            <VStack align="stretch" gap={4}>
-              <Heading size="md" color="yellow.300">
-                手持ちスキル ({sharedSkills.length}個)
-              </Heading>
-              <Flex gap={2} flexWrap="wrap">
-                {sharedSkills.map((skill) => (
-                  <Box
-                    key={skill.id}
-                    bg="gray.900"
-                    borderRadius="xl"
-                    borderWidth="1px"
-                    borderColor="whiteAlpha.200"
-                    px={3}
-                    py={2}
-                  >
-                    <Flex align="center" gap={2}>
-                      <Text fontWeight="bold" fontSize="sm" color="white">
-                        {skill.name}
-                      </Text>
-                      <Badge
-                        colorPalette={
-                          skill.skill_type === "パッシブ"
-                            ? "green"
-                            : skill.skill_type === "能動"
-                              ? "blue"
-                              : skill.skill_type === "連鎖"
-                                ? "orange"
-                                : "red"
-                        }
-                        size="sm"
-                      >
-                        {skill.skill_type}
-                      </Badge>
-                    </Flex>
-                  </Box>
-                ))}
-              </Flex>
-            </VStack>
-          </Box>
-        )}
       </VStack>
     </Box>
   );
