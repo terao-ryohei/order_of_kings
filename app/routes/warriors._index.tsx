@@ -9,7 +9,7 @@ import {
 } from "@chakra-ui/react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { Form, Link, useLoaderData } from "@remix-run/react";
-import { asc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { warriorRoles, warriors } from "../../server/db/schema";
 
@@ -41,19 +41,19 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       .select()
       .from(warriors)
       .where(eq(warriors.rarity, rarityNum))
-      .orderBy(asc(warriors.sort_order));
+      .orderBy(desc(warriors.rarity), desc(warriors.cost), asc(warriors.sort_order));
   } else if (era) {
     result = await db
       .select()
       .from(warriors)
       .where(eq(warriors.era, era))
-      .orderBy(asc(warriors.sort_order));
+      .orderBy(desc(warriors.rarity), desc(warriors.cost), asc(warriors.sort_order));
   } else {
     result = await db
       .select()
       .from(warriors)
       .where(eq(warriors.is_delete, false))
-      .orderBy(asc(warriors.sort_order));
+      .orderBy(desc(warriors.rarity), desc(warriors.cost), asc(warriors.sort_order));
   }
 
   return { warriors: result, filters: { rarity, era, role } };

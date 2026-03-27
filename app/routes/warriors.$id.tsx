@@ -85,6 +85,7 @@ export default function WarriorDetail() {
               <Heading size="2xl">{warrior.name}</Heading>
               <HStack gap={2} flexWrap="wrap">
                 <Text color="yellow.400" fontWeight="bold">{"★".repeat(warrior.rarity)}</Text>
+                <Badge colorPalette="gray" variant="outline">C{warrior.cost}</Badge>
                 {warrior.era && <Badge colorPalette="blue">{warrior.era}</Badge>}
                 {roles.map((r) => (
                   <Badge key={r.id} colorPalette="purple">{r.role}</Badge>
