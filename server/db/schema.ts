@@ -102,6 +102,14 @@ export const sharedCollections = sqliteTable("shared_collections", {
   created_at: text("created_at").default(sql`CURRENT_TIMESTAMP`),
 });
 
+// 10. 共有プロフィール（手持ち武将 + 保存編成の一括共有）
+export const sharedProfiles = sqliteTable("shared_profiles", {
+  uuid: text("uuid").primaryKey(),
+  warriorIds: text("warrior_ids"),   // JSON配列 or null
+  formations: text("formations"),    // JSON配列（最大5個）
+  createdAt: text("created_at").notNull(),
+});
+
 // 9. ゲーム仕様テキスト
 export const gameMechanics = sqliteTable("game_mechanics", {
   id: integer("id").primaryKey({ autoIncrement: true }),

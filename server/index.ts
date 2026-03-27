@@ -9,6 +9,7 @@ import { ZodError } from "zod";
 import { getWarriors, searchWarriors, getWarrior } from "./routes/warriors";
 import { getSkills, getSkill } from "./routes/skills";
 import { shareFormation, getFormation } from "./routes/formations";
+import { shareProfile, getShareProfile } from "./routes/shareProfiles";
 
 export const dbClient = (db?: D1Database) => {
   if (!db) {
@@ -121,6 +122,8 @@ app.get("/api/skills", ...getSkills);
 app.get("/api/skills/:id", ...getSkill);
 app.post("/api/share-formation", ...shareFormation);
 app.get("/api/formation/:uuid", ...getFormation);
+app.post("/api/share-profile", ...shareProfile);
+app.get("/api/share-profile/:uuid", ...getShareProfile);
 app.get("/api/health", (c) => c.json({ status: "ok" }));
 
 export type AppType = typeof app;
