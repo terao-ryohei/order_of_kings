@@ -8,9 +8,10 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
-import { Form, Link, useLoaderData } from "@remix-run/react";
+import { Form, Link, useLoaderData, useNavigate, useSearchParams } from "@remix-run/react";
 import { and, asc, desc, eq, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { warriorRoles, warriors } from "../../server/db/schema";
 
 export const meta: MetaFunction = () => [
@@ -18,17 +19,26 @@ export const meta: MetaFunction = () => [
   { name: "description", content: "武将一覧ページ" },
 ];
 
+function toKatakana(str: string): string {
+  return str.replace(/[\u3041-\u3096]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) + 0x60));
+}
+
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const rarity = url.searchParams.get("rarity");
   const era = url.searchParams.get("era");
   const role = url.searchParams.get("role");
   const name = url.searchParams.get("name") ?? "";
+  const nameKana = toKatakana(name);
 
   const db = drizzle((context.cloudflare as any).env.DB);
 
   const nameFilter = name
-    ? or(like(warriors.name, `%${name}%`), like(warriors.reading, `%${name}%`))
+    ? or(
+        like(warriors.name, `%${name}%`),
+        like(warriors.reading, `%${name}%`),
+        like(warriors.reading, `%${nameKana}%`),
+      )
     : undefined;
 
   let result;
@@ -75,6 +85,42 @@ function RarityStars({ rarity }: { rarity: number }) {
 
 export default function Index() {
   const { warriors: data, filters } = useLoaderData<typeof loader>();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [, startTransition] = useTransition();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [nameValue, setNameValue] = useState(searchParams.get("name") ?? "");
+
+  useEffect(() => {
+    setNameValue(searchParams.get("name") ?? "");
+  }, [searchParams]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
+
+  const handleNameChange = (value: string) => {
+    setNameValue(value);
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    debounceRef.current = setTimeout(() => {
+      startTransition(() => {
+        const params = new URLSearchParams(searchParams);
+        if (value) {
+          params.set("name", value);
+        } else {
+          params.delete("name");
+        }
+        navigate(params.toString() ? `?${params.toString()}` : "?", { replace: true });
+      });
+    }, 300);
+  };
 
   return (
     <Box minH="100vh" bg="gray.950" p={4}>
@@ -160,7 +206,8 @@ export default function Index() {
               </Text>
               <input
                 name="name"
-                defaultValue={filters.name ?? ""}
+                value={nameValue}
+                onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="武将名で検索..."
                 style={{
                   padding: "6px 12px",
