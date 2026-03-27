@@ -9,7 +9,7 @@ import {
 } from "@chakra-ui/react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { Form, Link, useLoaderData, useNavigate, useSearchParams } from "@remix-run/react";
-import { and, asc, eq, like, notInArray } from "drizzle-orm";
+import { and, asc, eq, isNull, like } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { skills, warriorSkills } from "../../server/db/schema";
@@ -32,15 +32,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const db = drizzle((context.cloudflare as any).env.DB);
 
-  // 固有スキル非表示時: warrior_skillsに紐づくスキルを除外
-  let uniqueSkillIds: number[] = [];
-  if (!showUnique) {
-    const uniqueLinks = await db
-      .selectDistinct({ skill_id: warriorSkills.skill_id })
-      .from(warriorSkills);
-    uniqueSkillIds = uniqueLinks.map((r) => r.skill_id);
-  }
-
   const nameFilter = name ? like(skills.name, `%${name}%`) : undefined;
 
   let whereClause;
@@ -58,13 +49,29 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     whereClause = eq(skills.is_delete, false);
   }
 
-  if (!showUnique && uniqueSkillIds.length > 0) {
-    whereClause = whereClause
-      ? and(whereClause, notInArray(skills.id, uniqueSkillIds))
-      : notInArray(skills.id, uniqueSkillIds);
+  let result;
+  if (!showUnique) {
+    // 固有スキル除外: LEFT JOIN + IS NULL (NOT INのパラメータ上限超過を回避)
+    const uniqueExclude = isNull(warriorSkills.skill_id);
+    result = await db
+      .select({
+        id: skills.id,
+        name: skills.name,
+        color: skills.color,
+        weapon_restriction: skills.weapon_restriction,
+        skill_type: skills.skill_type,
+        description: skills.description,
+        rarity: skills.rarity,
+        sort_order: skills.sort_order,
+        is_delete: skills.is_delete,
+      })
+      .from(skills)
+      .leftJoin(warriorSkills, eq(skills.id, warriorSkills.skill_id))
+      .where(whereClause ? and(whereClause, uniqueExclude) : uniqueExclude)
+      .orderBy(asc(skills.sort_order));
+  } else {
+    result = await db.select().from(skills).where(whereClause).orderBy(asc(skills.sort_order));
   }
-
-  const result = await db.select().from(skills).where(whereClause).orderBy(asc(skills.sort_order));
 
   return { skills: result, filters: { skill_type, weapon_restriction, name, showUnique } };
 }
