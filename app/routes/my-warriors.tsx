@@ -4,6 +4,7 @@ import {
   Button,
   Flex,
   Heading,
+  IconButton,
   SimpleGrid,
   Text,
   VStack,
@@ -42,7 +43,18 @@ function RarityStars({ rarity }: { rarity: number }) {
 
 export default function MyWarriorsPage() {
   const { warriors: data } = useLoaderData<typeof loader>();
-  const { count, has, isHydrated, setAll, toggle, clear } = useMyWarriors();
+  const {
+    count,
+    totalCount,
+    has,
+    getCount,
+    isHydrated,
+    setAll,
+    toggle,
+    increment,
+    decrement,
+    clear,
+  } = useMyWarriors();
 
   const handleSelectFiveStars = () => {
     setAll(data.filter((warrior) => warrior.rarity === 5).map((warrior) => warrior.id));
@@ -61,7 +73,7 @@ export default function MyWarriorsPage() {
               手持ち武将管理
             </Heading>
             <Text fontSize="sm" color="gray.400">
-              選択中: {isHydrated ? count : 0}/{data.length}人
+              {isHydrated ? `${count}種 / ${totalCount}枚` : "0種 / 0枚"} 選択中
             </Text>
           </VStack>
           <Link to="/" style={{ color: "#ECC94B", fontSize: "14px" }}>
@@ -84,6 +96,7 @@ export default function MyWarriorsPage() {
         <SimpleGrid columns={{ base: 2, sm: 3, md: 4, lg: 5 }} gap={4}>
           {data.map((warrior) => {
             const selected = isHydrated && has(warrior.id);
+            const copyCount = isHydrated ? getCount(warrior.id) : 0;
 
             return (
               <Box
@@ -100,7 +113,22 @@ export default function MyWarriorsPage() {
                 _hover={{ shadow: "lg", transform: "translateY(-2px)", borderColor: "blue.400" }}
                 transition="all 0.2s"
                 cursor="pointer"
+                position="relative"
               >
+                {copyCount > 1 && (
+                  <Badge
+                    position="absolute"
+                    top="-8px"
+                    right="-8px"
+                    colorPalette="yellow"
+                    variant="solid"
+                    fontSize="xs"
+                    borderRadius="full"
+                    px={2}
+                  >
+                    ×{copyCount}
+                  </Badge>
+                )}
                 <VStack gap={2} align="start">
                   <Flex justify="space-between" w="100%" align="center">
                     <RarityStars rarity={warrior.rarity} />
@@ -121,6 +149,40 @@ export default function MyWarriorsPage() {
                     <Text fontSize="xs" color="gray.300">胆{warrior.guts}</Text>
                     <Text fontSize="xs" color="gray.300">政{warrior.pol}</Text>
                   </Flex>
+                  {selected && (
+                    <Flex
+                      gap={2}
+                      align="center"
+                      justify="center"
+                      w="100%"
+                      pt={1}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <IconButton
+                        aria-label="1枚減らす"
+                        size="xs"
+                        variant="outline"
+                        colorPalette="red"
+                        borderRadius="full"
+                        onClick={() => decrement(warrior.id)}
+                      >
+                        −
+                      </IconButton>
+                      <Text fontSize="sm" fontWeight="bold" color="white" minW="24px" textAlign="center">
+                        {copyCount}
+                      </Text>
+                      <IconButton
+                        aria-label="1枚追加"
+                        size="xs"
+                        variant="outline"
+                        colorPalette="green"
+                        borderRadius="full"
+                        onClick={() => increment(warrior.id)}
+                      >
+                        +
+                      </IconButton>
+                    </Flex>
+                  )}
                 </VStack>
               </Box>
             );
