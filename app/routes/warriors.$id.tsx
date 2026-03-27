@@ -52,6 +52,13 @@ const APTITUDE_COLOR: Record<string, string> = {
   "凡": "gray",
 };
 
+const RANK_MAP: Record<string, string> = {
+  極: "S", 優: "A", 良: "B", 凡: "C",
+};
+const TROOP_MAP: Record<string, string> = {
+  刀: "刀兵", 弓: "弓兵", 騎: "騎兵", 槍: "槍兵", 盾: "盾兵",
+};
+
 function StatBox({ label, value, growth }: { label: string; value: number; growth: number }) {
   const lv40 = Math.round(value + growth * 39);
   return (
@@ -115,9 +122,9 @@ export default function WarriorDetail() {
             <Flex gap={3} flexWrap="wrap">
               {aptitudes.map((apt) => (
                 <Box key={apt.id} textAlign="center" minW="60px">
-                  <Text fontSize="sm" color="gray.400" mb={1}>{apt.weapon_type}</Text>
+                  <Text fontSize="sm" color="gray.400" mb={1}>{TROOP_MAP[apt.weapon_type] ?? apt.weapon_type}</Text>
                   <Badge colorPalette={APTITUDE_COLOR[apt.aptitude] ?? "gray"} size="lg">
-                    {apt.aptitude}
+                    {RANK_MAP[apt.aptitude] ?? apt.aptitude}
                   </Badge>
                 </Box>
               ))}
