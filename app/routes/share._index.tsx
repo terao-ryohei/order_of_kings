@@ -39,7 +39,9 @@ export default function ShareIndexPage() {
   const { savedFormations } = useSavedFormations();
 
   const [includeWarriors, setIncludeWarriors] = useState(true);
-  const [selectedFormationIds, setSelectedFormationIds] = useState<Set<string>>(new Set());
+  const [selectedFormationIds, setSelectedFormationIds] = useState<Set<string>>(
+    new Set()
+  );
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,7 +74,8 @@ export default function ShareIndexPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          warrior_ids: includeWarriors && myWarriorIds.length > 0 ? myWarriorIds : null,
+          warrior_ids:
+            includeWarriors && myWarriorIds.length > 0 ? myWarriorIds : null,
           formations: selectedFormations,
         }),
       });
@@ -127,11 +130,16 @@ export default function ShareIndexPage() {
               手持ち武将
             </Heading>
             {!isHydrated ? (
-              <Text color="gray.400" fontSize="sm">読み込み中...</Text>
+              <Text color="gray.400" fontSize="sm">
+                読み込み中...
+              </Text>
             ) : myWarriorIds.length === 0 ? (
               <Text color="gray.400" fontSize="sm">
                 手持ち武将が登録されていません。
-                <Link to="/my-warriors" style={{ color: "#ECC94B", marginLeft: "4px" }}>
+                <Link
+                  to="/my-warriors"
+                  style={{ color: "#ECC94B", marginLeft: "4px" }}
+                >
                   /my-warriors で登録
                 </Link>
               </Text>
@@ -166,8 +174,15 @@ export default function ShareIndexPage() {
                       {allWarriors
                         .filter((w) => myWarriorIds.includes(w.id))
                         .map((w) => (
-                          <Badge key={w.id} colorPalette="yellow" variant="subtle" fontSize="xs">
-                            {getCount(w.id) > 1 ? `${w.name}×${getCount(w.id)}` : w.name}
+                          <Badge
+                            key={w.id}
+                            colorPalette="yellow"
+                            variant="subtle"
+                            fontSize="xs"
+                          >
+                            {getCount(w.id) > 1
+                              ? `${w.name}×${getCount(w.id)}`
+                              : w.name}
                           </Badge>
                         ))}
                     </Flex>
@@ -198,8 +213,11 @@ export default function ShareIndexPage() {
             {savedFormations.length === 0 ? (
               <Text color="gray.400" fontSize="sm">
                 保存済み編成がありません。
-                <Link to="/formation" style={{ color: "#ECC94B", marginLeft: "4px" }}>
-                  /formation で作成
+                <Link
+                  to="/formation"
+                  style={{ color: "#ECC94B", marginLeft: "4px" }}
+                >
+                  編成作成
                 </Link>
               </Text>
             ) : (
@@ -230,7 +248,8 @@ export default function ShareIndexPage() {
                               {f.name}
                             </Text>
                             <Text color="gray.400" fontSize="xs">
-                              武{f.total_score.atk} 知{f.total_score.int} 胆{f.total_score.guts}
+                              武{f.total_score.atk} 知{f.total_score.int} 胆
+                              {f.total_score.guts}
                             </Text>
                           </VStack>
                         </Checkbox.Label>
