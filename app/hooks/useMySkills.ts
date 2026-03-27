@@ -2,10 +2,8 @@ import { useEffect, useState } from "react";
 
 const STORAGE_KEY = "imperial_my_skills";
 
-type SkillCounts = Record<number, number>;
-
 export function useMySkills() {
-  const [skillCounts, setSkillCounts] = useState<SkillCounts>({});
+  const [skillIds, setSkillIds] = useState<number[]>([]);
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
@@ -14,16 +12,17 @@ export function useMySkills() {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
-          const counts: SkillCounts = {};
-          for (const [k, v] of Object.entries(parsed)) {
-            const id = Number(k);
-            const count = Number(v);
-            if (Number.isInteger(id) && id > 0 && Number.isInteger(count) && count > 0) {
-              counts[id] = count;
-            }
-          }
-          setSkillCounts(counts);
+        if (Array.isArray(parsed)) {
+          const ids = parsed
+            .map(Number)
+            .filter((id) => Number.isInteger(id) && id > 0);
+          setSkillIds([...new Set(ids)]);
+        } else if (typeof parsed === "object" && parsed !== null) {
+          // migrate from old Record<number, number> format
+          const ids = Object.keys(parsed)
+            .map(Number)
+            .filter((id) => Number.isInteger(id) && id > 0);
+          setSkillIds(ids);
         }
       }
     } catch {
@@ -35,48 +34,41 @@ export function useMySkills() {
 
   useEffect(() => {
     if (!isHydrated || typeof window === "undefined") return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(skillCounts));
-  }, [isHydrated, skillCounts]);
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(skillIds));
+  }, [isHydrated, skillIds]);
 
-  const increment = (id: number) => {
-    setSkillCounts((current) => ({
-      ...current,
-      [id]: (current[id] ?? 0) + 1,
-    }));
+  const add = (id: number) => {
+    setSkillIds((current) =>
+      current.includes(id) ? current : [...current, id]
+    );
   };
 
-  const decrement = (id: number) => {
-    setSkillCounts((current) => {
-      const count = current[id] ?? 0;
-      if (count <= 1) {
-        const { [id]: _, ...rest } = current;
-        return rest;
-      }
-      return { ...current, [id]: count - 1 };
-    });
+  const remove = (id: number) => {
+    setSkillIds((current) => current.filter((x) => x !== id));
   };
 
-  const has = (id: number) => (skillCounts[id] ?? 0) > 0;
+  const toggle = (id: number) => {
+    setSkillIds((current) =>
+      current.includes(id)
+        ? current.filter((x) => x !== id)
+        : [...current, id]
+    );
+  };
 
-  const getCount = (id: number) => skillCounts[id] ?? 0;
+  const has = (id: number) => skillIds.includes(id);
 
   const clear = () => {
-    setSkillCounts({});
+    setSkillIds([]);
   };
 
-  const totalCount = Object.values(skillCounts).reduce((sum, c) => sum + c, 0);
-  const uniqueCount = Object.keys(skillCounts).length;
-
   return {
-    mySkillIds: Object.keys(skillCounts).map(Number),
-    skillCounts,
+    mySkillIds: skillIds,
     isHydrated,
-    increment,
-    decrement,
+    add,
+    remove,
+    toggle,
     has,
-    getCount,
-    count: uniqueCount,
-    totalCount,
+    count: skillIds.length,
     clear,
   };
 }
