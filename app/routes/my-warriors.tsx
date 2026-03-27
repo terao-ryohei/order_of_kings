@@ -49,20 +49,11 @@ export default function MyWarriorsPage() {
     has,
     getCount,
     isHydrated,
-    setAll,
     toggle,
     increment,
     decrement,
     clear,
   } = useMyWarriors();
-
-  const handleSelectFiveStars = () => {
-    setAll(data.filter((warrior) => warrior.rarity === 5).map((warrior) => warrior.id));
-  };
-
-  const handleSelectAll = () => {
-    setAll(data.map((warrior) => warrior.id));
-  };
 
   return (
     <Box minH="100vh" bg="gray.950" p={4}>
@@ -82,12 +73,6 @@ export default function MyWarriorsPage() {
         </Flex>
 
         <Flex gap={3} flexWrap="wrap">
-          <Button colorPalette="blue" onClick={handleSelectFiveStars}>
-            ★5のみ選択
-          </Button>
-          <Button variant="outline" onClick={handleSelectAll}>
-            全選択
-          </Button>
           <Button variant="ghost" onClick={clear}>
             全解除
           </Button>

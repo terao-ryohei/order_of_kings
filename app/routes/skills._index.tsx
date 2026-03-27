@@ -8,10 +8,15 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
-import { Form, Link, useLoaderData } from "@remix-run/react";
-import { eq, asc } from "drizzle-orm";
+import { Form, Link, useLoaderData, useNavigate, useSearchParams } from "@remix-run/react";
+import { and, asc, eq, like } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { skills } from "../../server/db/schema";
+
+function toKatakana(str: string): string {
+  return str.replace(/[\u3041-\u3096]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) + 0x60));
+}
 
 export const meta: MetaFunction = () => [
   { title: "スキル一覧 - 王の勅命" },
@@ -22,19 +27,30 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const skill_type = url.searchParams.get("skill_type");
   const weapon_restriction = url.searchParams.get("weapon_restriction");
+  const name = url.searchParams.get("name") ?? "";
 
   const db = drizzle((context.cloudflare as any).env.DB);
 
-  let result;
-  if (skill_type) {
-    result = await db.select().from(skills).where(eq(skills.skill_type, skill_type)).orderBy(asc(skills.sort_order));
+  const nameFilter = name ? like(skills.name, `%${name}%`) : undefined;
+
+  let whereClause;
+  if (skill_type && nameFilter) {
+    whereClause = and(eq(skills.skill_type, skill_type), nameFilter);
+  } else if (skill_type) {
+    whereClause = eq(skills.skill_type, skill_type);
+  } else if (weapon_restriction && nameFilter) {
+    whereClause = and(eq(skills.weapon_restriction, weapon_restriction), nameFilter);
   } else if (weapon_restriction) {
-    result = await db.select().from(skills).where(eq(skills.weapon_restriction, weapon_restriction)).orderBy(asc(skills.sort_order));
+    whereClause = eq(skills.weapon_restriction, weapon_restriction);
+  } else if (nameFilter) {
+    whereClause = and(eq(skills.is_delete, false), nameFilter);
   } else {
-    result = await db.select().from(skills).where(eq(skills.is_delete, false)).orderBy(asc(skills.sort_order));
+    whereClause = eq(skills.is_delete, false);
   }
 
-  return { skills: result, filters: { skill_type, weapon_restriction } };
+  const result = await db.select().from(skills).where(whereClause).orderBy(asc(skills.sort_order));
+
+  return { skills: result, filters: { skill_type, weapon_restriction, name } };
 }
 
 const SKILL_TYPE_COLOR: Record<string, string> = {
@@ -46,6 +62,37 @@ const SKILL_TYPE_COLOR: Record<string, string> = {
 
 export default function SkillsIndex() {
   const { skills: data, filters } = useLoaderData<typeof loader>();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [, startTransition] = useTransition();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [nameValue, setNameValue] = useState(searchParams.get("name") ?? "");
+
+  useEffect(() => {
+    setNameValue(searchParams.get("name") ?? "");
+  }, [searchParams]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
+  const handleNameChange = (value: string) => {
+    setNameValue(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      startTransition(() => {
+        const params = new URLSearchParams(searchParams);
+        if (value) {
+          params.set("name", value);
+        } else {
+          params.delete("name");
+        }
+        navigate(params.toString() ? `?${params.toString()}` : "?", { replace: true });
+      });
+    }, 300);
+  };
 
   return (
     <Box minH="100vh" bg="gray.950" p={4}>
@@ -86,6 +133,23 @@ export default function SkillsIndex() {
                 <option value="槍">槍</option>
               </select>
             </Box>
+            <Box>
+              <Text fontSize="sm" mb={1} color="gray.400">スキル名</Text>
+              <input
+                name="name"
+                value={nameValue}
+                onChange={(e) => handleNameChange(e.target.value)}
+                placeholder="キーワード検索"
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: "6px",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  background: "transparent",
+                  color: "white",
+                  width: "140px",
+                }}
+              />
+            </Box>
             <Box alignSelf="flex-end">
               <button
                 type="submit"
@@ -94,7 +158,7 @@ export default function SkillsIndex() {
                 絞り込み
               </button>
             </Box>
-            {(filters.skill_type || filters.weapon_restriction) && (
+            {(filters.skill_type || filters.weapon_restriction || filters.name) && (
               <Box alignSelf="flex-end">
                 <Link to="/skills" style={{ padding: "8px 16px", color: "#ECC94B", textDecoration: "underline", fontSize: "14px" }}>
                   クリア

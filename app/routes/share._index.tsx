@@ -1,4 +1,5 @@
 import {
+  Badge,
   Box,
   Button,
   Checkbox,
@@ -8,11 +9,24 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import type { MetaFunction } from "@remix-run/cloudflare";
-import { Link } from "@remix-run/react";
+import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
+import { Link, useLoaderData } from "@remix-run/react";
+import { asc, eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/d1";
 import { useState } from "react";
+import { warriors } from "../../server/db/schema";
 import { useMyWarriors } from "../hooks/useMyWarriors";
 import { useSavedFormations } from "../hooks/useSavedFormations";
+
+export async function loader({ context }: LoaderFunctionArgs) {
+  const db = drizzle((context.cloudflare as any).env.DB);
+  const result = await db
+    .select({ id: warriors.id, name: warriors.name })
+    .from(warriors)
+    .where(eq(warriors.is_delete, false))
+    .orderBy(asc(warriors.sort_order));
+  return { warriors: result };
+}
 
 export const meta: MetaFunction = () => [
   { title: "共有 - 王の勅命" },
@@ -20,6 +34,7 @@ export const meta: MetaFunction = () => [
 ];
 
 export default function ShareIndexPage() {
+  const { warriors: allWarriors } = useLoaderData<typeof loader>();
   const { myWarriorIds, isHydrated } = useMyWarriors();
   const { savedFormations } = useSavedFormations();
 
@@ -121,20 +136,44 @@ export default function ShareIndexPage() {
                 </Link>
               </Text>
             ) : (
-              <Flex align="center" gap={3}>
-                <Checkbox.Root
-                  checked={includeWarriors}
-                  onCheckedChange={(e) => setIncludeWarriors(!!e.checked)}
-                >
-                  <Checkbox.HiddenInput />
-                  <Checkbox.Control />
-                  <Checkbox.Label>
-                    <Text color="white" fontSize="sm">
-                      手持ち武将を含める（{myWarriorIds.length}種）
+              <VStack align="stretch" gap={3}>
+                <Flex align="center" gap={3}>
+                  <Checkbox.Root
+                    checked={includeWarriors}
+                    onCheckedChange={(e) => setIncludeWarriors(!!e.checked)}
+                  >
+                    <Checkbox.HiddenInput />
+                    <Checkbox.Control />
+                    <Checkbox.Label>
+                      <Text color="white" fontSize="sm">
+                        手持ち武将を含める（{myWarriorIds.length}種）
+                      </Text>
+                    </Checkbox.Label>
+                  </Checkbox.Root>
+                </Flex>
+                {includeWarriors && (
+                  <Box
+                    bg="whiteAlpha.50"
+                    borderRadius="lg"
+                    borderWidth="1px"
+                    borderColor="whiteAlpha.100"
+                    p={3}
+                  >
+                    <Text fontSize="xs" color="gray.400" mb={2}>
+                      共有される手持ち武将 ({myWarriorIds.length}種)
                     </Text>
-                  </Checkbox.Label>
-                </Checkbox.Root>
-              </Flex>
+                    <Flex gap={2} flexWrap="wrap">
+                      {allWarriors
+                        .filter((w) => myWarriorIds.includes(w.id))
+                        .map((w) => (
+                          <Badge key={w.id} colorPalette="yellow" variant="subtle" fontSize="xs">
+                            {w.name}
+                          </Badge>
+                        ))}
+                    </Flex>
+                  </Box>
+                )}
+              </VStack>
             )}
           </VStack>
         </Box>
