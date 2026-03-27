@@ -53,17 +53,19 @@ const APTITUDE_COLOR: Record<string, string> = {
 };
 
 function StatBox({ label, value, growth }: { label: string; value: number; growth: number }) {
+  const lv40 = Math.round(value + growth * 39);
   return (
     <Box
       bg="whiteAlpha.100"
       borderRadius="lg"
       p={3}
       textAlign="center"
-      minW="70px"
+      minW="80px"
     >
       <Text fontSize="xs" color="gray.400" mb={1}>{label}</Text>
       <Text fontWeight="bold" fontSize="xl">{value}</Text>
-      <Text fontSize="xs" color="green.500">+{growth.toFixed(1)}%</Text>
+      <Text fontSize="xs" color="green.500">+{growth.toFixed(2)}/Lv</Text>
+      <Text fontSize="xs" color="gray.400">Lv40: {lv40}</Text>
     </Box>
   );
 }
