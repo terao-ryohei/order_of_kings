@@ -1,196 +1,289 @@
 import {
-  Badge,
   Box,
+  Button,
+  Container,
   Flex,
   Heading,
-  Select,
+  HStack,
   SimpleGrid,
   Text,
   VStack,
 } from "@chakra-ui/react";
-import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
-import { Form, Link, useLoaderData } from "@remix-run/react";
-import { eq, asc } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/d1";
-import { warriors, warriorRoles } from "../../server/db/schema";
+import type { MetaFunction } from "@remix-run/cloudflare";
+import { Link } from "@remix-run/react";
 
 export const meta: MetaFunction = () => [
-  { title: "武将一覧 - 王の勅命" },
-  { name: "description", content: "武将一覧ページ" },
+  { title: "王の勅命" },
+  { name: "description", content: "天下の英傑を、汝の手で導く戦略絵巻。" },
 ];
 
-export async function loader({ request, context }: LoaderFunctionArgs) {
-  const url = new URL(request.url);
-  const rarity = url.searchParams.get("rarity");
-  const era = url.searchParams.get("era");
-  const role = url.searchParams.get("role");
-
-  const db = drizzle((context.cloudflare as any).env.DB);
-
-  let result;
-
-  if (role) {
-    result = await db
-      .selectDistinct({ warrior: warriors })
-      .from(warriors)
-      .innerJoin(warriorRoles, eq(warriorRoles.warrior_id, warriors.id))
-      .where(eq(warriorRoles.role, role))
-      .then((rows) => rows.map((r) => r.warrior));
-  } else if (rarity) {
-    const rarityNum = Number(rarity);
-    result = await db
-      .select()
-      .from(warriors)
-      .where(eq(warriors.rarity, rarityNum))
-      .orderBy(asc(warriors.sort_order));
-  } else if (era) {
-    result = await db
-      .select()
-      .from(warriors)
-      .where(eq(warriors.era, era))
-      .orderBy(asc(warriors.sort_order));
-  } else {
-    result = await db
-      .select()
-      .from(warriors)
-      .where(eq(warriors.is_delete, false))
-      .orderBy(asc(warriors.sort_order));
-  }
-
-  return { warriors: result, filters: { rarity, era, role } };
-}
-
-function RarityStars({ rarity }: { rarity: number }) {
-  const color = rarity >= 5 ? "orange.400" : rarity >= 4 ? "purple.400" : "blue.400";
-  return (
-    <Text color={color} fontWeight="bold" fontSize="sm">
-      {"★".repeat(rarity)}
-    </Text>
-  );
-}
+const features = [
+  {
+    icon: "⚔",
+    title: "英傑図鑑",
+    description: "全武将・技能を閲覧し、戦場に立つ英傑たちの素性を見極める。",
+    href: "/warriors",
+  },
+  {
+    icon: "🏯",
+    title: "軍略編成",
+    description: "部隊を組み合わせ、編成スコアと相乗効果を見ながら陣形を練る。",
+    href: "/formation",
+  },
+  {
+    icon: "📜",
+    title: "技能書庫",
+    description: "技能を検索・比較し、采配に必要な知見を静かに積み上げる。",
+    href: "/skills",
+  },
+  {
+    icon: "🛡",
+    title: "所持武将",
+    description: "手持ちの武将を登録・管理し、現有戦力を即座に把握する。",
+    href: "/my-warriors",
+  },
+] as const;
 
 export default function Index() {
-  const { warriors: data, filters } = useLoaderData<typeof loader>();
-
   return (
-    <Box minH="100vh" bg={{ base: "gray.50", _dark: "gray.900" }} p={4}>
-      <VStack gap={6} align="stretch">
-        <Flex align="center" justify="space-between" flexWrap="wrap" gap={3}>
-          <Heading size="xl" color={{ base: "gray.800", _dark: "white" }}>
-            武将一覧
-          </Heading>
-          <Flex gap={4} wrap="wrap">
-            <Link to="/my-warriors" style={{ color: "#3182ce", fontSize: "14px", fontWeight: 700 }}>
-              手持ち武将を登録
-            </Link>
-            <Link to="/formation" style={{ color: "#2f855a", fontSize: "14px", fontWeight: 700 }}>
-              編成ビルダーへ
-            </Link>
-          </Flex>
-        </Flex>
+    <Box
+      minH="100vh"
+      color="white"
+      bg="gray.950"
+      backgroundImage="
+        radial-gradient(circle at top, rgba(236, 201, 75, 0.18), transparent 32%),
+        linear-gradient(135deg, rgba(10, 10, 10, 1) 0%, rgba(23, 23, 23, 1) 48%, rgba(38, 21, 21, 1) 100%)
+      "
+      position="relative"
+      overflow="hidden"
+    >
+      <Box
+        position="absolute"
+        insetX="0"
+        top="0"
+        h="1px"
+        bgGradient="linear(to-r, transparent, yellow.400, red.400, transparent)"
+        opacity={0.9}
+      />
+      <Box
+        position="absolute"
+        top="-10rem"
+        right="-6rem"
+        w="24rem"
+        h="24rem"
+        rounded="full"
+        bg="yellow.400"
+        opacity={0.08}
+        filter="blur(72px)"
+      />
+      <Box
+        position="absolute"
+        bottom="-8rem"
+        left="-4rem"
+        w="20rem"
+        h="20rem"
+        rounded="full"
+        bg="red.400"
+        opacity={0.08}
+        filter="blur(80px)"
+      />
 
-        {/* フィルタ */}
-        <Form method="get">
-          <Flex gap={3} flexWrap="wrap" align="center">
-            <Box>
-              <Text fontSize="sm" mb={1} color={{ base: "gray.600", _dark: "gray.400" }}>レアリティ</Text>
-              <select
-                name="rarity"
-                defaultValue={filters.rarity ?? ""}
-                style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid #ccc", background: "transparent" }}
-              >
-                <option value="">全て</option>
-                {[5, 4, 3].map((r) => (
-                  <option key={r} value={r}>{"★".repeat(r)}</option>
-                ))}
-              </select>
-            </Box>
-            <Box>
-              <Text fontSize="sm" mb={1} color={{ base: "gray.600", _dark: "gray.400" }}>時代</Text>
-              <input
-                name="era"
-                defaultValue={filters.era ?? ""}
-                placeholder="例: 秦末"
-                style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid #ccc", background: "transparent", width: "120px" }}
-              />
-            </Box>
-            <Box>
-              <Text fontSize="sm" mb={1} color={{ base: "gray.600", _dark: "gray.400" }}>役割</Text>
-              <input
-                name="role"
-                defaultValue={filters.role ?? ""}
-                placeholder="例: 盾"
-                style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid #ccc", background: "transparent", width: "100px" }}
-              />
-            </Box>
-            <Box alignSelf="flex-end">
-              <button
-                type="submit"
-                style={{ padding: "8px 20px", background: "#3182ce", color: "white", borderRadius: "6px", border: "none", cursor: "pointer" }}
-              >
-                絞り込み
-              </button>
-            </Box>
-            {(filters.rarity || filters.era || filters.role) && (
-              <Box alignSelf="flex-end">
-                <Link to="/" style={{ padding: "8px 16px", color: "#3182ce", textDecoration: "underline", fontSize: "14px" }}>
-                  クリア
-                </Link>
-              </Box>
-            )}
-          </Flex>
-        </Form>
-
-        <Text fontSize="sm" color={{ base: "gray.500", _dark: "gray.400" }}>
-          {data.length}件
-        </Text>
-
-        {/* カードグリッド */}
-        <SimpleGrid columns={{ base: 2, sm: 3, md: 4, lg: 5 }} gap={4}>
-          {data.map((warrior) => (
-            <Link key={warrior.id} to={`/warriors/${warrior.id}`}>
-              <Box
-                bg={{ base: "white", _dark: "gray.800" }}
-                borderRadius="xl"
+      <Container maxW="7xl" px={{ base: 5, md: 8 }} py={{ base: 12, md: 20 }}>
+        <VStack align="stretch" gap={{ base: 14, md: 20 }}>
+          <Flex
+            direction={{ base: "column", lg: "row" }}
+            justify="space-between"
+            align={{ base: "flex-start", lg: "center" }}
+            gap={{ base: 10, lg: 16 }}
+          >
+            <VStack align="flex-start" gap={6} maxW="3xl">
+              <HStack
+                px={4}
+                py={2}
+                rounded="full"
                 borderWidth="1px"
-                borderColor={{ base: "gray.200", _dark: "gray.700" }}
-                p={4}
-                _hover={{ shadow: "lg", transform: "translateY(-2px)", borderColor: "blue.400" }}
-                transition="all 0.2s"
-                cursor="pointer"
+                borderColor="whiteAlpha.300"
+                bg="whiteAlpha.100"
+                color="yellow.200"
+                fontSize="sm"
+                letterSpacing="0.24em"
+                textTransform="uppercase"
               >
-                <VStack gap={2} align="start">
-                  <Flex justify="space-between" w="100%" align="center">
-                    <RarityStars rarity={warrior.rarity} />
-                    <Badge colorPalette="gray" size="sm" variant="outline">C{warrior.cost}</Badge>
-                  </Flex>
-                  <Text fontWeight="bold" fontSize="sm" lineClamp={1}>
-                    {warrior.name}
-                  </Text>
-                  <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }}>
-                    {warrior.reading}
-                  </Text>
-                  {warrior.era && (
-                    <Badge colorPalette="blue" size="sm">{warrior.era}</Badge>
-                  )}
-                  <Flex gap={2} wrap="wrap">
-                    <Text fontSize="xs" color={{ base: "gray.600", _dark: "gray.300" }}>武{warrior.atk}</Text>
-                    <Text fontSize="xs" color={{ base: "gray.600", _dark: "gray.300" }}>知{warrior.int}</Text>
-                    <Text fontSize="xs" color={{ base: "gray.600", _dark: "gray.300" }}>胆{warrior.guts}</Text>
-                    <Text fontSize="xs" color={{ base: "gray.600", _dark: "gray.300" }}>政{warrior.pol}</Text>
-                  </Flex>
-                </VStack>
+                <Text>Imperial Command</Text>
+              </HStack>
+              <Box>
+                <Text
+                  color="yellow.300"
+                  fontSize={{ base: "sm", md: "md" }}
+                  letterSpacing="0.4em"
+                  textTransform="uppercase"
+                  mb={3}
+                >
+                  Royal Edict
+                </Text>
+                <Heading
+                  as="h1"
+                  fontWeight="black"
+                  letterSpacing="0.18em"
+                  lineHeight="0.95"
+                  fontSize={{ base: "4xl", md: "6xl", xl: "7xl" }}
+                  textTransform="uppercase"
+                >
+                  王の勅命
+                </Heading>
               </Box>
-            </Link>
-          ))}
-        </SimpleGrid>
+              <Text fontSize={{ base: "xl", md: "2xl" }} color="gray.200" fontWeight="medium">
+                天下の英傑を、汝の手で導け。
+              </Text>
+              <Text maxW="2xl" color="gray.400" lineHeight="1.9">
+                墨色の戦場に金の采配を走らせ、英傑・技能・編成を一望する戦略書。
+                静かに構え、一手で戦局を変えるための御前会議がここにある。
+              </Text>
+              <Flex gap={4} wrap="wrap">
+                <Link to="/warriors" style={{ textDecoration: "none" }}>
+                  <Button
+                    size="lg"
+                    colorPalette="yellow"
+                    bg="yellow.400"
+                    color="gray.950"
+                    px={8}
+                    rounded="full"
+                    _hover={{ bg: "yellow.300", transform: "translateY(-1px)" }}
+                  >
+                    武将を見る
+                  </Button>
+                </Link>
+                <Link to="/formation" style={{ textDecoration: "none" }}>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    colorPalette="red"
+                    borderColor="whiteAlpha.400"
+                    color="white"
+                    px={8}
+                    rounded="full"
+                    _hover={{ bg: "whiteAlpha.100" }}
+                  >
+                    軍略編成へ
+                  </Button>
+                </Link>
+              </Flex>
+            </VStack>
 
-        {data.length === 0 && (
-          <Box textAlign="center" py={12} color={{ base: "gray.500", _dark: "gray.400" }}>
-            <Text>武将が見つかりません</Text>
+            <Box
+              w={{ base: "full", lg: "24rem" }}
+              rounded="3xl"
+              borderWidth="1px"
+              borderColor="whiteAlpha.200"
+              bg="linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))"
+              boxShadow="0 30px 80px rgba(0,0,0,0.35)"
+              p={{ base: 6, md: 8 }}
+            >
+              <VStack align="stretch" gap={6}>
+                <Text color="yellow.200" fontSize="sm" letterSpacing="0.28em" textTransform="uppercase">
+                  Campaign Ledger
+                </Text>
+                <VStack align="stretch" gap={4}>
+                  <Box pb={4} borderBottomWidth="1px" borderColor="whiteAlpha.200">
+                    <Text color="gray.400" fontSize="sm">
+                      主戦場
+                    </Text>
+                    <Text fontSize="2xl" fontWeight="bold">
+                      英傑図鑑 / 編成 / 書庫
+                    </Text>
+                  </Box>
+                  <Box pb={4} borderBottomWidth="1px" borderColor="whiteAlpha.200">
+                    <Text color="gray.400" fontSize="sm">
+                      推奨の初手
+                    </Text>
+                    <Text fontSize="lg" fontWeight="semibold">
+                      武将確認から部隊設計へ
+                    </Text>
+                  </Box>
+                  <Box>
+                    <Text color="gray.400" fontSize="sm">
+                      戦略信条
+                    </Text>
+                    <Text color="gray.200" lineHeight="1.8">
+                      情報を集め、相性を読み、静かに勝つ。王の勅命は、その一連の判断を磨くための戦略盤である。
+                    </Text>
+                  </Box>
+                </VStack>
+              </VStack>
+            </Box>
+          </Flex>
+
+          <Box
+            rounded="3xl"
+            borderWidth="1px"
+            borderColor="whiteAlpha.200"
+            bg="whiteAlpha.50"
+            backdropFilter="blur(18px)"
+            p={{ base: 6, md: 8 }}
+          >
+            <VStack align="stretch" gap={8}>
+              <Box>
+                <Text color="yellow.300" fontSize="sm" letterSpacing="0.28em" textTransform="uppercase" mb={3}>
+                  Strategic Gateways
+                </Text>
+                <Heading size="2xl" fontWeight="extrabold">
+                  四つの導線で、戦場の判断を研ぎ澄ます
+                </Heading>
+              </Box>
+              <SimpleGrid columns={{ base: 1, md: 2 }} gap={5}>
+                {features.map((feature) => (
+                  <Link key={feature.href} to={feature.href} style={{ textDecoration: "none" }}>
+                    <Box
+                      h="full"
+                      rounded="2xl"
+                      borderWidth="1px"
+                      borderColor="whiteAlpha.200"
+                      bg="linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03))"
+                      p={6}
+                      transition="transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease"
+                      _hover={{
+                        transform: "translateY(-4px)",
+                        borderColor: "yellow.400",
+                        boxShadow: "0 20px 40px rgba(0, 0, 0, 0.25)",
+                      }}
+                    >
+                      <VStack align="flex-start" gap={4}>
+                        <Flex
+                          align="center"
+                          justify="center"
+                          w={12}
+                          h={12}
+                          rounded="xl"
+                          bg="rgba(236, 201, 75, 0.14)"
+                          color="yellow.200"
+                          fontSize="2xl"
+                        >
+                          {feature.icon}
+                        </Flex>
+                        <Box>
+                          <Heading size="lg" mb={2}>
+                            {feature.title}
+                          </Heading>
+                          <Text color="gray.300" lineHeight="1.8">
+                            {feature.description}
+                          </Text>
+                        </Box>
+                        <Text color="red.300" fontWeight="bold" fontSize="sm" letterSpacing="0.08em">
+                          進む
+                        </Text>
+                      </VStack>
+                    </Box>
+                  </Link>
+                ))}
+              </SimpleGrid>
+            </VStack>
           </Box>
-        )}
-      </VStack>
+
+          <Text textAlign="center" color="gray.500" fontSize="sm">
+            © 王の勅命
+          </Text>
+        </VStack>
+      </Container>
     </Box>
   );
 }
