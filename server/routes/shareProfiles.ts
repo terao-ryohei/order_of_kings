@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { createFactory } from "hono/factory";
-import { warriors, sharedProfiles } from "../db/schema";
+import { warriors, skills, sharedProfiles } from "../db/schema";
 import { AppError, dbClient } from "../index";
 
 const factory = createFactory<Env>();
@@ -10,6 +10,7 @@ export const shareProfile = factory.createHandlers(async (c) => {
   const body = await c.req.json<{
     warrior_ids: number[] | null;
     formations: unknown[];
+    skill_ids: number[] | null;
   }>();
 
   if (!Array.isArray(body.formations)) {
@@ -24,6 +25,7 @@ export const shareProfile = factory.createHandlers(async (c) => {
     uuid,
     warriorIds: body.warrior_ids ? JSON.stringify(body.warrior_ids) : null,
     formations: JSON.stringify(body.formations.slice(0, 5)),
+    skillIds: body.skill_ids ? JSON.stringify(body.skill_ids) : null,
     createdAt: now,
   });
 
@@ -49,6 +51,9 @@ export const getShareProfile = factory.createHandlers(async (c) => {
   const warriorIds: number[] | null = profile.warriorIds
     ? JSON.parse(profile.warriorIds)
     : null;
+  const skillIds: number[] | null = profile.skillIds
+    ? JSON.parse(profile.skillIds)
+    : null;
 
   let warriorDetails: object[] = [];
   if (warriorIds && warriorIds.length > 0) {
@@ -60,5 +65,13 @@ export const getShareProfile = factory.createHandlers(async (c) => {
     warriorDetails = rows.filter(Boolean) as object[];
   }
 
-  return c.json({ warriors: warriorDetails, formations });
+  let skillDetails: object[] = [];
+  if (skillIds && skillIds.length > 0) {
+    skillDetails = await db
+      .select()
+      .from(skills)
+      .where(inArray(skills.id, skillIds));
+  }
+
+  return c.json({ warriors: warriorDetails, formations, skills: skillDetails });
 });

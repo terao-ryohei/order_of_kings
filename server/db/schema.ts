@@ -107,6 +107,7 @@ export const sharedProfiles = sqliteTable("shared_profiles", {
   uuid: text("uuid").primaryKey(),
   warriorIds: text("warrior_ids"),   // JSON配列 or null
   formations: text("formations"),    // JSON配列（最大5個）
+  skillIds: text("skill_ids"),       // JSON配列 or null
   createdAt: text("created_at").notNull(),
 });
 
