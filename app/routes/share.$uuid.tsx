@@ -10,7 +10,7 @@ import {
 } from "@chakra-ui/react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
-import { eq, inArray } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { sharedProfiles, warriors } from "../../server/db/schema";
 
@@ -55,30 +55,35 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     ? JSON.parse(profile.formations)
     : [];
 
-  const warriorIds: number[] | null = profile.warriorIds
+  const ownedWarriorIds: number[] = profile.warriorIds
     ? JSON.parse(profile.warriorIds)
-    : null;
+    : [];
 
-  let warriorRows: WarriorRow[] = [];
-  if (warriorIds && warriorIds.length > 0) {
-    warriorRows = await db
-      .select({
-        id: warriors.id,
-        name: warriors.name,
-        reading: warriors.reading,
-        rarity: warriors.rarity,
-        cost: warriors.cost,
-        atk: warriors.atk,
-        int: warriors.int,
-        guts: warriors.guts,
-        pol: warriors.pol,
-        era: warriors.era,
-      })
-      .from(warriors)
-      .where(inArray(warriors.id, warriorIds));
-  }
+  const hasWarriorShare = !!profile.warriorIds;
 
-  return { warriorRows, formations, createdAt: profile.createdAt };
+  // 全武将を取得してレンダリング側で保有/非保有ハイライト判定
+  const allWarriorRows: WarriorRow[] = await db
+    .select({
+      id: warriors.id,
+      name: warriors.name,
+      reading: warriors.reading,
+      rarity: warriors.rarity,
+      cost: warriors.cost,
+      atk: warriors.atk,
+      int: warriors.int,
+      guts: warriors.guts,
+      pol: warriors.pol,
+      era: warriors.era,
+    })
+    .from(warriors);
+
+  return {
+    allWarriorRows,
+    ownedWarriorIds,
+    hasWarriorShare,
+    formations,
+    createdAt: profile.createdAt,
+  };
 }
 
 function RarityStars({ rarity }: { rarity: number }) {
@@ -91,7 +96,10 @@ function RarityStars({ rarity }: { rarity: number }) {
 }
 
 export default function ShareViewPage() {
-  const { warriorRows, formations, createdAt } = useLoaderData<typeof loader>();
+  const { allWarriorRows, ownedWarriorIds, hasWarriorShare, formations, createdAt } =
+    useLoaderData<typeof loader>();
+
+  const ownedSet = new Set(ownedWarriorIds);
 
   const handleCopyFormation = (formation: SavedFormation) => {
     try {
@@ -145,45 +153,80 @@ export default function ShareViewPage() {
           p={5}
         >
           <VStack align="stretch" gap={4}>
-            <Heading size="md" color="yellow.300">
-              手持ち武将 ({warriorRows.length}種)
-            </Heading>
-            {warriorRows.length === 0 ? (
+            <Flex justify="space-between" align="center" flexWrap="wrap" gap={2}>
+              <Heading size="md" color="yellow.300">
+                {hasWarriorShare
+                  ? `手持ち武将 (${ownedWarriorIds.length}種 / 全${allWarriorRows.length}種)`
+                  : "武将一覧"}
+              </Heading>
+              {hasWarriorShare && (
+                <Flex gap={3} fontSize="xs">
+                  <Flex align="center" gap={1}>
+                    <Box w={3} h={3} bg="green.500" borderRadius="sm" />
+                    <Text color="gray.400">保有</Text>
+                  </Flex>
+                  <Flex align="center" gap={1}>
+                    <Box w={3} h={3} bg="gray.600" borderRadius="sm" />
+                    <Text color="gray.400">未保有</Text>
+                  </Flex>
+                </Flex>
+              )}
+            </Flex>
+
+            {allWarriorRows.length === 0 ? (
               <Text color="gray.400" fontSize="sm">
-                手持ち武将の共有なし
+                武将データなし
               </Text>
             ) : (
               <SimpleGrid columns={{ base: 2, sm: 3, md: 4, lg: 5 }} gap={3}>
-                {warriorRows.map((warrior) => (
-                  <Box
-                    key={warrior.id}
-                    bg="whiteAlpha.100"
-                    borderRadius="xl"
-                    borderWidth="1px"
-                    borderColor="whiteAlpha.200"
-                    p={3}
-                  >
-                    <VStack gap={1} align="start">
-                      <RarityStars rarity={warrior.rarity} />
-                      <Text fontWeight="bold" fontSize="sm" lineClamp={1}>
-                        {warrior.name}
-                      </Text>
-                      <Text fontSize="xs" color="gray.400">
-                        {warrior.reading}
-                      </Text>
-                      {warrior.era && (
-                        <Badge colorPalette="blue" size="sm">
-                          {warrior.era}
+                {allWarriorRows.map((warrior) => {
+                  const owned = !hasWarriorShare || ownedSet.has(warrior.id);
+                  return (
+                    <Box
+                      key={warrior.id}
+                      bg={owned ? "whiteAlpha.150" : "whiteAlpha.50"}
+                      borderRadius="xl"
+                      borderWidth="1px"
+                      borderColor={owned ? "green.700" : "whiteAlpha.100"}
+                      p={3}
+                      opacity={owned ? 1 : 0.4}
+                      position="relative"
+                      filter={owned ? undefined : "grayscale(60%)"}
+                    >
+                      {hasWarriorShare && ownedSet.has(warrior.id) && (
+                        <Badge
+                          position="absolute"
+                          top={1}
+                          right={1}
+                          colorPalette="green"
+                          size="sm"
+                          borderRadius="full"
+                        >
+                          ✓
                         </Badge>
                       )}
-                      <Flex gap={2} wrap="wrap">
-                        <Text fontSize="xs" color="gray.300">武{warrior.atk}</Text>
-                        <Text fontSize="xs" color="gray.300">知{warrior.int}</Text>
-                        <Text fontSize="xs" color="gray.300">胆{warrior.guts}</Text>
-                      </Flex>
-                    </VStack>
-                  </Box>
-                ))}
+                      <VStack gap={1} align="start">
+                        <RarityStars rarity={warrior.rarity} />
+                        <Text fontWeight="bold" fontSize="sm" lineClamp={1}>
+                          {warrior.name}
+                        </Text>
+                        <Text fontSize="xs" color="gray.400">
+                          {warrior.reading}
+                        </Text>
+                        {warrior.era && (
+                          <Badge colorPalette="blue" size="sm">
+                            {warrior.era}
+                          </Badge>
+                        )}
+                        <Flex gap={2} wrap="wrap">
+                          <Text fontSize="xs" color="gray.300">武{warrior.atk}</Text>
+                          <Text fontSize="xs" color="gray.300">知{warrior.int}</Text>
+                          <Text fontSize="xs" color="gray.300">胆{warrior.guts}</Text>
+                        </Flex>
+                      </VStack>
+                    </Box>
+                  );
+                })}
               </SimpleGrid>
             )}
           </VStack>
