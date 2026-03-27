@@ -3,10 +3,18 @@ import { useCallback, useSyncExternalStore } from "react";
 const STORAGE_KEY = "saved_formations";
 const MAX_SAVED = 10;
 
+export type SavedFormationSlot = {
+  warrior_id: number;
+  role_label: string;
+  skill_ids?: number[];
+  warrior_level?: number;
+  skill_levels?: number[];
+};
+
 export type SavedFormation = {
   id: string;
   name: string;
-  slots: Array<{ warrior_id: number; role_label: string }>;
+  slots: SavedFormationSlot[];
   total_score: { atk: number; int: number; guts: number };
   created_at: string;
 };

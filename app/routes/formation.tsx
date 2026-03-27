@@ -18,7 +18,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { useState } from "react";
 import { useMyWarriors } from "../hooks/useMyWarriors";
 import { useSavedFormations } from "../hooks/useSavedFormations";
-import type { SavedFormation } from "../hooks/useSavedFormations";
+import type { SavedFormation, SavedFormationSlot } from "../hooks/useSavedFormations";
 import { warriors, weaponAptitudes, warriorSkills, skills } from "../../server/db/schema";
 
 const SQUAD_SLOTS = [
@@ -41,12 +41,22 @@ type WarriorData = {
   skill2_name: string | null;
 };
 
+type SkillData = {
+  id: number;
+  name: string;
+  skill_type: string;
+  color: string | null;
+};
+
 interface FormationSlot {
   index: number;
   role: "主将" | "副将" | "軍師";
   roleLabel: string;
   description: string;
   warrior: WarriorData | null;
+  skillIds: number[];
+  warriorLevel: number;
+  skillLevels: number[];
 }
 
 export const meta: MetaFunction = () => [
@@ -99,6 +109,17 @@ export async function loader({ context }: LoaderFunctionArgs) {
     skillMap.set(row.warrior_id, current);
   }
 
+  const allSkills = await db
+    .select({
+      id: skills.id,
+      name: skills.name,
+      skill_type: skills.skill_type,
+      color: skills.color,
+    })
+    .from(skills)
+    .where(eq(skills.is_delete, false))
+    .orderBy(asc(skills.sort_order));
+
   return {
     warriors: warriorRows.map((warrior) => {
       const uniqueSkills = skillMap.get(warrior.id);
@@ -116,6 +137,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
         skill2_name: uniqueSkills?.skill2 ?? null,
       };
     }),
+    allSkills,
   };
 }
 
@@ -135,11 +157,18 @@ function createEmptySlots(): FormationSlot[] {
     roleLabel: slot.label,
     description: slot.description,
     warrior: null,
+    skillIds: [],
+    warriorLevel: 1,
+    skillLevels: [],
   }));
 }
 
+function maxSkillSlots(role: "主将" | "副将" | "軍師"): number {
+  return role === "主将" || role === "副将" ? 2 : 1;
+}
+
 export default function FormationBuilderPage() {
-  const { warriors: allWarriors } = useLoaderData<typeof loader>();
+  const { warriors: allWarriors, allSkills } = useLoaderData<typeof loader>();
   const { myWarriorIds, isHydrated } = useMyWarriors();
   const [slots, setSlots] = useState<FormationSlot[]>(() => createEmptySlots());
 
@@ -190,7 +219,9 @@ export default function FormationBuilderPage() {
       }
 
       return current.map((slot, index) =>
-        index === emptyIndex ? { ...slot, warrior } : slot,
+        index === emptyIndex
+          ? { ...slot, warrior, skillIds: [], warriorLevel: 1, skillLevels: [] }
+          : slot,
       );
     });
   };
@@ -198,8 +229,49 @@ export default function FormationBuilderPage() {
   const clearSlot = (slotIndex: number) => {
     setSlots((current) =>
       current.map((slot) =>
-        slot.index === slotIndex ? { ...slot, warrior: null } : slot,
+        slot.index === slotIndex
+          ? { ...slot, warrior: null, skillIds: [], warriorLevel: 1, skillLevels: [] }
+          : slot,
       ),
+    );
+  };
+
+  const updateWarriorLevel = (slotIndex: number, level: number) => {
+    const clamped = Math.max(1, Math.min(40, level));
+    setSlots((current) =>
+      current.map((slot) =>
+        slot.index === slotIndex ? { ...slot, warriorLevel: clamped } : slot,
+      ),
+    );
+  };
+
+  const updateSkillId = (slotIndex: number, skillSlot: number, skillId: number | null) => {
+    setSlots((current) =>
+      current.map((slot) => {
+        if (slot.index !== slotIndex) return slot;
+        const newSkillIds = [...slot.skillIds];
+        const newSkillLevels = [...slot.skillLevels];
+        if (skillId === null) {
+          newSkillIds.splice(skillSlot, 1);
+          newSkillLevels.splice(skillSlot, 1);
+        } else {
+          newSkillIds[skillSlot] = skillId;
+          if (newSkillLevels[skillSlot] === undefined) newSkillLevels[skillSlot] = 1;
+        }
+        return { ...slot, skillIds: newSkillIds, skillLevels: newSkillLevels };
+      }),
+    );
+  };
+
+  const updateSkillLevel = (slotIndex: number, skillSlot: number, level: number) => {
+    const clamped = Math.max(1, Math.min(10, level));
+    setSlots((current) =>
+      current.map((slot) => {
+        if (slot.index !== slotIndex) return slot;
+        const newSkillLevels = [...slot.skillLevels];
+        newSkillLevels[skillSlot] = clamped;
+        return { ...slot, skillLevels: newSkillLevels };
+      }),
     );
   };
 
@@ -207,14 +279,21 @@ export default function FormationBuilderPage() {
     setSlots(createEmptySlots());
   };
 
-  const handleSave = () => {
-    const filledSlots = slots.filter((s) => s.warrior !== null);
-    if (filledSlots.length === 0) return;
+  const buildSlotData = (): SavedFormationSlot[] => {
+    return slots
+      .filter((s) => s.warrior !== null)
+      .map((s) => ({
+        warrior_id: s.warrior!.id,
+        role_label: s.roleLabel,
+        skill_ids: s.skillIds,
+        warrior_level: s.warriorLevel,
+        skill_levels: s.skillLevels,
+      }));
+  };
 
-    const slotData = filledSlots.map((s) => ({
-      warrior_id: s.warrior!.id,
-      role_label: s.roleLabel,
-    }));
+  const handleSave = () => {
+    const slotData = buildSlotData();
+    if (slotData.length === 0) return;
 
     const result = saveFormation(saveName || "無名の編成", slotData, totals);
     if (!result.ok && result.overflowId) {
@@ -227,11 +306,7 @@ export default function FormationBuilderPage() {
 
   const handleSaveForce = () => {
     if (!overflowConfirm) return;
-    const filledSlots = slots.filter((s) => s.warrior !== null);
-    const slotData = filledSlots.map((s) => ({
-      warrior_id: s.warrior!.id,
-      role_label: s.roleLabel,
-    }));
+    const slotData = buildSlotData();
     saveFormationForce(saveName || "無名の編成", slotData, totals, overflowConfirm);
     setOverflowConfirm(null);
     setSaveMode(false);
@@ -247,7 +322,13 @@ export default function FormationBuilderPage() {
         (s) => s.roleLabel === saved.role_label && s.warrior === null,
       );
       if (slotIdx !== -1) {
-        newSlots[slotIdx] = { ...newSlots[slotIdx], warrior };
+        newSlots[slotIdx] = {
+          ...newSlots[slotIdx],
+          warrior,
+          skillIds: saved.skill_ids ?? [],
+          warriorLevel: saved.warrior_level ?? 1,
+          skillLevels: saved.skill_levels ?? [],
+        };
       }
     }
     setSlots(newSlots);
@@ -376,31 +457,51 @@ export default function FormationBuilderPage() {
                 </Box>
               )}
 
-              <SimpleGrid columns={3} gap={3} mt={5}>
+              <SimpleGrid columns={{ base: 1, md: 3 }} gap={3} mt={5}>
                 {slots.map((slot) => (
                   <Box
                     key={slot.index}
-                    as="button"
-                    type="button"
-                    onClick={() => clearSlot(slot.index)}
                     textAlign="left"
                     bg={slot.warrior ? "blue.950" : "gray.900"}
                     borderRadius="xl"
                     borderWidth="1px"
                     borderColor={slot.warrior ? "blue.300" : "whiteAlpha.200"}
                     p={4}
-                    _hover={{ borderColor: "blue.400", transform: "translateY(-1px)" }}
                     transition="all 0.2s"
                   >
                     <VStack align="start" gap={1}>
-                      <Badge colorPalette={slot.warrior ? "blue" : "gray"}>{slot.roleLabel}</Badge>
+                      <Flex justify="space-between" w="100%" align="center">
+                        <Badge colorPalette={slot.warrior ? "blue" : "gray"}>{slot.roleLabel}</Badge>
+                        {slot.warrior && (
+                          <Button size="xs" variant="ghost" colorPalette="red" onClick={() => clearSlot(slot.index)}>
+                            解除
+                          </Button>
+                        )}
+                      </Flex>
                       <Text fontSize="xs" color="gray.400">
                         {slot.description}
                       </Text>
                       {slot.warrior ? (
                         <>
-                          <Text fontWeight="bold" fontSize="sm">{slot.warrior.name}</Text>
-                          <RarityStars rarity={slot.warrior.rarity} />
+                          <Flex align="center" gap={2} w="100%">
+                            <Text fontWeight="bold" fontSize="sm">{slot.warrior.name}</Text>
+                            <RarityStars rarity={slot.warrior.rarity} />
+                          </Flex>
+                          <Flex align="center" gap={2} mt={1}>
+                            <Text fontSize="xs" color="gray.400" flexShrink={0}>Lv.</Text>
+                            <Input
+                              type="number"
+                              min={1}
+                              max={40}
+                              value={slot.warriorLevel}
+                              onChange={(e) => updateWarriorLevel(slot.index, Number(e.target.value))}
+                              size="xs"
+                              w="60px"
+                              textAlign="center"
+                              bg="gray.900"
+                              borderColor="whiteAlpha.300"
+                            />
+                          </Flex>
                           <Text fontSize="xs" color="gray.300">
                             兵種: {slot.warrior.aptitudes.length > 0 ? slot.warrior.aptitudes.join(" / ") : "未登録"}
                           </Text>
@@ -420,6 +521,67 @@ export default function FormationBuilderPage() {
                               </Badge>
                             ) : null;
                           })()}
+                          <Box w="100%" mt={2}>
+                            <Text fontSize="xs" color="gray.400" mb={1}>
+                              装備スキル（{slot.skillIds.length}/{maxSkillSlots(slot.role)}枠）
+                            </Text>
+                            {slot.skillIds.map((skId, i) => (
+                              <Flex key={i} gap={1} align="center" mb={1}>
+                                <select
+                                  value={skId}
+                                  onChange={(e) => {
+                                    const v = Number(e.target.value);
+                                    updateSkillId(slot.index, i, v || null);
+                                  }}
+                                  style={{
+                                    flex: 1,
+                                    fontSize: "12px",
+                                    background: "#1a1a2e",
+                                    color: "white",
+                                    border: "1px solid rgba(255,255,255,0.2)",
+                                    borderRadius: "6px",
+                                    padding: "4px 6px",
+                                  }}
+                                >
+                                  <option value={0}>-- 選択 --</option>
+                                  {allSkills.map((sk) => (
+                                    <option key={sk.id} value={sk.id}>{sk.name}</option>
+                                  ))}
+                                </select>
+                                <Input
+                                  type="number"
+                                  min={1}
+                                  max={10}
+                                  value={slot.skillLevels[i] ?? 1}
+                                  onChange={(e) => updateSkillLevel(slot.index, i, Number(e.target.value))}
+                                  size="xs"
+                                  w="50px"
+                                  textAlign="center"
+                                  bg="gray.900"
+                                  borderColor="whiteAlpha.300"
+                                />
+                                <Button
+                                  size="xs"
+                                  variant="ghost"
+                                  colorPalette="red"
+                                  onClick={() => updateSkillId(slot.index, i, null)}
+                                >
+                                  ×
+                                </Button>
+                              </Flex>
+                            ))}
+                            {slot.skillIds.length < maxSkillSlots(slot.role) && (
+                              <Button
+                                size="xs"
+                                variant="outline"
+                                colorPalette="teal"
+                                onClick={() => updateSkillId(slot.index, slot.skillIds.length, 0)}
+                                mt={1}
+                              >
+                                ＋スキルを追加
+                              </Button>
+                            )}
+                          </Box>
                           {slot.role !== "軍師" && (
                             <VStack align="start" gap={0} mt={1}>
                               <Text fontSize="xs" color="gray.400">武{slot.warrior.atk}</Text>
