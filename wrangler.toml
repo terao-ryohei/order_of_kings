@@ -1,4 +1,4 @@
-name = "imperial-command"
+name = "order-of-kings"
 main = "build/server/index.js"
 compatibility_date = "2025-05-20"
 compatibility_flags = ["nodejs_compat"]
@@ -9,5 +9,5 @@ directory = "./build/client"
 [[d1_databases]]
 binding = "DB"
 database_name = "imperial-command-db"
-database_id = "TBD"
+database_id = "2ad61131-6c8f-4be7-97a6-8f75a91c9cf4"
 migrations_dir = "server/drizzle"
