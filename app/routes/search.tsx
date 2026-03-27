@@ -45,11 +45,11 @@ export default function Search() {
   const isSearching = navigation.state === "loading";
 
   return (
-    <Box minH="100vh" bg={{ base: "gray.50", _dark: "gray.900" }} p={4}>
+    <Box minH="100vh" bg="gray.950" p={4}>
       <VStack gap={6} align="stretch" maxW="900px" mx="auto">
         <Flex align="center" justify="space-between" flexWrap="wrap" gap={2}>
-          <Heading size="xl" color={{ base: "gray.800", _dark: "white" }}>武将検索</Heading>
-          <Link to="/" style={{ color: "#3182ce", fontSize: "14px" }}>← 武将一覧</Link>
+          <Heading size="xl" color="white">武将検索</Heading>
+          <Link to="/" style={{ color: "#ECC94B", fontSize: "14px" }}>← 武将一覧</Link>
         </Flex>
 
         <Form method="get">
@@ -63,8 +63,9 @@ export default function Search() {
                 flex: 1,
                 padding: "10px 16px",
                 borderRadius: "8px",
-                border: "1px solid #ccc",
+                border: "1px solid rgba(255,255,255,0.16)",
                 background: "transparent",
+                color: "white",
                 fontSize: "16px",
               }}
             />
@@ -72,12 +73,13 @@ export default function Search() {
               type="submit"
               style={{
                 padding: "10px 24px",
-                background: "#3182ce",
-                color: "white",
+                background: "#D69E2E",
+                color: "black",
                 borderRadius: "8px",
                 border: "none",
                 cursor: "pointer",
                 fontSize: "16px",
+                fontWeight: 700,
               }}
             >
               検索
@@ -86,13 +88,13 @@ export default function Search() {
         </Form>
 
         {q && (
-          <Text fontSize="sm" color={{ base: "gray.500", _dark: "gray.400" }}>
+          <Text fontSize="sm" color="gray.400">
             「{q}」の検索結果: {results.length}件
           </Text>
         )}
 
         {isSearching && (
-          <Box textAlign="center" py={8} color={{ base: "gray.500", _dark: "gray.400" }}>
+          <Box textAlign="center" py={8} color="gray.400">
             <Text>検索中...</Text>
           </Box>
         )}
@@ -102,12 +104,12 @@ export default function Search() {
             {results.map((warrior) => (
               <Link key={warrior.id} to={`/warriors/${warrior.id}`}>
                 <Box
-                  bg={{ base: "white", _dark: "gray.800" }}
+                  bg="whiteAlpha.100"
                   borderRadius="xl"
-                  borderWidth="1px"
-                  borderColor={{ base: "gray.200", _dark: "gray.700" }}
+                  border="1px solid"
+                  borderColor="whiteAlpha.200"
                   p={4}
-                  _hover={{ shadow: "lg", transform: "translateY(-2px)", borderColor: "blue.400" }}
+                  _hover={{ shadow: "lg", transform: "translateY(-2px)", borderColor: "yellow.400" }}
                   transition="all 0.2s"
                   cursor="pointer"
                 >
@@ -116,17 +118,17 @@ export default function Search() {
                       {"★".repeat(warrior.rarity)}
                     </Text>
                     <Text fontWeight="bold" fontSize="sm">{warrior.name}</Text>
-                    <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }}>
+                    <Text fontSize="xs" color="gray.400">
                       {warrior.reading}
                     </Text>
                     {warrior.era && (
                       <Badge colorPalette="blue" size="sm">{warrior.era}</Badge>
                     )}
                     <Flex gap={2} wrap="wrap">
-                      <Text fontSize="xs" color={{ base: "gray.600", _dark: "gray.300" }}>武{warrior.atk}</Text>
-                      <Text fontSize="xs" color={{ base: "gray.600", _dark: "gray.300" }}>知{warrior.int}</Text>
-                      <Text fontSize="xs" color={{ base: "gray.600", _dark: "gray.300" }}>胆{warrior.guts}</Text>
-                      <Text fontSize="xs" color={{ base: "gray.600", _dark: "gray.300" }}>政{warrior.pol}</Text>
+                      <Text fontSize="xs" color="gray.300">武{warrior.atk}</Text>
+                      <Text fontSize="xs" color="gray.300">知{warrior.int}</Text>
+                      <Text fontSize="xs" color="gray.300">胆{warrior.guts}</Text>
+                      <Text fontSize="xs" color="gray.300">政{warrior.pol}</Text>
                     </Flex>
                   </VStack>
                 </Box>
@@ -136,13 +138,13 @@ export default function Search() {
         )}
 
         {!isSearching && q && results.length === 0 && (
-          <Box textAlign="center" py={12} color={{ base: "gray.500", _dark: "gray.400" }}>
+          <Box textAlign="center" py={12} color="gray.400">
             <Text>「{q}」に一致する武将は見つかりませんでした</Text>
           </Box>
         )}
 
         {!q && (
-          <Box textAlign="center" py={12} color={{ base: "gray.500", _dark: "gray.400" }}>
+          <Box textAlign="center" py={12} color="gray.400">
             <Text>武将名または読み仮名を入力して検索してください</Text>
           </Box>
         )}

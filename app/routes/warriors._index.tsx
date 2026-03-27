@@ -60,7 +60,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 function RarityStars({ rarity }: { rarity: number }) {
-  const color = rarity >= 5 ? "orange.400" : rarity >= 4 ? "purple.400" : "blue.400";
+  const color = rarity >= 5 ? "yellow.400" : rarity >= 4 ? "purple.400" : "blue.400";
   return (
     <Text color={color} fontWeight="bold" fontSize="sm">
       {"★".repeat(rarity)}
@@ -72,17 +72,17 @@ export default function Index() {
   const { warriors: data, filters } = useLoaderData<typeof loader>();
 
   return (
-    <Box minH="100vh" bg={{ base: "gray.50", _dark: "gray.900" }} p={4}>
+    <Box minH="100vh" bg="gray.950" p={4}>
       <VStack gap={6} align="stretch">
         <Flex align="center" justify="space-between" flexWrap="wrap" gap={3}>
-          <Heading size="xl" color={{ base: "gray.800", _dark: "white" }}>
+          <Heading size="xl" color="white">
             武将一覧
           </Heading>
           <Flex gap={4} wrap="wrap">
-            <Link to="/my-warriors" style={{ color: "#3182ce", fontSize: "14px", fontWeight: 700 }}>
+            <Link to="/my-warriors" style={{ color: "#ECC94B", fontSize: "14px", fontWeight: 700 }}>
               手持ち武将を登録
             </Link>
-            <Link to="/formation" style={{ color: "#2f855a", fontSize: "14px", fontWeight: 700 }}>
+            <Link to="/formation" style={{ color: "#ECC94B", fontSize: "14px", fontWeight: 700 }}>
               編成ビルダーへ
             </Link>
           </Flex>
@@ -91,7 +91,7 @@ export default function Index() {
         <Form method="get">
           <Flex gap={3} flexWrap="wrap" align="center">
             <Box>
-              <Text fontSize="sm" mb={1} color={{ base: "gray.600", _dark: "gray.400" }}>
+              <Text fontSize="sm" mb={1} color="gray.400">
                 レアリティ
               </Text>
               <select
@@ -100,8 +100,9 @@ export default function Index() {
                 style={{
                   padding: "6px 12px",
                   borderRadius: "6px",
-                  border: "1px solid #ccc",
+                  border: "1px solid rgba(255,255,255,0.16)",
                   background: "transparent",
+                  color: "white",
                 }}
               >
                 <option value="">全て</option>
@@ -113,7 +114,7 @@ export default function Index() {
               </select>
             </Box>
             <Box>
-              <Text fontSize="sm" mb={1} color={{ base: "gray.600", _dark: "gray.400" }}>
+              <Text fontSize="sm" mb={1} color="gray.400">
                 時代
               </Text>
               <input
@@ -123,14 +124,15 @@ export default function Index() {
                 style={{
                   padding: "6px 12px",
                   borderRadius: "6px",
-                  border: "1px solid #ccc",
+                  border: "1px solid rgba(255,255,255,0.16)",
                   background: "transparent",
+                  color: "white",
                   width: "120px",
                 }}
               />
             </Box>
             <Box>
-              <Text fontSize="sm" mb={1} color={{ base: "gray.600", _dark: "gray.400" }}>
+              <Text fontSize="sm" mb={1} color="gray.400">
                 役割
               </Text>
               <input
@@ -140,8 +142,9 @@ export default function Index() {
                 style={{
                   padding: "6px 12px",
                   borderRadius: "6px",
-                  border: "1px solid #ccc",
+                  border: "1px solid rgba(255,255,255,0.16)",
                   background: "transparent",
+                  color: "white",
                   width: "100px",
                 }}
               />
@@ -151,11 +154,12 @@ export default function Index() {
                 type="submit"
                 style={{
                   padding: "8px 20px",
-                  background: "#3182ce",
-                  color: "white",
+                  background: "#D69E2E",
+                  color: "black",
                   borderRadius: "6px",
                   border: "none",
                   cursor: "pointer",
+                  fontWeight: 700,
                 }}
               >
                 絞り込み
@@ -167,7 +171,7 @@ export default function Index() {
                   to="/warriors"
                   style={{
                     padding: "8px 16px",
-                    color: "#3182ce",
+                    color: "#ECC94B",
                     textDecoration: "underline",
                     fontSize: "14px",
                   }}
@@ -179,7 +183,7 @@ export default function Index() {
           </Flex>
         </Form>
 
-        <Text fontSize="sm" color={{ base: "gray.500", _dark: "gray.400" }}>
+        <Text fontSize="sm" color="gray.400">
           {data.length}件
         </Text>
 
@@ -187,12 +191,12 @@ export default function Index() {
           {data.map((warrior) => (
             <Link key={warrior.id} to={`/warriors/${warrior.id}`}>
               <Box
-                bg={{ base: "white", _dark: "gray.800" }}
+                bg="whiteAlpha.100"
                 borderRadius="xl"
-                borderWidth="1px"
-                borderColor={{ base: "gray.200", _dark: "gray.700" }}
+                border="1px solid"
+                borderColor="whiteAlpha.200"
                 p={4}
-                _hover={{ shadow: "lg", transform: "translateY(-2px)", borderColor: "blue.400" }}
+                _hover={{ shadow: "lg", transform: "translateY(-2px)", borderColor: "yellow.400" }}
                 transition="all 0.2s"
                 cursor="pointer"
               >
@@ -206,7 +210,7 @@ export default function Index() {
                   <Text fontWeight="bold" fontSize="sm" lineClamp={1}>
                     {warrior.name}
                   </Text>
-                  <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }}>
+                  <Text fontSize="xs" color="gray.400">
                     {warrior.reading}
                   </Text>
                   {warrior.era && (
@@ -215,16 +219,16 @@ export default function Index() {
                     </Badge>
                   )}
                   <Flex gap={2} wrap="wrap">
-                    <Text fontSize="xs" color={{ base: "gray.600", _dark: "gray.300" }}>
+                    <Text fontSize="xs" color="gray.300">
                       武{warrior.atk}
                     </Text>
-                    <Text fontSize="xs" color={{ base: "gray.600", _dark: "gray.300" }}>
+                    <Text fontSize="xs" color="gray.300">
                       知{warrior.int}
                     </Text>
-                    <Text fontSize="xs" color={{ base: "gray.600", _dark: "gray.300" }}>
+                    <Text fontSize="xs" color="gray.300">
                       胆{warrior.guts}
                     </Text>
-                    <Text fontSize="xs" color={{ base: "gray.600", _dark: "gray.300" }}>
+                    <Text fontSize="xs" color="gray.300">
                       政{warrior.pol}
                     </Text>
                   </Flex>
@@ -235,7 +239,7 @@ export default function Index() {
         </SimpleGrid>
 
         {data.length === 0 && (
-          <Box textAlign="center" py={12} color={{ base: "gray.500", _dark: "gray.400" }}>
+          <Box textAlign="center" py={12} color="gray.400">
             <Text>武将が見つかりません</Text>
           </Box>
         )}

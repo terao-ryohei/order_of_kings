@@ -55,13 +55,13 @@ const APTITUDE_COLOR: Record<string, string> = {
 function StatBox({ label, value, growth }: { label: string; value: number; growth: number }) {
   return (
     <Box
-      bg={{ base: "gray.50", _dark: "gray.700" }}
+      bg="whiteAlpha.100"
       borderRadius="lg"
       p={3}
       textAlign="center"
       minW="70px"
     >
-      <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }} mb={1}>{label}</Text>
+      <Text fontSize="xs" color="gray.400" mb={1}>{label}</Text>
       <Text fontWeight="bold" fontSize="xl">{value}</Text>
       <Text fontSize="xs" color="green.500">+{growth.toFixed(1)}%</Text>
     </Box>
@@ -72,16 +72,16 @@ export default function WarriorDetail() {
   const { warrior, aptitudes, skills: skillLinks, roles } = useLoaderData<typeof loader>();
 
   return (
-    <Box minH="100vh" bg={{ base: "gray.50", _dark: "gray.900" }} p={4}>
+    <Box minH="100vh" bg="gray.950" p={4}>
       <VStack gap={6} align="stretch" maxW="800px" mx="auto">
         {/* ナビ */}
-        <Link to="/" style={{ color: "#3182ce", fontSize: "14px" }}>← 武将一覧</Link>
+        <Link to="/" style={{ color: "#ECC94B", fontSize: "14px" }}>← 武将一覧</Link>
 
         {/* ヘッダー */}
-        <Box bg={{ base: "white", _dark: "gray.800" }} borderRadius="xl" p={6} borderWidth="1px" borderColor={{ base: "gray.200", _dark: "gray.700" }}>
+        <Box bg="whiteAlpha.100" borderRadius="xl" p={6} border="1px solid" borderColor="whiteAlpha.200">
           <Flex gap={4} align="start" flexWrap="wrap">
             <VStack align="start" gap={2} flex={1}>
-              <Text color={{ base: "gray.500", _dark: "gray.400" }} fontSize="sm">{warrior.reading}</Text>
+              <Text color="gray.400" fontSize="sm">{warrior.reading}</Text>
               <Heading size="2xl">{warrior.name}</Heading>
               <HStack gap={2} flexWrap="wrap">
                 <Text color="yellow.400" fontWeight="bold">{"★".repeat(warrior.rarity)}</Text>
@@ -95,7 +95,7 @@ export default function WarriorDetail() {
         </Box>
 
         {/* ステータス */}
-        <Box bg={{ base: "white", _dark: "gray.800" }} borderRadius="xl" p={6} borderWidth="1px" borderColor={{ base: "gray.200", _dark: "gray.700" }}>
+        <Box bg="whiteAlpha.100" borderRadius="xl" p={6} border="1px solid" borderColor="whiteAlpha.200">
           <Heading size="md" mb={4}>ステータス</Heading>
           <Flex gap={3} flexWrap="wrap">
             <StatBox label="武力" value={warrior.atk} growth={warrior.atk_growth} />
@@ -107,12 +107,12 @@ export default function WarriorDetail() {
 
         {/* 兵種適性 */}
         {aptitudes.length > 0 && (
-          <Box bg={{ base: "white", _dark: "gray.800" }} borderRadius="xl" p={6} borderWidth="1px" borderColor={{ base: "gray.200", _dark: "gray.700" }}>
+          <Box bg="whiteAlpha.100" borderRadius="xl" p={6} border="1px solid" borderColor="whiteAlpha.200">
             <Heading size="md" mb={4}>兵種適性</Heading>
             <Flex gap={3} flexWrap="wrap">
               {aptitudes.map((apt) => (
                 <Box key={apt.id} textAlign="center" minW="60px">
-                  <Text fontSize="sm" color={{ base: "gray.600", _dark: "gray.400" }} mb={1}>{apt.weapon_type}</Text>
+                  <Text fontSize="sm" color="gray.400" mb={1}>{apt.weapon_type}</Text>
                   <Badge colorPalette={APTITUDE_COLOR[apt.aptitude] ?? "gray"} size="lg">
                     {apt.aptitude}
                   </Badge>
@@ -124,13 +124,13 @@ export default function WarriorDetail() {
 
         {/* スキル */}
         {skillLinks.length > 0 && (
-          <Box bg={{ base: "white", _dark: "gray.800" }} borderRadius="xl" p={6} borderWidth="1px" borderColor={{ base: "gray.200", _dark: "gray.700" }}>
+          <Box bg="whiteAlpha.100" borderRadius="xl" p={6} border="1px solid" borderColor="whiteAlpha.200">
             <Heading size="md" mb={4}>スキル</Heading>
             <VStack gap={4} align="stretch">
               {skillLinks
                 .sort((a, b) => a.slot - b.slot)
                 .map((s) => (
-                  <Box key={s.skill.id} p={4} bg={{ base: "gray.50", _dark: "gray.700" }} borderRadius="lg">
+                  <Box key={s.skill.id} p={4} bg="whiteAlpha.100" borderRadius="lg">
                     <HStack gap={2} mb={2}>
                       <Badge colorPalette="gray">スキル{s.slot}</Badge>
                       {s.is_unique && <Badge colorPalette="orange">固有</Badge>}
@@ -144,7 +144,7 @@ export default function WarriorDetail() {
                         {s.skill.name}
                       </Text>
                     </Link>
-                    <Text fontSize="sm" color={{ base: "gray.600", _dark: "gray.300" }} mt={1}>
+                    <Text fontSize="sm" color="gray.300" mt={1}>
                       {s.skill.description}
                     </Text>
                   </Box>
@@ -155,9 +155,9 @@ export default function WarriorDetail() {
 
         {/* 列伝 */}
         {warrior.biography && (
-          <Box bg={{ base: "white", _dark: "gray.800" }} borderRadius="xl" p={6} borderWidth="1px" borderColor={{ base: "gray.200", _dark: "gray.700" }}>
+          <Box bg="whiteAlpha.100" borderRadius="xl" p={6} border="1px solid" borderColor="whiteAlpha.200">
             <Heading size="md" mb={4}>列伝</Heading>
-            <Text color={{ base: "gray.700", _dark: "gray.300" }} lineHeight="tall" whiteSpace="pre-wrap">
+            <Text color="gray.300" lineHeight="tall" whiteSpace="pre-wrap">
               {warrior.biography}
             </Text>
           </Box>
