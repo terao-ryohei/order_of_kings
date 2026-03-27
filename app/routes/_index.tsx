@@ -14,101 +14,141 @@ import { Link } from "@remix-run/react";
 
 export const meta: MetaFunction = () => [
   { title: "王の勅命" },
-  { name: "description", content: "英傑・技能・編成をひとまとめに見られる戦略ツール。" },
+  { name: "description", content: "天下の英傑を、汝の手で導く戦略絵巻。" },
 ];
 
 const features = [
   {
     icon: "⚔",
     title: "英傑図鑑",
-    description: "武将と技能を一覧で確認し、必要な情報をすばやく探せます。",
+    description: "全武将・技能を閲覧し、戦場に立つ英傑たちの素性を見極める。",
     href: "/warriors",
   },
   {
     icon: "🏯",
     title: "軍略編成",
-    description: "部隊を組み合わせながら、編成スコアと相乗効果を確認できます。",
+    description: "部隊を組み合わせ、編成スコアと相乗効果を見ながら陣形を練る。",
     href: "/formation",
   },
   {
     icon: "📜",
     title: "技能書庫",
-    description: "技能の検索と比較をまとめて行えます。",
+    description: "技能を検索・比較し、采配に必要な知見を静かに積み上げる。",
     href: "/skills",
   },
   {
     icon: "🛡",
     title: "所持武将",
-    description: "手持ちの武将を登録して、現在の戦力を管理できます。",
+    description: "手持ちの武将を登録・管理し、現有戦力を即座に把握する。",
     href: "/my-warriors",
   },
 ] as const;
 
 export default function Index() {
   return (
-    <Box minH="100vh" bg="gray.50" color="gray.900">
-      <Container maxW="7xl" px={{ base: 5, md: 8 }} py={{ base: 12, md: 16 }}>
-        <VStack align="stretch" gap={{ base: 10, md: 14 }}>
+    <Box
+      minH="100vh"
+      color="white"
+      bg="gray.950"
+      backgroundImage="
+        radial-gradient(circle at top, rgba(236, 201, 75, 0.18), transparent 32%),
+        linear-gradient(135deg, rgba(10, 10, 10, 1) 0%, rgba(23, 23, 23, 1) 48%, rgba(38, 21, 21, 1) 100%)
+      "
+      position="relative"
+      overflow="hidden"
+    >
+      <Box
+        position="absolute"
+        insetX="0"
+        top="0"
+        h="1px"
+        bgGradient="linear(to-r, transparent, yellow.400, red.400, transparent)"
+        opacity={0.9}
+      />
+      <Box
+        position="absolute"
+        top="-10rem"
+        right="-6rem"
+        w="24rem"
+        h="24rem"
+        rounded="full"
+        bg="yellow.400"
+        opacity={0.08}
+        filter="blur(72px)"
+      />
+      <Box
+        position="absolute"
+        bottom="-8rem"
+        left="-4rem"
+        w="20rem"
+        h="20rem"
+        rounded="full"
+        bg="red.400"
+        opacity={0.08}
+        filter="blur(80px)"
+      />
+
+      <Container maxW="7xl" px={{ base: 5, md: 8 }} py={{ base: 12, md: 20 }}>
+        <VStack align="stretch" gap={{ base: 14, md: 20 }}>
           <Flex
             direction={{ base: "column", lg: "row" }}
             justify="space-between"
-            align={{ base: "flex-start", lg: "stretch" }}
-            gap={{ base: 8, lg: 12 }}
+            align={{ base: "flex-start", lg: "center" }}
+            gap={{ base: 10, lg: 16 }}
           >
-            <VStack align="flex-start" gap={5} maxW="3xl">
+            <VStack align="flex-start" gap={6} maxW="3xl">
               <HStack
-                px={3}
-                py={1.5}
-                rounded="md"
+                px={4}
+                py={2}
+                rounded="full"
                 borderWidth="1px"
-                borderColor="gray.200"
-                bg="white"
-                color="gray.600"
+                borderColor="whiteAlpha.300"
+                bg="whiteAlpha.100"
+                color="yellow.200"
                 fontSize="sm"
-                letterSpacing="0.12em"
+                letterSpacing="0.24em"
                 textTransform="uppercase"
               >
                 <Text>Imperial Command</Text>
               </HStack>
               <Box>
                 <Text
-                  color="gray.500"
+                  color="yellow.300"
                   fontSize={{ base: "sm", md: "md" }}
-                  letterSpacing="0.18em"
+                  letterSpacing="0.4em"
                   textTransform="uppercase"
-                  mb={2}
+                  mb={3}
                 >
-                  Strategy workspace
+                  Royal Edict
                 </Text>
                 <Heading
                   as="h1"
-                  fontWeight="bold"
-                  lineHeight="1.05"
-                  fontSize={{ base: "4xl", md: "5xl", xl: "6xl" }}
+                  fontWeight="black"
+                  letterSpacing="0.18em"
+                  lineHeight="0.95"
+                  fontSize={{ base: "4xl", md: "6xl", xl: "7xl" }}
+                  textTransform="uppercase"
                 >
                   王の勅命
                 </Heading>
-                <Text mt={3} color="gray.500" fontSize={{ base: "sm", md: "md" }}>
-                  order of kings
-                </Text>
               </Box>
-              <Text fontSize={{ base: "lg", md: "xl" }} color="gray.700" fontWeight="medium">
-                英傑・技能・編成をひとつの画面で扱える戦略ツールです。
+              <Text fontSize={{ base: "xl", md: "2xl" }} color="gray.200" fontWeight="medium">
+                天下の英傑を、汝の手で導け。
               </Text>
-              <Text maxW="2xl" color="gray.600" lineHeight="1.8">
-                武将データの確認、編成の検討、技能の比較、手持ち管理までをまとめています。
-                まずは一覧を見て、必要な画面へそのまま移動できます。
+              <Text maxW="2xl" color="gray.400" lineHeight="1.9">
+                墨色の戦場に金の采配を走らせ、英傑・技能・編成を一望する戦略書。
+                静かに構え、一手で戦局を変えるための御前会議がここにある。
               </Text>
               <Flex gap={4} wrap="wrap">
                 <Link to="/warriors" style={{ textDecoration: "none" }}>
                   <Button
                     size="lg"
-                    colorPalette="gray"
-                    bg="gray.900"
-                    color="white"
+                    colorPalette="yellow"
+                    bg="yellow.400"
+                    color="gray.950"
                     px={8}
-                    rounded="md"
-                    _hover={{ bg: "gray.700" }}
+                    rounded="full"
+                    _hover={{ bg: "yellow.300", transform: "translateY(-1px)" }}
                   >
                     武将を見る
                   </Button>
@@ -117,11 +157,12 @@ export default function Index() {
                   <Button
                     size="lg"
                     variant="outline"
-                    borderColor="gray.300"
-                    color="gray.800"
+                    colorPalette="red"
+                    borderColor="whiteAlpha.400"
+                    color="white"
                     px={8}
-                    rounded="md"
-                    _hover={{ bg: "white" }}
+                    rounded="full"
+                    _hover={{ bg: "whiteAlpha.100" }}
                   >
                     軍略編成へ
                   </Button>
@@ -131,39 +172,40 @@ export default function Index() {
 
             <Box
               w={{ base: "full", lg: "24rem" }}
-              rounded="xl"
+              rounded="3xl"
               borderWidth="1px"
-              borderColor="gray.200"
-              bg="white"
+              borderColor="whiteAlpha.200"
+              bg="linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))"
+              boxShadow="0 30px 80px rgba(0,0,0,0.35)"
               p={{ base: 6, md: 8 }}
             >
               <VStack align="stretch" gap={6}>
-                <Text color="gray.500" fontSize="sm" letterSpacing="0.12em" textTransform="uppercase">
-                  Latest updates
+                <Text color="yellow.200" fontSize="sm" letterSpacing="0.28em" textTransform="uppercase">
+                  Campaign Ledger
                 </Text>
                 <VStack align="stretch" gap={4}>
-                  <Box pb={4} borderBottomWidth="1px" borderColor="gray.100">
-                    <Text color="gray.500" fontSize="sm">
-                      収録データ
+                  <Box pb={4} borderBottomWidth="1px" borderColor="whiteAlpha.200">
+                    <Text color="gray.400" fontSize="sm">
+                      主戦場
                     </Text>
-                    <Text fontSize="2xl" fontWeight="semibold">
-                      Warriors: 86名 / Skills: 261件
+                    <Text fontSize="2xl" fontWeight="bold">
+                      英傑図鑑 / 編成 / 書庫
                     </Text>
                   </Box>
-                  <Box pb={4} borderBottomWidth="1px" borderColor="gray.100">
-                    <Text color="gray.500" fontSize="sm">
-                      最近の機能
+                  <Box pb={4} borderBottomWidth="1px" borderColor="whiteAlpha.200">
+                    <Text color="gray.400" fontSize="sm">
+                      推奨の初手
                     </Text>
                     <Text fontSize="lg" fontWeight="semibold">
-                      所持武将管理と編成ビルダーを追加
+                      武将確認から部隊設計へ
                     </Text>
                   </Box>
                   <Box>
-                    <Text color="gray.500" fontSize="sm">
-                      使い方
+                    <Text color="gray.400" fontSize="sm">
+                      戦略信条
                     </Text>
-                    <Text color="gray.600" lineHeight="1.8">
-                      武将一覧で確認を始めて、必要に応じて編成や技能比較に進む構成です。
+                    <Text color="gray.200" lineHeight="1.8">
+                      情報を集め、相性を読み、静かに勝つ。王の勅命は、その一連の判断を磨くための戦略盤である。
                     </Text>
                   </Box>
                 </VStack>
@@ -172,19 +214,20 @@ export default function Index() {
           </Flex>
 
           <Box
-            rounded="xl"
+            rounded="3xl"
             borderWidth="1px"
-            borderColor="gray.200"
-            bg="white"
+            borderColor="whiteAlpha.200"
+            bg="whiteAlpha.50"
+            backdropFilter="blur(18px)"
             p={{ base: 6, md: 8 }}
           >
             <VStack align="stretch" gap={8}>
               <Box>
-                <Text color="gray.500" fontSize="sm" letterSpacing="0.12em" textTransform="uppercase" mb={3}>
-                  Main sections
+                <Text color="yellow.300" fontSize="sm" letterSpacing="0.28em" textTransform="uppercase" mb={3}>
+                  Strategic Gateways
                 </Text>
-                <Heading size="2xl" fontWeight="bold" color="gray.900">
-                  よく使う画面へすぐ移動できます
+                <Heading size="2xl" fontWeight="extrabold">
+                  四つの導線で、戦場の判断を研ぎ澄ます
                 </Heading>
               </Box>
               <SimpleGrid columns={{ base: 1, md: 2 }} gap={5}>
@@ -192,15 +235,16 @@ export default function Index() {
                   <Link key={feature.href} to={feature.href} style={{ textDecoration: "none" }}>
                     <Box
                       h="full"
-                      rounded="lg"
+                      rounded="2xl"
                       borderWidth="1px"
-                      borderColor="gray.200"
-                      bg="gray.50"
+                      borderColor="whiteAlpha.200"
+                      bg="linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03))"
                       p={6}
-                      transition="border-color 0.2s ease, background-color 0.2s ease"
+                      transition="transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease"
                       _hover={{
-                        borderColor: "gray.400",
-                        bg: "white",
+                        transform: "translateY(-4px)",
+                        borderColor: "yellow.400",
+                        boxShadow: "0 20px 40px rgba(0, 0, 0, 0.25)",
                       }}
                     >
                       <VStack align="flex-start" gap={4}>
@@ -209,9 +253,9 @@ export default function Index() {
                           justify="center"
                           w={12}
                           h={12}
-                          rounded="md"
-                          bg="white"
-                          color="gray.700"
+                          rounded="xl"
+                          bg="rgba(236, 201, 75, 0.14)"
+                          color="yellow.200"
                           fontSize="2xl"
                         >
                           {feature.icon}
@@ -220,11 +264,11 @@ export default function Index() {
                           <Heading size="lg" mb={2}>
                             {feature.title}
                           </Heading>
-                          <Text color="gray.600" lineHeight="1.8">
+                          <Text color="gray.300" lineHeight="1.8">
                             {feature.description}
                           </Text>
                         </Box>
-                        <Text color="gray.700" fontWeight="semibold" fontSize="sm">
+                        <Text color="red.300" fontWeight="bold" fontSize="sm" letterSpacing="0.08em">
                           進む
                         </Text>
                       </VStack>

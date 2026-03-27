@@ -32,7 +32,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
 }
 
 function RarityStars({ rarity }: { rarity: number }) {
-  const color = rarity >= 5 ? "yellow.400" : rarity >= 4 ? "purple.400" : "blue.400";
+  const color = rarity >= 5 ? "orange.400" : rarity >= 4 ? "purple.400" : "blue.400";
   return (
     <Text color={color} fontWeight="bold" fontSize="sm">
       {"★".repeat(rarity)}

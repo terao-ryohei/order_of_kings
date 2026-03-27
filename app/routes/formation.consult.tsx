@@ -367,7 +367,7 @@ export default function FormationConsultPage() {
                         </Text>
                         <Text
                           fontSize="xs"
-                          color={slot.warrior.rarity >= 5 ? "yellow.400" : slot.warrior.rarity >= 4 ? "purple.400" : "blue.400"}
+                          color={slot.warrior.rarity >= 5 ? "orange.400" : slot.warrior.rarity >= 4 ? "purple.400" : "blue.400"}
                           fontWeight="bold"
                         >
                           {"★".repeat(slot.warrior.rarity)}
