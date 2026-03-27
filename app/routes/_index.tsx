@@ -13,7 +13,7 @@ import type { MetaFunction } from "@remix-run/cloudflare";
 import { Link } from "@remix-run/react";
 
 export const meta: MetaFunction = () => [
-  { title: "order of kings" },
+  { title: "王の勅命" },
   { name: "description", content: "英傑・技能・編成をひとまとめに見られる戦略ツール。" },
 ];
 
@@ -86,8 +86,11 @@ export default function Index() {
                   lineHeight="1.05"
                   fontSize={{ base: "4xl", md: "5xl", xl: "6xl" }}
                 >
-                  order of kings
+                  王の勅命
                 </Heading>
+                <Text mt={3} color="gray.500" fontSize={{ base: "sm", md: "md" }}>
+                  order of kings
+                </Text>
               </Box>
               <Text fontSize={{ base: "lg", md: "xl" }} color="gray.700" fontWeight="medium">
                 英傑・技能・編成をひとつの画面で扱える戦略ツールです。
@@ -233,7 +236,7 @@ export default function Index() {
           </Box>
 
           <Text textAlign="center" color="gray.500" fontSize="sm">
-            © order of kings
+            © 王の勅命
           </Text>
         </VStack>
       </Container>
