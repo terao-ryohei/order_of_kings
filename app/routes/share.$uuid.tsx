@@ -77,12 +77,19 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     })
     .from(warriors);
 
+  // Date formatting on server to avoid hydration mismatch (toLocaleString differs server vs client)
+  const createdAtFormatted = (() => {
+    const d = new Date(profile.createdAt);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getUTCFullYear()}/${pad(d.getUTCMonth() + 1)}/${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+  })();
+
   return {
     allWarriorRows,
     ownedWarriorIds,
     hasWarriorShare,
     formations,
-    createdAt: profile.createdAt,
+    createdAtFormatted,
   };
 }
 
@@ -96,7 +103,7 @@ function RarityStars({ rarity }: { rarity: number }) {
 }
 
 export default function ShareViewPage() {
-  const { allWarriorRows, ownedWarriorIds, hasWarriorShare, formations, createdAt } =
+  const { allWarriorRows, ownedWarriorIds, hasWarriorShare, formations, createdAtFormatted } =
     useLoaderData<typeof loader>();
 
   const ownedSet = new Set(ownedWarriorIds);
@@ -136,7 +143,7 @@ export default function ShareViewPage() {
               共有プロフィール
             </Heading>
             <Text fontSize="xs" color="gray.500">
-              発行日時: {new Date(createdAt).toLocaleString("ja-JP")}
+              発行日時: {createdAtFormatted}
             </Text>
           </VStack>
           <Link to="/" style={{ color: "#A0AEC0", fontSize: "14px" }}>
