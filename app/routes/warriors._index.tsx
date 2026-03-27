@@ -9,7 +9,7 @@ import {
 } from "@chakra-ui/react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { Form, Link, useLoaderData } from "@remix-run/react";
-import { asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { warriorRoles, warriors } from "../../server/db/schema";
 
@@ -23,8 +23,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const rarity = url.searchParams.get("rarity");
   const era = url.searchParams.get("era");
   const role = url.searchParams.get("role");
+  const name = url.searchParams.get("name") ?? "";
 
   const db = drizzle((context.cloudflare as any).env.DB);
+
+  const nameFilter = name
+    ? or(like(warriors.name, `%${name}%`), like(warriors.reading, `%${name}%`))
+    : undefined;
 
   let result;
 
@@ -33,30 +38,30 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       .selectDistinct({ warrior: warriors })
       .from(warriors)
       .innerJoin(warriorRoles, eq(warriorRoles.warrior_id, warriors.id))
-      .where(eq(warriorRoles.role, role))
+      .where(nameFilter ? and(eq(warriorRoles.role, role), nameFilter) : eq(warriorRoles.role, role))
       .then((rows) => rows.map((r) => r.warrior));
   } else if (rarity) {
     const rarityNum = Number(rarity);
     result = await db
       .select()
       .from(warriors)
-      .where(eq(warriors.rarity, rarityNum))
+      .where(nameFilter ? and(eq(warriors.rarity, rarityNum), nameFilter) : eq(warriors.rarity, rarityNum))
       .orderBy(desc(warriors.rarity), desc(warriors.cost), asc(warriors.sort_order));
   } else if (era) {
     result = await db
       .select()
       .from(warriors)
-      .where(eq(warriors.era, era))
+      .where(nameFilter ? and(eq(warriors.era, era), nameFilter) : eq(warriors.era, era))
       .orderBy(desc(warriors.rarity), desc(warriors.cost), asc(warriors.sort_order));
   } else {
     result = await db
       .select()
       .from(warriors)
-      .where(eq(warriors.is_delete, false))
+      .where(nameFilter ? and(eq(warriors.is_delete, false), nameFilter) : eq(warriors.is_delete, false))
       .orderBy(desc(warriors.rarity), desc(warriors.cost), asc(warriors.sort_order));
   }
 
-  return { warriors: result, filters: { rarity, era, role } };
+  return { warriors: result, filters: { rarity, era, role, name } };
 }
 
 function RarityStars({ rarity }: { rarity: number }) {
@@ -149,6 +154,24 @@ export default function Index() {
                 }}
               />
             </Box>
+            <Box>
+              <Text fontSize="sm" mb={1} color="gray.400">
+                武将名
+              </Text>
+              <input
+                name="name"
+                defaultValue={filters.name ?? ""}
+                placeholder="武将名で検索..."
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: "6px",
+                  border: "1px solid rgba(255,255,255,0.16)",
+                  background: "transparent",
+                  color: "white",
+                  width: "140px",
+                }}
+              />
+            </Box>
             <Box alignSelf="flex-end">
               <button
                 type="submit"
@@ -165,7 +188,7 @@ export default function Index() {
                 絞り込み
               </button>
             </Box>
-            {(filters.rarity || filters.era || filters.role) && (
+            {(filters.rarity || filters.era || filters.role || filters.name) && (
               <Box alignSelf="flex-end">
                 <Link
                   to="/warriors"
@@ -204,7 +227,7 @@ export default function Index() {
                   <Flex justify="space-between" w="100%" align="center">
                     <RarityStars rarity={warrior.rarity} />
                     <Badge colorPalette="gray" size="sm" variant="outline">
-                      C{warrior.cost}
+                      コスト{warrior.cost}
                     </Badge>
                   </Flex>
                   <Text fontWeight="bold" fontSize="sm" lineClamp={1}>
