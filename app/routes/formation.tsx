@@ -2,9 +2,11 @@ import {
   Badge,
   Box,
   Button,
+  Collapsible,
   Flex,
   Heading,
   HStack,
+  Input,
   SimpleGrid,
   Text,
   VStack,
@@ -15,6 +17,8 @@ import { asc, eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { useState } from "react";
 import { useMyWarriors } from "../hooks/useMyWarriors";
+import { useSavedFormations } from "../hooks/useSavedFormations";
+import type { SavedFormation } from "../hooks/useSavedFormations";
 import { warriors, weaponAptitudes } from "../../server/db/schema";
 
 const SQUAD_SLOTS = [
@@ -110,6 +114,19 @@ export default function FormationBuilderPage() {
   const { myWarriorIds, isHydrated } = useMyWarriors();
   const [slots, setSlots] = useState<FormationSlot[]>(() => createEmptySlots());
 
+  const {
+    savedFormations,
+    isFull,
+    saveFormation,
+    saveFormationForce,
+    deleteFormation,
+  } = useSavedFormations();
+
+  const [saveMode, setSaveMode] = useState(false);
+  const [saveName, setSaveName] = useState("");
+  const [overflowConfirm, setOverflowConfirm] = useState<string | null>(null);
+  const [loadConfirm, setLoadConfirm] = useState<SavedFormation | null>(null);
+
   const myWarriors = allWarriors.filter((warrior) => myWarriorIds.includes(warrior.id));
   const assignedIds = new Set(
     slots.map((slot) => slot.warrior?.id).filter((id): id is number => typeof id === "number"),
@@ -160,6 +177,53 @@ export default function FormationBuilderPage() {
     setSlots(createEmptySlots());
   };
 
+  const handleSave = () => {
+    const filledSlots = slots.filter((s) => s.warrior !== null);
+    if (filledSlots.length === 0) return;
+
+    const slotData = filledSlots.map((s) => ({
+      warrior_id: s.warrior!.id,
+      role_label: s.roleLabel,
+    }));
+
+    const result = saveFormation(saveName || "無名の編成", slotData, totals);
+    if (!result.ok && result.overflowId) {
+      setOverflowConfirm(result.overflowId);
+      return;
+    }
+    setSaveMode(false);
+    setSaveName("");
+  };
+
+  const handleSaveForce = () => {
+    if (!overflowConfirm) return;
+    const filledSlots = slots.filter((s) => s.warrior !== null);
+    const slotData = filledSlots.map((s) => ({
+      warrior_id: s.warrior!.id,
+      role_label: s.roleLabel,
+    }));
+    saveFormationForce(saveName || "無名の編成", slotData, totals, overflowConfirm);
+    setOverflowConfirm(null);
+    setSaveMode(false);
+    setSaveName("");
+  };
+
+  const handleLoad = (formation: SavedFormation) => {
+    const newSlots = createEmptySlots();
+    for (const saved of formation.slots) {
+      const warrior = allWarriors.find((w) => w.id === saved.warrior_id);
+      if (!warrior) continue;
+      const slotIdx = newSlots.findIndex(
+        (s) => s.roleLabel === saved.role_label && s.warrior === null,
+      );
+      if (slotIdx !== -1) {
+        newSlots[slotIdx] = { ...newSlots[slotIdx], warrior };
+      }
+    }
+    setSlots(newSlots);
+    setLoadConfirm(null);
+  };
+
   return (
     <Box minH="100vh" bg="gray.950" p={4}>
       <VStack gap={6} align="stretch" maxW="1200px" mx="auto">
@@ -205,11 +269,78 @@ export default function FormationBuilderPage() {
                   <Link to="/formation/consult">
                     <Button colorPalette="blue">おまかせ相談</Button>
                   </Link>
+                  <Button
+                    colorPalette="yellow"
+                    variant="outline"
+                    onClick={() => setSaveMode(!saveMode)}
+                    disabled={!slots.some((s) => s.warrior)}
+                  >
+                    {saveMode ? "キャンセル" : "保存"}
+                  </Button>
                   <Button variant="subtle" disabled>
                     共有する
                   </Button>
                 </Flex>
               </Flex>
+
+              {saveMode && (
+                <Box mt={4} p={4} bg="yellow.950" borderRadius="xl" borderWidth="1px" borderColor="yellow.700">
+                  {overflowConfirm ? (
+                    <VStack align="stretch" gap={3}>
+                      <Text fontSize="sm" color="yellow.200">
+                        保存上限（10件）に達しています。最も古い保存を削除して保存しますか？
+                      </Text>
+                      <Flex gap={2}>
+                        <Button size="sm" colorPalette="yellow" onClick={handleSaveForce}>
+                          削除して保存
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => setOverflowConfirm(null)}>
+                          やめる
+                        </Button>
+                      </Flex>
+                    </VStack>
+                  ) : (
+                    <VStack align="stretch" gap={3}>
+                      <Text fontSize="sm" color="yellow.200">
+                        編成に名前をつけて保存（{savedFormations.length}/10件）
+                      </Text>
+                      <Flex gap={2}>
+                        <Input
+                          placeholder="編成名を入力"
+                          value={saveName}
+                          onChange={(e) => setSaveName(e.target.value)}
+                          size="sm"
+                          bg="gray.900"
+                          borderColor="yellow.700"
+                          _focus={{ borderColor: "yellow.400" }}
+                          onKeyDown={(e) => e.key === "Enter" && handleSave()}
+                        />
+                        <Button size="sm" colorPalette="yellow" onClick={handleSave}>
+                          保存
+                        </Button>
+                      </Flex>
+                    </VStack>
+                  )}
+                </Box>
+              )}
+
+              {loadConfirm && (
+                <Box mt={4} p={4} bg="blue.950" borderRadius="xl" borderWidth="1px" borderColor="blue.700">
+                  <VStack align="stretch" gap={3}>
+                    <Text fontSize="sm" color="blue.200">
+                      「{loadConfirm.name}」を読み込みますか？現在の編成は上書きされます。
+                    </Text>
+                    <Flex gap={2}>
+                      <Button size="sm" colorPalette="blue" onClick={() => handleLoad(loadConfirm)}>
+                        読み込む
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setLoadConfirm(null)}>
+                        やめる
+                      </Button>
+                    </Flex>
+                  </VStack>
+                </Box>
+              )}
 
               <SimpleGrid columns={3} gap={3} mt={5}>
                 {slots.map((slot) => (
@@ -275,6 +406,73 @@ export default function FormationBuilderPage() {
                 <Text fontSize="xs" color="gray.500">主将+副将</Text>
               </Box>
             </SimpleGrid>
+
+            {savedFormations.length > 0 && (
+              <Collapsible.Root>
+                <Box
+                  bg="whiteAlpha.100"
+                  borderRadius="2xl"
+                  borderWidth="1px"
+                  borderColor="whiteAlpha.200"
+                  p={5}
+                >
+                  <Collapsible.Trigger asChild>
+                    <Button variant="ghost" w="100%" justifyContent="space-between" px={0}>
+                      <Heading size="md">保存済み編成（{savedFormations.length}件）</Heading>
+                      <Text fontSize="sm" color="gray.400">▼ 開く</Text>
+                    </Button>
+                  </Collapsible.Trigger>
+                  <Collapsible.Content>
+                    <VStack align="stretch" gap={3} mt={4}>
+                      {savedFormations.map((f) => (
+                        <Box
+                          key={f.id}
+                          bg="gray.900"
+                          borderRadius="xl"
+                          borderWidth="1px"
+                          borderColor="whiteAlpha.200"
+                          p={4}
+                        >
+                          <Flex justify="space-between" align="start" gap={3}>
+                            <VStack align="start" gap={1} flex="1">
+                              <Text fontWeight="bold" fontSize="sm">{f.name}</Text>
+                              <Text fontSize="xs" color="gray.400">
+                                {new Date(f.created_at).toLocaleDateString("ja-JP")} ・ 武{f.total_score.atk} 知{f.total_score.int} 胆{f.total_score.guts}
+                              </Text>
+                              <Flex gap={1} wrap="wrap">
+                                {f.slots.map((s, i) => (
+                                  <Badge key={i} colorPalette="blue" variant="outline" fontSize="xs">
+                                    {s.role_label}: {allWarriors.find((w) => w.id === s.warrior_id)?.name ?? "不明"}
+                                  </Badge>
+                                ))}
+                              </Flex>
+                            </VStack>
+                            <VStack gap={1}>
+                              <Button
+                                size="xs"
+                                colorPalette="blue"
+                                variant="outline"
+                                onClick={() => setLoadConfirm(f)}
+                              >
+                                読込
+                              </Button>
+                              <Button
+                                size="xs"
+                                colorPalette="red"
+                                variant="ghost"
+                                onClick={() => deleteFormation(f.id)}
+                              >
+                                削除
+                              </Button>
+                            </VStack>
+                          </Flex>
+                        </Box>
+                      ))}
+                    </VStack>
+                  </Collapsible.Content>
+                </Box>
+              </Collapsible.Root>
+            )}
           </VStack>
 
           <Box
