@@ -25,7 +25,6 @@ function toKatakana(str: string): string {
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
-  const rarity = url.searchParams.get("rarity");
   const era = url.searchParams.get("era");
   const role = url.searchParams.get("role");
   const name = url.searchParams.get("name") ?? "";
@@ -50,13 +49,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       .innerJoin(warriorRoles, eq(warriorRoles.warrior_id, warriors.id))
       .where(nameFilter ? and(eq(warriorRoles.role, role), nameFilter) : eq(warriorRoles.role, role))
       .then((rows) => rows.map((r) => r.warrior));
-  } else if (rarity) {
-    const rarityNum = Number(rarity);
-    result = await db
-      .select()
-      .from(warriors)
-      .where(nameFilter ? and(eq(warriors.rarity, rarityNum), nameFilter) : eq(warriors.rarity, rarityNum))
-      .orderBy(desc(warriors.rarity), desc(warriors.cost), asc(warriors.sort_order));
   } else if (era) {
     result = await db
       .select()
@@ -71,7 +63,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       .orderBy(desc(warriors.rarity), desc(warriors.cost), asc(warriors.sort_order));
   }
 
-  return { warriors: result, filters: { rarity, era, role, name } };
+  return { warriors: result, filters: { era, role, name } };
 }
 
 function RarityStars({ rarity }: { rarity: number }) {
@@ -143,29 +135,6 @@ export default function Index() {
           <Flex gap={3} flexWrap="wrap" align="center">
             <Box>
               <Text fontSize="sm" mb={1} color="gray.400">
-                レアリティ
-              </Text>
-              <select
-                name="rarity"
-                defaultValue={filters.rarity ?? ""}
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: "6px",
-                  border: "1px solid rgba(255,255,255,0.16)",
-                  background: "transparent",
-                  color: "white",
-                }}
-              >
-                <option value="">全て</option>
-                {[5, 4, 3].map((r) => (
-                  <option key={r} value={r}>
-                    {"★".repeat(r)}
-                  </option>
-                ))}
-              </select>
-            </Box>
-            <Box>
-              <Text fontSize="sm" mb={1} color="gray.400">
                 時代
               </Text>
               <input
@@ -235,7 +204,7 @@ export default function Index() {
                 絞り込み
               </button>
             </Box>
-            {(filters.rarity || filters.era || filters.role || filters.name) && (
+            {(filters.era || filters.role || filters.name) && (
               <Box alignSelf="flex-end">
                 <Link
                   to="/warriors"
