@@ -17,11 +17,7 @@ import { useState } from "react";
 import { useMyWarriors } from "../hooks/useMyWarriors";
 import { warriors, weaponAptitudes } from "../../server/db/schema";
 
-const SQUAD_SLOTS = [
-  { role: "主将" as const, label: "主将", description: "怒気スキル発動・部隊の核" },
-  { role: "副将" as const, label: "副将", description: "ステータス加算・サブアタッカー" },
-  { role: "軍師" as const, label: "軍師", description: "スキル効果のみ（ステータス加算なし）" },
-];
+const ROLE_LABELS = ["盾", "攻撃", "攻撃", "回復", "汎用"] as const;
 
 type WarriorData = {
   id: number;
@@ -37,15 +33,13 @@ type WarriorData = {
 
 interface FormationSlot {
   index: number;
-  role: "主将" | "副将" | "軍師";
-  roleLabel: string;
-  description: string;
   warrior: WarriorData | null;
+  roleLabel: string;
 }
 
 export const meta: MetaFunction = () => [
   { title: "編成ビルダー - 王の勅命" },
-  { name: "description", content: "手持ち武将から3枠編成（主将/副将/軍師）を組むページ" },
+  { name: "description", content: "手持ち武将から5人編成を組むページ" },
 ];
 
 export async function loader({ context }: LoaderFunctionArgs) {
@@ -86,23 +80,21 @@ export async function loader({ context }: LoaderFunctionArgs) {
   };
 }
 
+function createEmptySlots(): FormationSlot[] {
+  return ROLE_LABELS.map((roleLabel, index) => ({
+    index,
+    warrior: null,
+    roleLabel,
+  }));
+}
+
 function RarityStars({ rarity }: { rarity: number }) {
-  const color = rarity >= 5 ? "orange.400" : rarity >= 4 ? "purple.400" : "blue.400";
+  const color = rarity >= 5 ? "yellow.400" : rarity >= 4 ? "purple.400" : "blue.400";
   return (
     <Text color={color} fontWeight="bold" fontSize="sm">
       {"★".repeat(rarity)}
     </Text>
   );
-}
-
-function createEmptySlots(): FormationSlot[] {
-  return SQUAD_SLOTS.map((slot, index) => ({
-    index,
-    role: slot.role,
-    roleLabel: slot.label,
-    description: slot.description,
-    warrior: null,
-  }));
 }
 
 export default function FormationBuilderPage() {
@@ -115,19 +107,12 @@ export default function FormationBuilderPage() {
     slots.map((slot) => slot.warrior?.id).filter((id): id is number => typeof id === "number"),
   );
 
-  // 軍師はステータス合計から除外
   const totals = slots.reduce(
-    (sum, slot) => {
-      if (!slot.warrior || slot.role === "軍師") {
-        return sum;
-      }
-
-      return {
-        atk: sum.atk + slot.warrior.atk,
-        int: sum.int + slot.warrior.int,
-        guts: sum.guts + slot.warrior.guts,
-      };
-    },
+    (sum, slot) => ({
+      atk: sum.atk + (slot.warrior?.atk ?? 0),
+      int: sum.int + (slot.warrior?.int ?? 0),
+      guts: sum.guts + (slot.warrior?.guts ?? 0),
+    }),
     { atk: 0, int: 0, guts: 0 },
   );
 
@@ -137,22 +122,20 @@ export default function FormationBuilderPage() {
     }
 
     setSlots((current) => {
-      const emptyIndex = current.findIndex((slot) => slot.warrior === null);
-      if (emptyIndex === -1) {
+      const emptySlot = current.find((slot) => slot.warrior === null);
+      if (!emptySlot) {
         return current;
       }
 
-      return current.map((slot, index) =>
-        index === emptyIndex ? { ...slot, warrior } : slot,
+      return current.map((slot) =>
+        slot.index === emptySlot.index ? { ...slot, warrior } : slot,
       );
     });
   };
 
   const clearSlot = (slotIndex: number) => {
     setSlots((current) =>
-      current.map((slot) =>
-        slot.index === slotIndex ? { ...slot, warrior: null } : slot,
-      ),
+      current.map((slot) => (slot.index === slotIndex ? { ...slot, warrior: null } : slot)),
     );
   };
 
@@ -162,14 +145,14 @@ export default function FormationBuilderPage() {
 
   return (
     <Box minH="100vh" bg={{ base: "gray.50", _dark: "gray.900" }} p={4}>
-      <VStack gap={6} align="stretch" maxW="1200px" mx="auto">
+      <VStack gap={6} align="stretch" maxW="1280px" mx="auto">
         <Flex align="center" justify="space-between" flexWrap="wrap" gap={3}>
           <VStack align="start" gap={1}>
             <Heading size="xl" color={{ base: "gray.800", _dark: "white" }}>
               編成ビルダー
             </Heading>
             <Text fontSize="sm" color={{ base: "gray.600", _dark: "gray.400" }}>
-              主将・副将・軍師の3スロット編成を組み、合計能力を即時確認できるでござる
+              5人編成を組み、武力・知略・胆力の合計を即座に確認できるでござる
             </Text>
           </VStack>
           <HStack gap={4} wrap="wrap">
@@ -182,7 +165,7 @@ export default function FormationBuilderPage() {
           </HStack>
         </Flex>
 
-        <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6} alignItems="start">
+        <SimpleGrid columns={{ base: 1, xl: 2 }} gap={6} alignItems="start">
           <VStack gap={4} align="stretch">
             <Box
               bg={{ base: "white", _dark: "gray.800" }}
@@ -195,7 +178,7 @@ export default function FormationBuilderPage() {
                 <VStack align="start" gap={1}>
                   <Heading size="md">編成スロット</Heading>
                   <Text fontSize="sm" color={{ base: "gray.600", _dark: "gray.400" }}>
-                    配置済み {assignedIds.size}/3人
+                    配置済み {assignedIds.size}/5人
                   </Text>
                 </VStack>
                 <Flex gap={3} wrap="wrap">
@@ -211,7 +194,7 @@ export default function FormationBuilderPage() {
                 </Flex>
               </Flex>
 
-              <SimpleGrid columns={3} gap={3} mt={5}>
+              <SimpleGrid columns={{ base: 1, md: 2, xl: 1 }} gap={3} mt={5}>
                 {slots.map((slot) => (
                   <Box
                     key={slot.index}
@@ -227,30 +210,41 @@ export default function FormationBuilderPage() {
                     _hover={{ borderColor: "blue.400", transform: "translateY(-1px)" }}
                     transition="all 0.2s"
                   >
-                    <VStack align="start" gap={1}>
+                    <VStack align="start" gap={2}>
                       <Badge colorPalette={slot.warrior ? "blue" : "gray"}>{slot.roleLabel}</Badge>
-                      <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }}>
-                        {slot.description}
-                      </Text>
                       {slot.warrior ? (
                         <>
-                          <Text fontWeight="bold" fontSize="sm">{slot.warrior.name}</Text>
-                          <RarityStars rarity={slot.warrior.rarity} />
-                          <Text fontSize="xs" color={{ base: "gray.600", _dark: "gray.300" }}>
-                            兵種: {slot.warrior.aptitudes.length > 0 ? slot.warrior.aptitudes.join(" / ") : "未登録"}
-                          </Text>
-                          {slot.role !== "軍師" && (
-                            <VStack align="start" gap={0} mt={1}>
-                              <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }}>武{slot.warrior.atk}</Text>
-                              <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }}>知{slot.warrior.int}</Text>
-                              <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }}>胆{slot.warrior.guts}</Text>
+                          <Flex justify="space-between" align="start" w="100%" gap={3}>
+                            <VStack align="start" gap={1} flex="1">
+                              <Text fontWeight="bold">{slot.warrior.name}</Text>
+                              <Text fontSize="sm" color={{ base: "gray.500", _dark: "gray.400" }}>
+                                {slot.warrior.reading}
+                              </Text>
+                              {slot.warrior.era && <Badge colorPalette="blue">{slot.warrior.era}</Badge>}
                             </VStack>
-                          )}
+                            <RarityStars rarity={slot.warrior.rarity} />
+                          </Flex>
+                          <Text fontSize="sm" color={{ base: "gray.600", _dark: "gray.300" }}>
+                            兵種適性: {slot.warrior.aptitudes.length > 0 ? slot.warrior.aptitudes.join(" / ") : "未登録"}
+                          </Text>
+                          <Flex gap={3} wrap="wrap">
+                            <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }}>武{slot.warrior.atk}</Text>
+                            <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }}>知{slot.warrior.int}</Text>
+                            <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }}>胆{slot.warrior.guts}</Text>
+                          </Flex>
+                          <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }}>
+                            クリックでこの枠から解除
+                          </Text>
                         </>
                       ) : (
-                        <Text fontSize="sm" color={{ base: "gray.500", _dark: "gray.400" }} mt={1}>
-                          武将を選ぶとここに配置される
-                        </Text>
+                        <>
+                          <Text fontWeight="bold" color={{ base: "gray.700", _dark: "gray.200" }}>
+                            [{slot.roleLabel}]
+                          </Text>
+                          <Text fontSize="sm" color={{ base: "gray.500", _dark: "gray.400" }}>
+                            下の手持ち武将から選ぶと、この空き枠へ自動配置される
+                          </Text>
+                        </>
                       )}
                     </VStack>
                   </Box>
@@ -262,17 +256,14 @@ export default function FormationBuilderPage() {
               <Box bg={{ base: "white", _dark: "gray.800" }} borderRadius="xl" p={4} borderWidth="1px" borderColor={{ base: "gray.200", _dark: "gray.700" }}>
                 <Text fontSize="sm" color={{ base: "gray.500", _dark: "gray.400" }}>武力合計</Text>
                 <Text fontSize="2xl" fontWeight="bold">{totals.atk}</Text>
-                <Text fontSize="xs" color={{ base: "gray.400", _dark: "gray.500" }}>主将+副将</Text>
               </Box>
               <Box bg={{ base: "white", _dark: "gray.800" }} borderRadius="xl" p={4} borderWidth="1px" borderColor={{ base: "gray.200", _dark: "gray.700" }}>
                 <Text fontSize="sm" color={{ base: "gray.500", _dark: "gray.400" }}>知略合計</Text>
                 <Text fontSize="2xl" fontWeight="bold">{totals.int}</Text>
-                <Text fontSize="xs" color={{ base: "gray.400", _dark: "gray.500" }}>主将+副将</Text>
               </Box>
               <Box bg={{ base: "white", _dark: "gray.800" }} borderRadius="xl" p={4} borderWidth="1px" borderColor={{ base: "gray.200", _dark: "gray.700" }}>
                 <Text fontSize="sm" color={{ base: "gray.500", _dark: "gray.400" }}>胆力合計</Text>
                 <Text fontSize="2xl" fontWeight="bold">{totals.guts}</Text>
-                <Text fontSize="xs" color={{ base: "gray.400", _dark: "gray.500" }}>主将+副将</Text>
               </Box>
             </SimpleGrid>
           </VStack>
@@ -288,7 +279,7 @@ export default function FormationBuilderPage() {
               <VStack align="start" gap={1}>
                 <Heading size="md">手持ち武将</Heading>
                 <Text fontSize="sm" color={{ base: "gray.600", _dark: "gray.400" }}>
-                  空きスロットへ自動配置。配置済み武将は再選択不可。
+                  武将カードを押すと、先頭の空き枠へ自動配置されるでござる
                 </Text>
               </VStack>
 
@@ -306,24 +297,25 @@ export default function FormationBuilderPage() {
                   </Link>
                 </Box>
               ) : (
-                <VStack align="stretch" gap={3} maxH={{ base: "none", lg: "900px" }} overflowY="auto" pr={1}>
+                <VStack align="stretch" gap={3} maxH={{ base: "none", xl: "920px" }} overflowY="auto" pr={1}>
                   {myWarriors.map((warrior) => {
                     const isAssigned = assignedIds.has(warrior.id);
+                    const isFull = assignedIds.size >= slots.length;
                     return (
                       <Box
                         key={warrior.id}
                         as="button"
                         type="button"
                         onClick={() => assignWarrior(warrior)}
-                        disabled={isAssigned || assignedIds.size >= 3}
+                        disabled={isAssigned || isFull}
                         textAlign="left"
                         bg={isAssigned ? { base: "gray.100", _dark: "gray.700" } : { base: "gray.50", _dark: "gray.900" }}
                         borderRadius="xl"
                         borderWidth="1px"
                         borderColor={isAssigned ? { base: "gray.200", _dark: "gray.600" } : { base: "gray.200", _dark: "gray.700" }}
-                        opacity={isAssigned ? 0.55 : 1}
+                        opacity={isAssigned ? 0.55 : isFull ? 0.7 : 1}
                         p={4}
-                        _hover={isAssigned ? undefined : { borderColor: "blue.400", transform: "translateY(-1px)" }}
+                        _hover={isAssigned || isFull ? undefined : { borderColor: "blue.400", transform: "translateY(-1px)" }}
                         transition="all 0.2s"
                       >
                         <Flex justify="space-between" align="start" gap={3}>
@@ -332,7 +324,7 @@ export default function FormationBuilderPage() {
                               <Text fontWeight="bold">{warrior.name}</Text>
                               <RarityStars rarity={warrior.rarity} />
                               <Badge colorPalette={isAssigned ? "gray" : "green"} variant="outline">
-                                {isAssigned ? "配置済み" : "配置可能"}
+                                {isAssigned ? "配置済み" : isFull ? "満員" : "配置可能"}
                               </Badge>
                             </Flex>
                             <Text fontSize="sm" color={{ base: "gray.500", _dark: "gray.400" }}>
