@@ -50,13 +50,17 @@ const APTITUDE_COLOR: Record<string, string> = {
   "優": "orange",
   "良": "blue",
   "凡": "gray",
+  "下": "gray",
 };
 
-const RANK_MAP: Record<string, string> = {
-  極: "S", 優: "A", 良: "B", 凡: "C",
-};
 const TROOP_MAP: Record<string, string> = {
   刀: "刀兵", 弓: "弓兵", 騎: "騎兵", 槍: "槍兵", 盾: "盾兵",
+};
+
+const SKILL_COLOR_PALETTE: Record<string, string> = {
+  "赤": "red",
+  "紫": "purple",
+  "青": "blue",
 };
 
 function StatBox({ label, value, growth }: { label: string; value: number; growth: number }) {
@@ -124,7 +128,7 @@ export default function WarriorDetail() {
                 <Box key={apt.id} textAlign="center" minW="60px">
                   <Text fontSize="sm" color="gray.400" mb={1}>{TROOP_MAP[apt.weapon_type] ?? apt.weapon_type}</Text>
                   <Badge colorPalette={APTITUDE_COLOR[apt.aptitude] ?? "gray"} size="lg">
-                    {RANK_MAP[apt.aptitude] ?? apt.aptitude}
+                    {apt.aptitude}
                   </Badge>
                 </Box>
               ))}
@@ -142,13 +146,16 @@ export default function WarriorDetail() {
                 .map((s) => (
                   <Box key={s.skill.id} p={4} bg="whiteAlpha.100" borderRadius="lg">
                     <VStack align="start" gap={1} mb={2}>
-                      <HStack gap={2}>
+                      <HStack gap={2} flexWrap="wrap">
                         <Badge colorPalette="gray">
                           {s.slot === 1 ? "統率スキル" : s.slot === 2 ? "軍師スキル" : `スキル${s.slot}`}
                         </Badge>
                         <Badge colorPalette="green">{s.skill.skill_type}</Badge>
                         {s.skill.weapon_restriction && (
                           <Badge colorPalette="blue">{s.skill.weapon_restriction}</Badge>
+                        )}
+                        {s.skill.color && SKILL_COLOR_PALETTE[s.skill.color] && (
+                          <Badge colorPalette={SKILL_COLOR_PALETTE[s.skill.color]}>{s.skill.color}</Badge>
                         )}
                       </HStack>
                       <Text fontSize="xs" color="gray.500">

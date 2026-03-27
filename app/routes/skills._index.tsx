@@ -9,10 +9,10 @@ import {
 } from "@chakra-ui/react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { Form, Link, useLoaderData, useNavigate, useSearchParams } from "@remix-run/react";
-import { and, asc, eq, like } from "drizzle-orm";
+import { and, asc, eq, like, notInArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { skills } from "../../server/db/schema";
+import { skills, warriorSkills } from "../../server/db/schema";
 
 function toKatakana(str: string): string {
   return str.replace(/[\u3041-\u3096]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) + 0x60));
@@ -28,8 +28,18 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const skill_type = url.searchParams.get("skill_type");
   const weapon_restriction = url.searchParams.get("weapon_restriction");
   const name = url.searchParams.get("name") ?? "";
+  const showUnique = url.searchParams.get("showUnique") === "1";
 
   const db = drizzle((context.cloudflare as any).env.DB);
+
+  // 固有スキル非表示時: warrior_skillsに紐づくスキルを除外
+  let uniqueSkillIds: number[] = [];
+  if (!showUnique) {
+    const uniqueLinks = await db
+      .selectDistinct({ skill_id: warriorSkills.skill_id })
+      .from(warriorSkills);
+    uniqueSkillIds = uniqueLinks.map((r) => r.skill_id);
+  }
 
   const nameFilter = name ? like(skills.name, `%${name}%`) : undefined;
 
@@ -48,9 +58,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     whereClause = eq(skills.is_delete, false);
   }
 
+  if (!showUnique && uniqueSkillIds.length > 0) {
+    whereClause = whereClause
+      ? and(whereClause, notInArray(skills.id, uniqueSkillIds))
+      : notInArray(skills.id, uniqueSkillIds);
+  }
+
   const result = await db.select().from(skills).where(whereClause).orderBy(asc(skills.sort_order));
 
-  return { skills: result, filters: { skill_type, weapon_restriction, name } };
+  return { skills: result, filters: { skill_type, weapon_restriction, name, showUnique } };
 }
 
 const SKILL_TYPE_COLOR: Record<string, string> = {
@@ -60,6 +76,12 @@ const SKILL_TYPE_COLOR: Record<string, string> = {
   "怒気": "orange",
 };
 
+const SKILL_COLOR_PALETTE: Record<string, string> = {
+  "赤": "red",
+  "紫": "purple",
+  "青": "blue",
+};
+
 export default function SkillsIndex() {
   const { skills: data, filters } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
@@ -67,6 +89,16 @@ export default function SkillsIndex() {
   const [, startTransition] = useTransition();
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [nameValue, setNameValue] = useState(searchParams.get("name") ?? "");
+
+  const handleToggleUnique = () => {
+    const params = new URLSearchParams(searchParams);
+    if (filters.showUnique) {
+      params.delete("showUnique");
+    } else {
+      params.set("showUnique", "1");
+    }
+    navigate(params.toString() ? `?${params.toString()}` : "?", { replace: true });
+  };
 
   useEffect(() => {
     setNameValue(searchParams.get("name") ?? "");
@@ -165,6 +197,23 @@ export default function SkillsIndex() {
                 </Link>
               </Box>
             )}
+            <Box alignSelf="flex-end">
+              <button
+                type="button"
+                onClick={handleToggleUnique}
+                style={{
+                  padding: "8px 16px",
+                  background: filters.showUnique ? "#805AD5" : "rgba(255,255,255,0.1)",
+                  color: "white",
+                  borderRadius: "6px",
+                  border: `1px solid ${filters.showUnique ? "#805AD5" : "rgba(255,255,255,0.2)"}`,
+                  cursor: "pointer",
+                  fontSize: "14px",
+                }}
+              >
+                {filters.showUnique ? "固有スキルを非表示" : "固有スキルを表示"}
+              </button>
+            </Box>
           </Flex>
         </Form>
 
@@ -192,8 +241,8 @@ export default function SkillsIndex() {
                     {skill.weapon_restriction && (
                       <Badge colorPalette="blue" variant="outline">{skill.weapon_restriction}</Badge>
                     )}
-                    {skill.color && (
-                      <Badge colorPalette="purple" variant="subtle">{skill.color}</Badge>
+                    {skill.color && SKILL_COLOR_PALETTE[skill.color] && (
+                      <Badge colorPalette={SKILL_COLOR_PALETTE[skill.color]} variant="subtle">{skill.color}</Badge>
                     )}
                   </Flex>
                   <Text fontWeight="bold" fontSize="md">{skill.name}</Text>
