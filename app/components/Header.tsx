@@ -4,6 +4,7 @@ import { Link, useLocation } from "@remix-run/react";
 const navItems = [
   { label: "武将一覧", shortLabel: "武将", to: "/warriors" },
   { label: "編成", shortLabel: "編成", to: "/formation" },
+  { label: "国学", shortLabel: "国学", to: "/kokugaku" },
   { label: "スキル", shortLabel: "技能", to: "/skills" },
   { label: "手持ち武将", shortLabel: "手持ち武将", to: "/my-warriors" },
   { label: "手持ちスキル", shortLabel: "手持ちスキル", to: "/my-skills" },

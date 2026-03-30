@@ -17,6 +17,7 @@ import { Link, useLoaderData, useNavigate } from "@remix-run/react";
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { useRef, useState } from "react";
+import { useKokugakuLevels } from "../hooks/useKokugakuLevels";
 import { useMyWarriors } from "../hooks/useMyWarriors";
 import { useSavedFormations } from "../hooks/useSavedFormations";
 import type {
@@ -32,6 +33,7 @@ import {
   warriorSkills,
   skills,
 } from "../../server/db/schema";
+import { KOKUGAKU_STAT_LABELS } from "../lib/kokugaku";
 
 const SQUAD_SLOTS = [
   {
@@ -417,6 +419,7 @@ function maxSkillSlots(role: "主将" | "副将" | "軍師"): number {
 export default function FormationBuilderPage() {
   const { warriors: allWarriors, allSkills } = useLoaderData<typeof loader>();
   const { myWarriorIds, isHydrated } = useMyWarriors();
+  const { bonuses: kokugakuBonus } = useKokugakuLevels();
   const [slots, setSlots] = useState<FormationSlot[]>(() => createEmptySlots());
 
   const navigate = useNavigate();
@@ -466,6 +469,15 @@ export default function FormationBuilderPage() {
     },
     { atk: 0, int: 0, guts: 0 }
   );
+  const totalsWithKokugaku = {
+    atk: totals.atk + kokugakuBonus.atk,
+    int: totals.int + kokugakuBonus.int,
+    guts: totals.guts + kokugakuBonus.guts,
+  };
+  const kokugakuSummary = (["atk", "int", "guts", "pol"] as const)
+    .filter((stat) => kokugakuBonus[stat] > 0)
+    .map((stat) => `${KOKUGAKU_STAT_LABELS[stat]}+${kokugakuBonus[stat]}`)
+    .join(", ");
 
   const slotsWithWarrior = slots.filter(s => s.warrior && s.role !== "軍師");
   const squadSpeed = weaponType && slotsWithWarrior.length > 0
@@ -670,7 +682,12 @@ export default function FormationBuilderPage() {
     const slotData = buildSlotData();
     if (slotData.length === 0) return;
 
-    const result = saveFormation(saveName || "無名の編成", slotData, totals, weaponType);
+    const result = saveFormation(
+      saveName || "無名の編成",
+      slotData,
+      totalsWithKokugaku,
+      weaponType
+    );
     if (!result.ok && result.overflowId) {
       setOverflowConfirm(result.overflowId);
       return;
@@ -685,7 +702,7 @@ export default function FormationBuilderPage() {
     saveFormationForce(
       saveName || "無名の編成",
       slotData,
-      totals,
+      totalsWithKokugaku,
       overflowConfirm,
       weaponType
     );
@@ -736,6 +753,12 @@ export default function FormationBuilderPage() {
           </VStack>
           <HStack gap={4} wrap="wrap">
             <Link
+              to="/kokugaku"
+              style={{ color: "#ECC94B", fontSize: "14px", fontWeight: 700 }}
+            >
+              所持国学を調整
+            </Link>
+            <Link
               to="/my-warriors"
               style={{ color: "#ECC94B", fontSize: "14px", fontWeight: 700 }}
             >
@@ -760,10 +783,10 @@ export default function FormationBuilderPage() {
               武力合計
             </Text>
             <Text fontSize="2xl" fontWeight="bold">
-              {totals.atk}
+              {totalsWithKokugaku.atk}
             </Text>
             <Text fontSize="xs" color="gray.500">
-              主将+副将
+              主将+副将+国学
             </Text>
           </Box>
           <Box
@@ -777,10 +800,10 @@ export default function FormationBuilderPage() {
               知略合計
             </Text>
             <Text fontSize="2xl" fontWeight="bold">
-              {totals.int}
+              {totalsWithKokugaku.int}
             </Text>
             <Text fontSize="xs" color="gray.500">
-              主将+副将
+              主将+副将+国学
             </Text>
           </Box>
           <Box
@@ -794,10 +817,10 @@ export default function FormationBuilderPage() {
               胆力合計
             </Text>
             <Text fontSize="2xl" fontWeight="bold">
-              {totals.guts}
+              {totalsWithKokugaku.guts}
             </Text>
             <Text fontSize="xs" color="gray.500">
-              主将+副将
+              主将+副将+国学
             </Text>
           </Box>
           {squadSpeed !== null && (
@@ -820,6 +843,21 @@ export default function FormationBuilderPage() {
             </Box>
           )}
         </SimpleGrid>
+
+        <Box
+          bg="rgba(236, 201, 75, 0.08)"
+          borderRadius="xl"
+          p={4}
+          borderWidth="1px"
+          borderColor="yellow.800"
+        >
+          <Text fontSize="sm" color="yellow.200">
+            国学補正
+          </Text>
+          <Text fontSize="md" color="gray.200" mt={1}>
+            {kokugakuSummary || "未設定"}
+          </Text>
+        </Box>
 
         <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6} alignItems="start">
           <VStack gap={4} align="stretch">

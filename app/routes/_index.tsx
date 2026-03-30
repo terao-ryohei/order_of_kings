@@ -40,6 +40,12 @@ const features = [
     href: "/skills",
   },
   {
+    icon: "🎓",
+    title: "所持国学",
+    description: "研究段階を管理し、編成全体へかかる人材補正を整える。",
+    href: "/kokugaku",
+  },
+  {
     icon: "🛡",
     title: "所持武将",
     description: "手持ちの武将を登録・管理し、現有戦力を即座に把握する。",
@@ -218,7 +224,7 @@ export default function Index() {
                   Strategic Gateways
                 </Text>
                 <Heading size="2xl" fontWeight="extrabold">
-                  四つの導線で、戦場の判断を研ぎ澄ます
+                  五つの導線で、戦場の判断を研ぎ澄ます
                 </Heading>
               </Box>
               <SimpleGrid columns={{ base: 1, md: 2 }} gap={5}>
