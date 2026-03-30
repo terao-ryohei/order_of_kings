@@ -204,7 +204,6 @@ def main() -> None:
         f"-- WEAPON_APTITUDES: {len(weapon_rows)}",
         f"-- SKILLS: {len(skill_rows)}",
         f"-- WARRIOR_SKILLS: {len(warrior_skill_rows)}",
-        "BEGIN TRANSACTION;",
         "",
         "DELETE FROM weapon_aptitudes;",
         "DELETE FROM warrior_skills;",
@@ -266,7 +265,7 @@ def main() -> None:
             f"VALUES ({warrior_id}, {skill_id}, {slot}, 1);"
         )
 
-    lines.extend(["", "COMMIT;"])
+    lines.append("")
     OUTPUT_PATH.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     print(f"Generated SQL: {OUTPUT_PATH}")

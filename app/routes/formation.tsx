@@ -88,23 +88,67 @@ interface FormationSlot {
   bonusPoints: BonusAlloc;
 }
 
-const WEAPON_TYPES = ["刀", "馬", "弓", "槍"] as const;
+const WEAPON_TYPES = ["刀", "槍", "騎", "弓", "衝", "投"] as const;
 type WeaponType = (typeof WEAPON_TYPES)[number];
 
-const APTITUDE_BONUS: Record<string, { statMult: number; speedMult: number }> = {
-  "極": { statMult: 1.10, speedMult: 1.00 },
-  "優": { statMult: 1.05, speedMult: 1.00 },
-  "良": { statMult: 1.00, speedMult: 0.90 },
-  "凡": { statMult: 0.90, speedMult: 0.80 },
+const BASE_MOVE_SPEED: Record<WeaponType, number> = {
+  刀: 300,
+  槍: 350,
+  騎: 420,
+  弓: 290,
+  衝: 260,
+  投: 240,
 };
 
+const APTITUDE_BONUS: Record<string, { statMult: number; speedMult: number }> = {
+  "極": { statMult: 1.2, speedMult: 0 },
+  "優": { statMult: 1.05, speedMult: 0 },
+  "良": { statMult: 1.0, speedMult: -0.1 },
+  "凡": { statMult: 0.9, speedMult: -0.2 },
+  "下": { statMult: 0.8, speedMult: -0.2 },
+};
+
+const WEAPON_TYPE_ALIASES: Record<WeaponType, string[]> = {
+  刀: ["刀"],
+  槍: ["槍"],
+  騎: ["騎", "馬"],
+  弓: ["弓"],
+  衝: ["衝"],
+  投: ["投"],
+};
+
+function normalizeAptitudeEntry(aptitude: string): string {
+  return aptitude.replace(/\s+/g, "").trim();
+}
+
 function getAptitude(aptitudes: string[], weaponType: WeaponType): string {
-  const found = aptitudes.find(a => a.startsWith(weaponType));
-  return found ? found.slice(weaponType.length) : "凡";
+  if (weaponType === "衝" || weaponType === "投") {
+    return "優";
+  }
+
+  const candidates = WEAPON_TYPE_ALIASES[weaponType];
+  const normalizedAptitudes = aptitudes.map(normalizeAptitudeEntry);
+  const found = normalizedAptitudes.find((aptitude) =>
+    candidates.some((candidate) => aptitude.startsWith(candidate))
+  );
+  if (!found) {
+    return "凡";
+  }
+
+  const matchedPrefix = candidates.find((candidate) => found.startsWith(candidate));
+  return matchedPrefix ? found.slice(matchedPrefix.length) : "凡";
+}
+
+function getAptitudeBonus(aptitudes: string[], weaponType: WeaponType) {
+  const aptitude = getAptitude(aptitudes, weaponType);
+  return {
+    aptitude,
+    bonus: APTITUDE_BONUS[aptitude] ?? APTITUDE_BONUS["凡"],
+  };
 }
 
 function calcStat(base: number, growth: number, level: number, mult: number): number {
-  return Math.round((base + growth * (level - 1)) * mult);
+  return Math.round(base * mult + growth * (level - 1));
 }
 
 const BONUS_STATS = [
@@ -341,7 +385,7 @@ export default function FormationBuilderPage() {
       }
 
       const statMult = weaponType
-        ? (APTITUDE_BONUS[getAptitude(slot.warrior.aptitudes, weaponType)]?.statMult ?? 1.0)
+        ? getAptitudeBonus(slot.warrior.aptitudes, weaponType).bonus.statMult
         : 1.0;
 
       return {
@@ -353,13 +397,13 @@ export default function FormationBuilderPage() {
     { atk: 0, int: 0, guts: 0 }
   );
 
-  const slotsWithWarrior = slots.filter(s => s.warrior);
+  const slotsWithWarrior = slots.filter(s => s.warrior && s.role !== "軍師");
   const squadSpeed = weaponType && slotsWithWarrior.length > 0
-    ? Math.min(
-        ...slotsWithWarrior.map(s => {
-          const apt = getAptitude(s.warrior!.aptitudes, weaponType);
-          return (APTITUDE_BONUS[apt]?.speedMult ?? 0.80) * 100;
-        })
+    ? Math.round(
+        slotsWithWarrior.reduce((total, slot) => {
+          const speedMult = getAptitudeBonus(slot.warrior!.aptitudes, weaponType).bonus.speedMult;
+          return total + BASE_MOVE_SPEED[weaponType] * speedMult;
+        }, BASE_MOVE_SPEED[weaponType])
       )
     : null;
 
@@ -668,10 +712,10 @@ export default function FormationBuilderPage() {
                 移動速度
               </Text>
               <Text fontSize="2xl" fontWeight="bold">
-                {squadSpeed}%
+                {squadSpeed}
               </Text>
               <Text fontSize="xs" color="gray.500">
-                部隊最低値
+                兵種基礎値込み
               </Text>
             </Box>
           )}
@@ -948,15 +992,14 @@ export default function FormationBuilderPage() {
                                     : "未登録"}
                                 </Text>
                                 {weaponType && slot.warrior && (() => {
-                                  const apt = getAptitude(slot.warrior.aptitudes, weaponType);
-                                  const bonus = APTITUDE_BONUS[apt];
+                                  const { aptitude, bonus } = getAptitudeBonus(slot.warrior.aptitudes, weaponType);
                                   return (
                                     <Badge
-                                      colorPalette={apt === "極" ? "orange" : apt === "優" ? "yellow" : apt === "良" ? "green" : "gray"}
+                                      colorPalette={aptitude === "極" ? "orange" : aptitude === "優" ? "yellow" : aptitude === "良" ? "green" : "gray"}
                                       variant="subtle"
                                       fontSize="xs"
                                     >
-                                      {weaponType}{apt} ({bonus.statMult >= 1 ? "+" : ""}{Math.round((bonus.statMult - 1) * 100)}%)
+                                      {weaponType}{aptitude} ({bonus.statMult >= 1 ? "+" : ""}{Math.round((bonus.statMult - 1) * 100)}%)
                                     </Badge>
                                   );
                                 })()}
@@ -1238,7 +1281,7 @@ export default function FormationBuilderPage() {
                               </Box>
                               {slot.role !== "軍師" && (() => {
                                 const slotStatMult = weaponType && slot.warrior
-                                  ? (APTITUDE_BONUS[getAptitude(slot.warrior.aptitudes, weaponType)]?.statMult ?? 1.0)
+                                  ? getAptitudeBonus(slot.warrior.aptitudes, weaponType).bonus.statMult
                                   : 1.0;
                                 return (
                                 <VStack align="start" gap={0} mt={1}>
