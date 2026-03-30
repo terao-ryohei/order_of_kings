@@ -1,4 +1,5 @@
 import {
+  Badge,
   Box,
   Button,
   Container,
@@ -22,16 +23,17 @@ export const meta: MetaFunction = () => [
 
 const features = [
   {
-    icon: "⚔",
-    title: "英傑図鑑",
-    description: "全武将・技能を閲覧し、戦場に立つ英傑たちの素性を見極める。",
-    href: "/warriors",
-  },
-  {
     icon: "🏯",
     title: "軍略編成",
     description: "部隊を組み合わせ、編成スコアと相乗効果を見ながら陣形を練る。",
     href: "/formation",
+    spotlight: true,
+  },
+  {
+    icon: "⚔",
+    title: "英傑図鑑",
+    description: "全武将・技能を閲覧し、戦場に立つ英傑たちの素性を見極める。",
+    href: "/warriors",
   },
   {
     icon: "📜",
@@ -114,52 +116,63 @@ export default function Index() {
                   textTransform="uppercase"
                   mb={3}
                 >
-                  Order of Kings
+                  Formation First
                 </Text>
                 <Heading
                   as="h1"
                   fontWeight="black"
-                  letterSpacing="0.18em"
-                  lineHeight="0.95"
-                  fontSize={{ base: "4xl", md: "6xl", xl: "7xl" }}
-                  textTransform="uppercase"
+                  letterSpacing={{ base: "0.08em", md: "0.12em" }}
+                  lineHeight="1.02"
+                  fontSize={{ base: "4xl", md: "5xl", xl: "6xl" }}
                 >
-                  王の算盤
+                  編成を起点に、
+                  <br />
+                  天下の采配を組み上げる
                 </Heading>
               </Box>
-              <Text maxW="2xl" color="gray.400" lineHeight="1.9">
-                墨色の戦場に金の采配を走らせ、英傑・技能・編成を一望する戦略書。
-                静かに構え、一手で戦局を変えるための御前会議がここにある。
+              <Text maxW="2xl" color="gray.300" lineHeight="1.9" fontSize={{ md: "lg" }}>
+                主役は軍略編成。武将、技能、国学、所持戦力の情報を一か所へ束ね、
+                まず部隊を組み、その後に細部を詰めるための司令卓として再構成した。
               </Text>
-              <Flex gap={4} wrap="wrap">
-                <Link to="/warriors" style={{ textDecoration: "none" }}>
-                  <Button
-                    size="lg"
-                    colorPalette="yellow"
-                    bg="yellow.400"
-                    color="gray.950"
-                    px={8}
-                    rounded="full"
-                    _hover={{ bg: "yellow.300", transform: "translateY(-1px)" }}
-                  >
-                    武将を見る
-                  </Button>
-                </Link>
-                <Link to="/formation" style={{ textDecoration: "none" }}>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    colorPalette="red"
-                    borderColor="whiteAlpha.400"
-                    color="white"
-                    px={8}
-                    rounded="full"
-                    _hover={{ bg: "whiteAlpha.100" }}
-                  >
-                    軍略編成へ
-                  </Button>
-                </Link>
-              </Flex>
+              <Link to="/formation" style={{ textDecoration: "none" }}>
+                <Button
+                  size="lg"
+                  colorPalette="yellow"
+                  bg="linear-gradient(135deg, #f6e05e 0%, #f97316 100%)"
+                  color="gray.950"
+                  px={{ base: 8, md: 10 }}
+                  py={7}
+                  rounded="full"
+                  fontSize={{ base: "md", md: "lg" }}
+                  fontWeight="bold"
+                  boxShadow="0 16px 40px rgba(249, 115, 22, 0.3)"
+                  _hover={{ transform: "translateY(-2px)", boxShadow: "0 20px 48px rgba(249, 115, 22, 0.38)" }}
+                >
+                  編成ビルダーへ
+                </Button>
+              </Link>
+              <VStack align="flex-start" gap={3}>
+                <Text color="gray.500" fontSize="sm" letterSpacing="0.16em" textTransform="uppercase">
+                  関連導線
+                </Text>
+                <HStack gap={4} wrap="wrap">
+                  <Link to="/warriors" style={{ textDecoration: "none" }}>
+                    <Text color="yellow.200" fontSize="sm" fontWeight="semibold">
+                      武将一覧
+                    </Text>
+                  </Link>
+                  <Link to="/skills" style={{ textDecoration: "none" }}>
+                    <Text color="yellow.200" fontSize="sm" fontWeight="semibold">
+                      技能書庫
+                    </Text>
+                  </Link>
+                  <Link to="/kokugaku" style={{ textDecoration: "none" }}>
+                    <Text color="yellow.200" fontSize="sm" fontWeight="semibold">
+                      所持国学
+                    </Text>
+                  </Link>
+                </HStack>
+              </VStack>
             </VStack>
 
             <Box
@@ -224,7 +237,7 @@ export default function Index() {
                   Strategic Gateways
                 </Text>
                 <Heading size="2xl" fontWeight="extrabold">
-                  五つの導線で、戦場の判断を研ぎ澄ます
+                  編成を核に、必要な情報へ素早く遷移する
                 </Heading>
               </Box>
               <SimpleGrid columns={{ base: 1, md: 2 }} gap={5}>
@@ -232,32 +245,55 @@ export default function Index() {
                   <Link
                     key={feature.href}
                     to={feature.href}
-                    style={{ textDecoration: "none" }}
+                    style={{
+                      textDecoration: "none",
+                      display: "block",
+                      gridColumn: feature.spotlight ? "span 2 / span 2" : undefined,
+                    }}
                   >
                     <Box
                       h="full"
                       rounded="2xl"
                       borderWidth="1px"
-                      borderColor="whiteAlpha.200"
-                      bg="linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03))"
+                      borderColor={feature.spotlight ? "orange.300" : "whiteAlpha.200"}
+                      bg={
+                        feature.spotlight
+                          ? "linear-gradient(135deg, rgba(236, 201, 75, 0.18), rgba(249, 115, 22, 0.16), rgba(255,255,255,0.06))"
+                          : "linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03))"
+                      }
                       p={6}
                       transition="transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease"
                       _hover={{
                         transform: "translateY(-4px)",
-                        borderColor: "yellow.400",
+                        borderColor: feature.spotlight ? "orange.200" : "yellow.400",
                         boxShadow: "0 20px 40px rgba(0, 0, 0, 0.25)",
                       }}
                     >
                       <VStack align="flex-start" gap={4}>
+                        {feature.spotlight ? (
+                          <Badge
+                            colorPalette="orange"
+                            px={3}
+                            py={1}
+                            borderRadius="full"
+                            letterSpacing="0.12em"
+                          >
+                            Main Route
+                          </Badge>
+                        ) : null}
                         <Flex
                           align="center"
                           justify="center"
-                          w={12}
-                          h={12}
+                          w={feature.spotlight ? 14 : 12}
+                          h={feature.spotlight ? 14 : 12}
                           rounded="xl"
-                          bg="rgba(236, 201, 75, 0.14)"
-                          color="yellow.200"
-                          fontSize="2xl"
+                          bg={
+                            feature.spotlight
+                              ? "rgba(249, 115, 22, 0.18)"
+                              : "rgba(236, 201, 75, 0.14)"
+                          }
+                          color={feature.spotlight ? "orange.100" : "yellow.200"}
+                          fontSize={feature.spotlight ? "3xl" : "2xl"}
                         >
                           {feature.icon}
                         </Flex>
@@ -270,12 +306,12 @@ export default function Index() {
                           </Text>
                         </Box>
                         <Text
-                          color="red.300"
+                          color={feature.spotlight ? "orange.200" : "red.300"}
                           fontWeight="bold"
                           fontSize="sm"
                           letterSpacing="0.08em"
                         >
-                          進む
+                          {feature.spotlight ? "主導線へ進む" : "進む"}
                         </Text>
                       </VStack>
                     </Box>
