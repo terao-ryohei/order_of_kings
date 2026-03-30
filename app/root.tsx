@@ -9,6 +9,7 @@ import {
 } from "@remix-run/react";
 import { ThemeProvider } from "next-themes";
 import Header from "~/components/Header";
+import globalStylesHref from "~/global.css?url";
 
 export const links: LinksFunction = () => [
   { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
@@ -18,10 +19,7 @@ export const links: LinksFunction = () => [
     href: "https://fonts.gstatic.com",
     crossOrigin: "anonymous",
   },
-  {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Noto+Sans+JP:wght@100..900&display=swap",
-  },
+  { rel: "stylesheet", href: globalStylesHref },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
