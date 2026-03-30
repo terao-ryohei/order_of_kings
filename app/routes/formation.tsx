@@ -21,6 +21,8 @@ import { useMyWarriors } from "../hooks/useMyWarriors";
 import { useSavedFormations } from "../hooks/useSavedFormations";
 import type {
   BonusAlloc,
+  Equipment,
+  EquipmentSlot,
   SavedFormation,
   SavedFormationSlot,
 } from "../hooks/useSavedFormations";
@@ -86,6 +88,7 @@ interface FormationSlot {
   warriorLevel: number;
   skillLevels: number[];
   bonusPoints: BonusAlloc;
+  equipment: Equipment;
 }
 
 const WEAPON_TYPES = ["刀", "槍", "騎", "弓", "衝", "投"] as const;
@@ -147,12 +150,8 @@ function getAptitudeBonus(aptitudes: string[], weaponType: WeaponType) {
   };
 }
 
-function calcStatAtk(base: number, growth: number, level: number, mult: number): number {
-  return Math.round(base * mult + growth * (level - 1));
-}
-
-function calcStat(base: number, growth: number, level: number, mult: number): number {
-  return Math.round((base + growth * (level - 1)) * mult);
+function calcStat(base: number, growth: number, level: number, bonus: number, mult: number): number {
+  return Math.round((base + growth * (level - 1) + bonus) * mult);
 }
 
 const BONUS_STATS = [
@@ -162,8 +161,34 @@ const BONUS_STATS = [
   { key: "pol" as const, label: "政治" },
 ];
 
+const EQUIPMENT_SLOTS = [
+  { key: "weapon" as const, label: "武器" },
+  { key: "armor" as const, label: "防具" },
+  { key: "accessory" as const, label: "装飾品" },
+  { key: "mount" as const, label: "騎乗動物" },
+];
+
+const EQUIPMENT_STATS = [
+  { key: "atk" as const, label: "武力" },
+  { key: "int" as const, label: "知略" },
+  { key: "guts" as const, label: "胆力" },
+];
+
 function createEmptyBonusAlloc(): BonusAlloc {
   return { atk: 0, int: 0, guts: 0, pol: 0 };
+}
+
+function createEmptyEquipmentSlot(): EquipmentSlot {
+  return { atk: 0, int: 0, guts: 0 };
+}
+
+function createEmptyEquipment(): Equipment {
+  return {
+    weapon: createEmptyEquipmentSlot(),
+    armor: createEmptyEquipmentSlot(),
+    accessory: createEmptyEquipmentSlot(),
+    mount: createEmptyEquipmentSlot(),
+  };
 }
 
 function getTotalBonusMax(level: number): number {
@@ -209,6 +234,42 @@ function parseSavedBonusAlloc(
   }
 
   return createEmptyBonusAlloc();
+}
+
+function parseSavedEquipment(
+  equipment?: SavedFormationSlot["equipment"] | null
+): Equipment {
+  const empty = createEmptyEquipment();
+  if (!equipment || typeof equipment !== "object") {
+    return empty;
+  }
+
+  const readSlot = (key: keyof Equipment): EquipmentSlot => {
+    const value = equipment[key];
+    if (!value || typeof value !== "object") {
+      return createEmptyEquipmentSlot();
+    }
+
+    return {
+      atk: typeof value.atk === "number" ? value.atk : 0,
+      int: typeof value.int === "number" ? value.int : 0,
+      guts: typeof value.guts === "number" ? value.guts : 0,
+    };
+  };
+
+  return {
+    weapon: readSlot("weapon"),
+    armor: readSlot("armor"),
+    accessory: readSlot("accessory"),
+    mount: readSlot("mount"),
+  };
+}
+
+function getEquipmentStatTotal(equipment: Equipment, stat: keyof EquipmentSlot): number {
+  return EQUIPMENT_SLOTS.reduce(
+    (sum, slot) => sum + equipment[slot.key][stat],
+    0
+  );
 }
 
 export const meta: MetaFunction = () => [
@@ -345,6 +406,7 @@ function createEmptySlots(): FormationSlot[] {
     warriorLevel: 1,
     skillLevels: [],
     bonusPoints: createEmptyBonusAlloc(),
+    equipment: createEmptyEquipment(),
   }));
 }
 
@@ -392,11 +454,14 @@ export default function FormationBuilderPage() {
         ? getAptitudeBonus(slot.warrior.aptitudes, weaponType).bonus.statMult
         : 1.0;
       const intGutsMult = (statMult - 1) * 0.5 + 1;
+      const equipmentAtk = getEquipmentStatTotal(slot.equipment, "atk");
+      const equipmentInt = getEquipmentStatTotal(slot.equipment, "int");
+      const equipmentGuts = getEquipmentStatTotal(slot.equipment, "guts");
 
       return {
-        atk: sum.atk + calcStatAtk(slot.warrior.atk, slot.warrior.atk_growth, slot.warriorLevel, statMult) + slot.bonusPoints.atk,
-        int: sum.int + calcStat(slot.warrior.int, slot.warrior.int_growth, slot.warriorLevel, intGutsMult) + slot.bonusPoints.int,
-        guts: sum.guts + calcStat(slot.warrior.guts, slot.warrior.guts_growth, slot.warriorLevel, intGutsMult) + slot.bonusPoints.guts,
+        atk: sum.atk + calcStat(slot.warrior.atk, slot.warrior.atk_growth, slot.warriorLevel, slot.bonusPoints.atk + equipmentAtk, intGutsMult),
+        int: sum.int + calcStat(slot.warrior.int, slot.warrior.int_growth, slot.warriorLevel, slot.bonusPoints.int + equipmentInt, intGutsMult),
+        guts: sum.guts + calcStat(slot.warrior.guts, slot.warrior.guts_growth, slot.warriorLevel, slot.bonusPoints.guts + equipmentGuts, intGutsMult),
       };
     },
     { atk: 0, int: 0, guts: 0 }
@@ -432,6 +497,7 @@ export default function FormationBuilderPage() {
               warriorLevel: 1,
               skillLevels: [],
               bonusPoints: createEmptyBonusAlloc(),
+              equipment: createEmptyEquipment(),
             }
           : slot
       );
@@ -449,6 +515,7 @@ export default function FormationBuilderPage() {
               warriorLevel: 1,
               skillLevels: [],
               bonusPoints: createEmptyBonusAlloc(),
+              equipment: createEmptyEquipment(),
             }
           : slot
       )
@@ -490,6 +557,32 @@ export default function FormationBuilderPage() {
           bonusPoints: { ...currentAlloc, [stat]: nextValue },
         };
       })
+    );
+  };
+
+  const updateEquipmentStat = (
+    slotIndex: number,
+    equipmentKey: keyof Equipment,
+    stat: keyof EquipmentSlot,
+    value: string
+  ) => {
+    const nextValue = Number(value);
+
+    setSlots((current) =>
+      current.map((slot) =>
+        slot.index === slotIndex
+          ? {
+              ...slot,
+              equipment: {
+                ...slot.equipment,
+                [equipmentKey]: {
+                  ...slot.equipment[equipmentKey],
+                  [stat]: Number.isFinite(nextValue) ? nextValue : 0,
+                },
+              },
+            }
+          : slot
+      )
     );
   };
 
@@ -569,6 +662,7 @@ export default function FormationBuilderPage() {
         warrior_level: s.warriorLevel,
         skill_levels: s.skillLevels,
         bonus_points: s.bonusPoints,
+        equipment: s.equipment,
       }));
   };
 
@@ -619,6 +713,7 @@ export default function FormationBuilderPage() {
             parseSavedBonusAlloc(saved.bonus_points),
             getTotalBonusMax(saved.warrior_level ?? 1)
           ),
+          equipment: parseSavedEquipment(saved.equipment),
         };
       }
     }
@@ -1117,6 +1212,80 @@ export default function FormationBuilderPage() {
                                   })()}
                                 </VStack>
                               )}
+                              {slot.role !== "軍師" && (
+                                <Collapsible.Root>
+                                  <Collapsible.Trigger asChild>
+                                    <Button
+                                      size="xs"
+                                      variant="ghost"
+                                      px={0}
+                                      mt={2}
+                                    >
+                                      装備 ▼
+                                    </Button>
+                                  </Collapsible.Trigger>
+                                  <Collapsible.Content>
+                                    <VStack
+                                      w="100%"
+                                      align="stretch"
+                                      gap={2}
+                                      mt={2}
+                                      p={3}
+                                      bg="whiteAlpha.50"
+                                      borderRadius="lg"
+                                      borderWidth="1px"
+                                      borderColor="whiteAlpha.200"
+                                    >
+                                      {EQUIPMENT_SLOTS.map((equipmentSlot) => (
+                                        <VStack
+                                          key={equipmentSlot.key}
+                                          align="stretch"
+                                          gap={1}
+                                        >
+                                          <Text fontSize="xs" color="gray.300">
+                                            {equipmentSlot.label}
+                                          </Text>
+                                          <SimpleGrid
+                                            columns={{ base: 1, md: 3 }}
+                                            gap={2}
+                                          >
+                                            {EQUIPMENT_STATS.map((stat) => (
+                                              <Box key={stat.key}>
+                                                <Text
+                                                  fontSize="xs"
+                                                  color="gray.400"
+                                                  mb={1}
+                                                >
+                                                  {stat.label}
+                                                </Text>
+                                                <Input
+                                                  type="number"
+                                                  size="xs"
+                                                  value={
+                                                    slot.equipment[
+                                                      equipmentSlot.key
+                                                    ][stat.key]
+                                                  }
+                                                  onChange={(e) =>
+                                                    updateEquipmentStat(
+                                                      slot.index,
+                                                      equipmentSlot.key,
+                                                      stat.key,
+                                                      e.target.value
+                                                    )
+                                                  }
+                                                  bg="gray.900"
+                                                  borderColor="whiteAlpha.300"
+                                                />
+                                              </Box>
+                                            ))}
+                                          </SimpleGrid>
+                                        </VStack>
+                                      ))}
+                                    </VStack>
+                                  </Collapsible.Content>
+                                </Collapsible.Root>
+                              )}
                               {(() => {
                                 const skillName =
                                   slot.role === "軍師"
@@ -1289,17 +1458,20 @@ export default function FormationBuilderPage() {
                                   ? getAptitudeBonus(slot.warrior.aptitudes, weaponType).bonus.statMult
                                   : 1.0;
                                 const slotIntGutsMult = (slotStatMult - 1) * 0.5 + 1;
+                                const equipmentAtk = getEquipmentStatTotal(slot.equipment, "atk");
+                                const equipmentInt = getEquipmentStatTotal(slot.equipment, "int");
+                                const equipmentGuts = getEquipmentStatTotal(slot.equipment, "guts");
                                 return (
                                 <VStack align="start" gap={0} mt={1}>
                                   <Text fontSize="xs" color="gray.400">
-                                    武{calcStatAtk(slot.warrior.atk, slot.warrior.atk_growth, slot.warriorLevel, slotStatMult) + slot.bonusPoints.atk}
+                                    武{calcStat(slot.warrior.atk, slot.warrior.atk_growth, slot.warriorLevel, slot.bonusPoints.atk + equipmentAtk, slotIntGutsMult)}
                                   </Text>
                                   <Text fontSize="xs" color="gray.400">
-                                    知{calcStat(slot.warrior.int, slot.warrior.int_growth, slot.warriorLevel, slotIntGutsMult) + slot.bonusPoints.int}
+                                    知{calcStat(slot.warrior.int, slot.warrior.int_growth, slot.warriorLevel, slot.bonusPoints.int + equipmentInt, slotIntGutsMult)}
                                   </Text>
                                   <Text fontSize="xs" color="gray.400">
                                     胆
-                                    {calcStat(slot.warrior.guts, slot.warrior.guts_growth, slot.warriorLevel, slotIntGutsMult) + slot.bonusPoints.guts}
+                                    {calcStat(slot.warrior.guts, slot.warrior.guts_growth, slot.warriorLevel, slot.bonusPoints.guts + equipmentGuts, slotIntGutsMult)}
                                   </Text>
                                 </VStack>
                                 );

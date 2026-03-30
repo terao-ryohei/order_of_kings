@@ -4,6 +4,13 @@ const STORAGE_KEY = "saved_formations";
 const MAX_SAVED = 10;
 
 export type BonusAlloc = { atk: number; int: number; guts: number; pol: number };
+export type EquipmentSlot = { atk: number; int: number; guts: number };
+export type Equipment = {
+  weapon: EquipmentSlot;
+  armor: EquipmentSlot;
+  accessory: EquipmentSlot;
+  mount: EquipmentSlot;
+};
 
 export type SavedFormationSlot = {
   warrior_id: number;
@@ -12,6 +19,7 @@ export type SavedFormationSlot = {
   warrior_level?: number;
   skill_levels?: number[];
   bonus_points?: BonusAlloc;
+  equipment?: Equipment;
 };
 
 export type SavedFormation = {
@@ -71,7 +79,12 @@ export function useSavedFormations() {
   const saveFormation = useCallback(
     (
       name: string,
-      slots: Array<{ warrior_id: number; role_label: string; bonus_points?: BonusAlloc }>,
+      slots: Array<{
+        warrior_id: number;
+        role_label: string;
+        bonus_points?: BonusAlloc;
+        equipment?: Equipment;
+      }>,
       totalScore: { atk: number; int: number; guts: number },
       weaponType?: string | null,
     ): { ok: boolean; overflowId?: string } => {
@@ -98,7 +111,12 @@ export function useSavedFormations() {
   const saveFormationForce = useCallback(
     (
       name: string,
-      slots: Array<{ warrior_id: number; role_label: string; bonus_points?: BonusAlloc }>,
+      slots: Array<{
+        warrior_id: number;
+        role_label: string;
+        bonus_points?: BonusAlloc;
+        equipment?: Equipment;
+      }>,
       totalScore: { atk: number; int: number; guts: number },
       deleteId: string,
       weaponType?: string | null,
