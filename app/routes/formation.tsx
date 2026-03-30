@@ -147,8 +147,12 @@ function getAptitudeBonus(aptitudes: string[], weaponType: WeaponType) {
   };
 }
 
-function calcStat(base: number, growth: number, level: number, mult: number): number {
+function calcStatAtk(base: number, growth: number, level: number, mult: number): number {
   return Math.round(base * mult + growth * (level - 1));
+}
+
+function calcStat(base: number, growth: number, level: number, mult: number): number {
+  return Math.round((base + growth * (level - 1)) * mult);
 }
 
 const BONUS_STATS = [
@@ -387,11 +391,12 @@ export default function FormationBuilderPage() {
       const statMult = weaponType
         ? getAptitudeBonus(slot.warrior.aptitudes, weaponType).bonus.statMult
         : 1.0;
+      const intGutsMult = (statMult - 1) * 0.5 + 1;
 
       return {
-        atk: sum.atk + calcStat(slot.warrior.atk, slot.warrior.atk_growth, slot.warriorLevel, statMult) + slot.bonusPoints.atk,
-        int: sum.int + calcStat(slot.warrior.int, slot.warrior.int_growth, slot.warriorLevel, statMult) + slot.bonusPoints.int,
-        guts: sum.guts + calcStat(slot.warrior.guts, slot.warrior.guts_growth, slot.warriorLevel, statMult) + slot.bonusPoints.guts,
+        atk: sum.atk + calcStatAtk(slot.warrior.atk, slot.warrior.atk_growth, slot.warriorLevel, statMult) + slot.bonusPoints.atk,
+        int: sum.int + calcStat(slot.warrior.int, slot.warrior.int_growth, slot.warriorLevel, intGutsMult) + slot.bonusPoints.int,
+        guts: sum.guts + calcStat(slot.warrior.guts, slot.warrior.guts_growth, slot.warriorLevel, intGutsMult) + slot.bonusPoints.guts,
       };
     },
     { atk: 0, int: 0, guts: 0 }
@@ -1283,17 +1288,18 @@ export default function FormationBuilderPage() {
                                 const slotStatMult = weaponType && slot.warrior
                                   ? getAptitudeBonus(slot.warrior.aptitudes, weaponType).bonus.statMult
                                   : 1.0;
+                                const slotIntGutsMult = (slotStatMult - 1) * 0.5 + 1;
                                 return (
                                 <VStack align="start" gap={0} mt={1}>
                                   <Text fontSize="xs" color="gray.400">
-                                    武{calcStat(slot.warrior.atk, slot.warrior.atk_growth, slot.warriorLevel, slotStatMult) + slot.bonusPoints.atk}
+                                    武{calcStatAtk(slot.warrior.atk, slot.warrior.atk_growth, slot.warriorLevel, slotStatMult) + slot.bonusPoints.atk}
                                   </Text>
                                   <Text fontSize="xs" color="gray.400">
-                                    知{calcStat(slot.warrior.int, slot.warrior.int_growth, slot.warriorLevel, slotStatMult) + slot.bonusPoints.int}
+                                    知{calcStat(slot.warrior.int, slot.warrior.int_growth, slot.warriorLevel, slotIntGutsMult) + slot.bonusPoints.int}
                                   </Text>
                                   <Text fontSize="xs" color="gray.400">
                                     胆
-                                    {calcStat(slot.warrior.guts, slot.warrior.guts_growth, slot.warriorLevel, slotStatMult) + slot.bonusPoints.guts}
+                                    {calcStat(slot.warrior.guts, slot.warrior.guts_growth, slot.warriorLevel, slotIntGutsMult) + slot.bonusPoints.guts}
                                   </Text>
                                 </VStack>
                                 );
