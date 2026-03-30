@@ -457,10 +457,12 @@ export default function FormationBuilderPage() {
   const [saveName, setSaveName] = useState("");
   const [overflowConfirm, setOverflowConfirm] = useState<string | null>(null);
   const [loadConfirm, setLoadConfirm] = useState<SavedFormation | null>(null);
+  const [selectedFormationId, setSelectedFormationId] = useState("");
 
   const myWarriors = allWarriors.filter((warrior) =>
     myWarriorIds.includes(warrior.id)
   );
+  const hasAssignedWarrior = slots.some((slot) => slot.warrior);
   const assignedIds = new Set(
     slots
       .map((slot) => slot.warrior?.id)
@@ -499,6 +501,9 @@ export default function FormationBuilderPage() {
     .filter((stat) => kokugakuBonus[stat] > 0)
     .map((stat) => `${KOKUGAKU_STAT_LABELS[stat]}+${kokugakuBonus[stat]}`)
     .join(", ");
+  const selectedFormation =
+    savedFormations.find((formation) => formation.id === selectedFormationId) ??
+    null;
 
   const slotsWithWarrior = slots.filter(s => s.warrior && s.role !== "軍師");
   const squadSpeed = weaponType && slotsWithWarrior.length > 0
@@ -760,7 +765,7 @@ export default function FormationBuilderPage() {
 
   return (
     <Box minH="100vh" bg="gray.950" p={4}>
-      <VStack gap={6} align="stretch" maxW="1200px" mx="auto">
+      <VStack gap={5} align="stretch" maxW="1200px" mx="auto">
         <Flex align="center" justify="space-between" flexWrap="wrap" gap={3}>
           <VStack align="start" gap={1}>
             <Heading size="xl" color="white">
@@ -789,93 +794,148 @@ export default function FormationBuilderPage() {
           </HStack>
         </Flex>
 
-        {/* 改善3: 合計ステータスを最上部に表示 */}
-        <SimpleGrid columns={{ base: squadSpeed !== null ? 4 : 3 }} gap={3}>
-          <Box
-            bg="whiteAlpha.100"
-            borderRadius="xl"
-            p={4}
-            borderWidth="1px"
-            borderColor="whiteAlpha.200"
-          >
-            <Text fontSize="sm" color="gray.400">
-              武力合計
-            </Text>
-            <Text fontSize="2xl" fontWeight="bold">
-              {displayedTotals.atk}
-            </Text>
-            <Text fontSize="xs" color="gray.500">
-              主将+副将+国学
-            </Text>
-          </Box>
-          <Box
-            bg="whiteAlpha.100"
-            borderRadius="xl"
-            p={4}
-            borderWidth="1px"
-            borderColor="whiteAlpha.200"
-          >
-            <Text fontSize="sm" color="gray.400">
-              知略合計
-            </Text>
-            <Text fontSize="2xl" fontWeight="bold">
-              {displayedTotals.int}
-            </Text>
-            <Text fontSize="xs" color="gray.500">
-              主将+副将+国学
-            </Text>
-          </Box>
-          <Box
-            bg="whiteAlpha.100"
-            borderRadius="xl"
-            p={4}
-            borderWidth="1px"
-            borderColor="whiteAlpha.200"
-          >
-            <Text fontSize="sm" color="gray.400">
-              胆力合計
-            </Text>
-            <Text fontSize="2xl" fontWeight="bold">
-              {displayedTotals.guts}
-            </Text>
-            <Text fontSize="xs" color="gray.500">
-              主将+副将+国学
-            </Text>
-          </Box>
-          {squadSpeed !== null && (
-            <Box
-              bg="whiteAlpha.100"
-              borderRadius="xl"
-              p={4}
-              borderWidth="1px"
-              borderColor="orange.700"
-            >
-              <Text fontSize="sm" color="gray.400">
-                移動速度
-              </Text>
-              <Text fontSize="2xl" fontWeight="bold">
-                {squadSpeed}
-              </Text>
-              <Text fontSize="xs" color="gray.500">
-                兵種基礎値込み
-              </Text>
-            </Box>
-          )}
-        </SimpleGrid>
-
         <Box
-          bg="rgba(236, 201, 75, 0.08)"
-          borderRadius="xl"
-          p={4}
+          position={{ base: "static", lg: "sticky" }}
+          top={{ lg: 3 }}
+          zIndex={2}
+          bg="linear-gradient(135deg, rgba(21,28,40,0.96), rgba(56,35,8,0.92))"
+          borderRadius="2xl"
+          p={{ base: 4, md: 5 }}
           borderWidth="1px"
           borderColor="yellow.800"
+          boxShadow="0 12px 40px rgba(0,0,0,0.28)"
+          backdropFilter="blur(12px)"
         >
-          <Text fontSize="sm" color="yellow.200">
-            国学補正
-          </Text>
-          <Text fontSize="md" color="gray.200" mt={1}>
-            {kokugakuSummary || "未設定"}
-          </Text>
+          <VStack align="stretch" gap={4}>
+            <Flex justify="space-between" align={{ base: "start", lg: "center" }} flexWrap="wrap" gap={3}>
+              <VStack align="start" gap={1}>
+                <Text fontSize="xs" color="yellow.300" letterSpacing="0.12em" textTransform="uppercase">
+                  Quick Command
+                </Text>
+                <Heading size="md" color="white">
+                  保存・読込と合計能力
+                </Heading>
+                <Text fontSize="sm" color="gray.300">
+                  上で編成を切り替え、そのまま保存まで進められるでござる。
+                </Text>
+              </VStack>
+              <Flex gap={2} wrap="wrap">
+                <Button variant="outline" onClick={clearAll} disabled={!hasAssignedWarrior}>
+                  全解除
+                </Button>
+                <Button
+                  colorPalette="yellow"
+                  onClick={() => setSaveMode((current) => !current)}
+                  disabled={!hasAssignedWarrior}
+                >
+                  {saveMode ? "保存を閉じる" : "現在の編成を保存"}
+                </Button>
+                <Button
+                  variant="subtle"
+                  disabled={!hasAssignedWarrior}
+                  onClick={() => navigate("/share")}
+                >
+                  共有する
+                </Button>
+              </Flex>
+            </Flex>
+
+            <SimpleGrid columns={{ base: 1, xl: 5 }} gap={3}>
+              <Box
+                gridColumn={{ base: "auto", xl: "span 2" }}
+                bg="blackAlpha.400"
+                borderRadius="xl"
+                p={3}
+                borderWidth="1px"
+                borderColor="whiteAlpha.200"
+              >
+                <Text fontSize="xs" color="gray.400" mb={1}>
+                  保存済み編成を即読込
+                </Text>
+                <Flex gap={2} align={{ base: "stretch", sm: "end" }} direction={{ base: "column", sm: "row" }}>
+                  <NativeSelect.Root size="sm" flex="1">
+                    <NativeSelect.Field
+                      value={selectedFormationId}
+                      onChange={(e) => setSelectedFormationId(e.target.value)}
+                      bg="gray.900"
+                      borderColor="whiteAlpha.300"
+                    >
+                      <option value="">保存済み編成を選ぶ</option>
+                      {savedFormations.map((formation) => (
+                        <option key={formation.id} value={formation.id}>
+                          {formation.name}
+                        </option>
+                      ))}
+                    </NativeSelect.Field>
+                  </NativeSelect.Root>
+                  <Button
+                    colorPalette="blue"
+                    variant="outline"
+                    onClick={() => selectedFormation && setLoadConfirm(selectedFormation)}
+                    disabled={!selectedFormation}
+                  >
+                    読み込む
+                  </Button>
+                </Flex>
+                <Text fontSize="xs" color="gray.500" mt={2}>
+                  {selectedFormation
+                    ? `武${selectedFormation.total_score.atk} / 知${selectedFormation.total_score.int} / 胆${selectedFormation.total_score.guts}`
+                    : savedFormations.length > 0
+                      ? "一覧詳細は下部に残しておる。"
+                      : "まだ保存済み編成は無いでござる。"}
+                </Text>
+              </Box>
+
+              <SimpleGrid
+                gridColumn={{ base: "auto", xl: "span 3" }}
+                columns={{ base: squadSpeed !== null ? 2 : 3, md: squadSpeed !== null ? 4 : 3 }}
+                gap={3}
+              >
+                <Box bg="whiteAlpha.100" borderRadius="xl" p={3} borderWidth="1px" borderColor="whiteAlpha.200">
+                  <Text fontSize="xs" color="gray.400">武力合計</Text>
+                  <Text fontSize="2xl" fontWeight="bold">{displayedTotals.atk}</Text>
+                  <Text fontSize="xs" color="gray.500">主将+副将+国学</Text>
+                </Box>
+                <Box bg="whiteAlpha.100" borderRadius="xl" p={3} borderWidth="1px" borderColor="whiteAlpha.200">
+                  <Text fontSize="xs" color="gray.400">知略合計</Text>
+                  <Text fontSize="2xl" fontWeight="bold">{displayedTotals.int}</Text>
+                  <Text fontSize="xs" color="gray.500">主将+副将+国学</Text>
+                </Box>
+                <Box bg="whiteAlpha.100" borderRadius="xl" p={3} borderWidth="1px" borderColor="whiteAlpha.200">
+                  <Text fontSize="xs" color="gray.400">胆力合計</Text>
+                  <Text fontSize="2xl" fontWeight="bold">{displayedTotals.guts}</Text>
+                  <Text fontSize="xs" color="gray.500">主将+副将+国学</Text>
+                </Box>
+                {squadSpeed !== null && (
+                  <Box bg="whiteAlpha.100" borderRadius="xl" p={3} borderWidth="1px" borderColor="orange.700">
+                    <Text fontSize="xs" color="gray.400">移動速度</Text>
+                    <Text fontSize="2xl" fontWeight="bold">{squadSpeed}</Text>
+                    <Text fontSize="xs" color="gray.500">兵種基礎値込み</Text>
+                  </Box>
+                )}
+              </SimpleGrid>
+            </SimpleGrid>
+
+            <Flex
+              align={{ base: "start", md: "center" }}
+              justify="space-between"
+              gap={3}
+              wrap="wrap"
+              bg="rgba(255,255,255,0.04)"
+              borderRadius="xl"
+              px={3}
+              py={2.5}
+              borderWidth="1px"
+              borderColor="whiteAlpha.200"
+            >
+              <Text fontSize="xs" color="yellow.200">
+                国学補正: <Text as="span" color="gray.200">{kokugakuSummary || "未設定"}</Text>
+              </Text>
+              <Text fontSize="xs" color="gray.400">
+                保存数 {savedFormations.length}/10{isFull ? " ・ 次回保存で入替確認あり" : ""}
+              </Text>
+            </Flex>
+          </VStack>
         </Box>
 
         <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6} alignItems="start">
@@ -885,7 +945,7 @@ export default function FormationBuilderPage() {
               borderRadius="2xl"
               borderWidth="1px"
               borderColor="whiteAlpha.200"
-              p={5}
+              p={4}
             >
               <Flex
                 justify="space-between"
@@ -899,29 +959,9 @@ export default function FormationBuilderPage() {
                     配置済み {assignedIds.size}/3人
                   </Text>
                 </VStack>
-                <Flex gap={3} wrap="wrap">
-                  <Button variant="outline" onClick={clearAll}>
-                    全解除
-                  </Button>
-                  {/*<Link to="/formation/consult">
-                    <Button colorPalette="blue">おまかせ相談</Button>
-                  </Link>*/}
-                  <Button
-                    colorPalette="yellow"
-                    variant="outline"
-                    onClick={() => setSaveMode(!saveMode)}
-                    disabled={!slots.some((s) => s.warrior)}
-                  >
-                    {saveMode ? "キャンセル" : "保存"}
-                  </Button>
-                  <Button
-                    variant="subtle"
-                    disabled={!slots.some((s) => s.warrior)}
-                    onClick={() => navigate("/share")}
-                  >
-                    共有する
-                  </Button>
-                </Flex>
+                <Text fontSize="xs" color="gray.500">
+                  武将選択 → Lv/兵種 → ボーナス・装備・スキルの順で整える
+                </Text>
               </Flex>
 
               <Box mt={3} mb={2}>
@@ -1040,7 +1080,26 @@ export default function FormationBuilderPage() {
                 </Box>
               )}
 
-              <VStack gap={3} mt={5} align="stretch">
+              {!hasAssignedWarrior && (
+                <Box
+                  mt={4}
+                  p={4}
+                  bg="rgba(236, 201, 75, 0.08)"
+                  borderRadius="xl"
+                  borderWidth="1px"
+                  borderStyle="dashed"
+                  borderColor="yellow.600"
+                >
+                  <Text fontSize="sm" fontWeight="bold" color="yellow.200">
+                    まず下の手持ち武将から1人選び、主将から編成を始めるでござる
+                  </Text>
+                  <Text fontSize="xs" color="gray.400" mt={1}>
+                    配置後に Lv・兵種・ボーナス・装備・スキルを順に整えると迷いにくい。
+                  </Text>
+                </Box>
+              )}
+
+              <VStack gap={3} mt={4} align="stretch">
                 {slots.map((slot) => (
                   <Collapsible.Root key={slot.index} defaultOpen>
                     <Box
@@ -1049,7 +1108,7 @@ export default function FormationBuilderPage() {
                       borderRadius="xl"
                       borderWidth="1px"
                       borderColor={slot.warrior ? "blue.300" : "whiteAlpha.200"}
-                      p={4}
+                      p={3}
                       transition="all 0.2s"
                     >
                       <Collapsible.Trigger asChild>
@@ -1548,7 +1607,7 @@ export default function FormationBuilderPage() {
                             </>
                           ) : (
                             <Text fontSize="sm" color="gray.400" mt={1}>
-                              武将を選ぶとここに配置される
+                              下の一覧から武将を選んで、この枠へ配置されたし
                             </Text>
                           )}
                         </VStack>
@@ -1655,7 +1714,7 @@ export default function FormationBuilderPage() {
             borderRadius="2xl"
             borderWidth="1px"
             borderColor="whiteAlpha.200"
-            p={5}
+            p={4}
           >
             <VStack align="stretch" gap={4}>
               <VStack align="start" gap={1}>
