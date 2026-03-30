@@ -14,7 +14,7 @@ import FormationBuilder from "../components/FormationBuilder";
 import type { WarriorData, SkillData } from "../lib/formation-shared";
 
 export const meta: MetaFunction = () => [
-  { title: "共有手持ち編成ビルダー - 王の算盤" },
+  { title: "共有手持ち編成ビルダー - 王の碁盤" },
   {
     name: "description",
     content: "共有された手持ち武将・スキルで編成を組むページ",
