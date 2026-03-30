@@ -9,7 +9,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
-import { Link, useLoaderData } from "@remix-run/react";
+import { Link, useLoaderData, useParams } from "@remix-run/react";
 import { eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { sharedProfiles, skills, warriors } from "../../server/db/schema";
@@ -139,6 +139,7 @@ function RarityStars({ rarity }: { rarity: number }) {
 }
 
 export default function ShareViewPage() {
+  const { uuid } = useParams();
   const {
     ownedWarriorRows,
     warriorCountMap,
@@ -194,9 +195,19 @@ export default function ShareViewPage() {
               発行日時: {createdAtFormatted}
             </Text>
           </VStack>
-          <Link to="/" style={{ color: "#A0AEC0", fontSize: "14px" }}>
-            ← トップへ
-          </Link>
+          <Flex gap={3} align="center">
+            <Link
+              to={`/formation/shared/${uuid}`}
+              style={{ textDecoration: "none" }}
+            >
+              <Button colorPalette="yellow" size="sm">
+                この手持ちで編成する
+              </Button>
+            </Link>
+            <Link to="/" style={{ color: "#A0AEC0", fontSize: "14px" }}>
+              ← トップへ
+            </Link>
+          </Flex>
         </Flex>
 
         {/* 手持ち武将 */}
