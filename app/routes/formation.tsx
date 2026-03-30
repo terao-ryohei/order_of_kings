@@ -279,7 +279,7 @@ function normalizeEquipmentInput(raw: string): number {
     return 0;
   }
 
-  const parsed = parseInt(raw, 10);
+  const parsed = parseFloat(raw);
   return Number.isNaN(parsed) ? 0 : parsed;
 }
 
@@ -1312,6 +1312,7 @@ export default function FormationBuilderPage() {
                                                 </Text>
                                                 <Input
                                                   type="number"
+                                                  step={0.1}
                                                   size="xs"
                                                   w="52px"
                                                   value={
