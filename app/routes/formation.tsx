@@ -861,6 +861,7 @@ export default function FormationBuilderPage() {
                       onChange={(e) => setSelectedFormationId(e.target.value)}
                       bg="gray.900"
                       borderColor="whiteAlpha.300"
+                      minH="44px"
                     >
                       <option value="">保存済み編成を選ぶ</option>
                       {savedFormations.map((formation) => (
@@ -1018,6 +1019,7 @@ export default function FormationBuilderPage() {
                     value={saveName}
                     onChange={(e) => setSaveName(e.target.value)}
                     size="sm"
+                    minH="44px"
                     bg="gray.900"
                     borderColor="yellow.700"
                     _focus={{ borderColor: "yellow.400" }}
@@ -1118,11 +1120,13 @@ export default function FormationBuilderPage() {
                 <Text fontSize="xs" color="gray.400" mb={1}>
                   兵種
                 </Text>
-                <HStack gap={2} flexWrap="wrap">
+                <Flex gap={2} wrap="wrap">
                   {WEAPON_TYPES.map((wt) => (
                     <Button
                       key={wt}
-                      size="xs"
+                      size="sm"
+                      minW="44px"
+                      minH="44px"
                       variant={weaponType === wt ? "solid" : "outline"}
                       colorPalette={weaponType === wt ? "orange" : "gray"}
                       onClick={() =>
@@ -1134,14 +1138,15 @@ export default function FormationBuilderPage() {
                   ))}
                   {weaponType && (
                     <Button
-                      size="xs"
+                      size="sm"
+                      minH="44px"
                       variant="ghost"
                       onClick={() => setWeaponType(null)}
                     >
                       解除
                     </Button>
                   )}
-                </HStack>
+                </Flex>
               </Box>
 
               {loadConfirm && (
@@ -1161,6 +1166,7 @@ export default function FormationBuilderPage() {
                     <Flex gap={2}>
                       <Button
                         size="sm"
+                        minH="44px"
                         colorPalette="blue"
                         onClick={() => handleLoad(loadConfirm)}
                       >
@@ -1168,6 +1174,7 @@ export default function FormationBuilderPage() {
                       </Button>
                       <Button
                         size="sm"
+                        minH="44px"
                         variant="outline"
                         onClick={() => setLoadConfirm(null)}
                       >
@@ -1228,7 +1235,7 @@ export default function FormationBuilderPage() {
                           p={0}
                           color="inherit"
                         >
-                          <Flex align="center" gap={2}>
+                          <Flex align="center" gap={2} wrap="wrap" minH="44px">
                             <Badge
                               colorPalette={slot.warrior ? "blue" : "gray"}
                             >
@@ -1245,15 +1252,13 @@ export default function FormationBuilderPage() {
                                 </Text>
                               </>
                             ) : (
-                              <VStack align="start" gap={0}>
-                                <Text
-                                  fontSize="sm"
-                                  color="gray.300"
-                                  fontWeight="bold"
-                                >
-                                  武将を選んでください
-                                </Text>
-                              </VStack>
+                              <Text
+                                fontSize="sm"
+                                color="gray.300"
+                                fontWeight="bold"
+                              >
+                                武将を選んでください
+                              </Text>
                             )}
                           </Flex>
                           <Text fontSize="xs" color="gray.500">
@@ -1281,7 +1286,7 @@ export default function FormationBuilderPage() {
                                   >
                                     Lv.
                                   </Text>
-                                  <NativeSelect.Root size="xs" w="80px">
+                                  <NativeSelect.Root size="sm" w="80px">
                                     <NativeSelect.Field
                                       value={String(slot.warriorLevel)}
                                       onChange={(e) =>
@@ -1292,6 +1297,7 @@ export default function FormationBuilderPage() {
                                       }
                                       bg="gray.900"
                                       borderColor="whiteAlpha.300"
+                                      minH="44px"
                                     >
                                       {Array.from(
                                         { length: 40 },
@@ -1306,6 +1312,7 @@ export default function FormationBuilderPage() {
                                 </Flex>
                                 <Button
                                   size="xs"
+                                  minH="44px"
                                   variant="ghost"
                                   colorPalette="red"
                                   onClick={() => clearSlot(slot.index)}
@@ -1406,7 +1413,9 @@ export default function FormationBuilderPage() {
                                               </Text>
                                               <HStack gap={1}>
                                                 <Button
-                                                  size="2xs"
+                                                  size="xs"
+                                                  minW="44px"
+                                                  minH="44px"
                                                   variant="outline"
                                                   onPointerDown={() =>
                                                     startLongPress(
@@ -1433,7 +1442,9 @@ export default function FormationBuilderPage() {
                                                   {slot.bonusPoints[stat.key]}
                                                 </Text>
                                                 <Button
-                                                  size="2xs"
+                                                  size="xs"
+                                                  minW="44px"
+                                                  minH="44px"
                                                   variant="outline"
                                                   onPointerDown={() =>
                                                     startLongPress(
@@ -1464,6 +1475,7 @@ export default function FormationBuilderPage() {
                                   <Collapsible.Trigger asChild>
                                     <Button
                                       size="xs"
+                                      minH="44px"
                                       variant="ghost"
                                       px={0}
                                       mt={2}
@@ -1494,58 +1506,57 @@ export default function FormationBuilderPage() {
                                           }
                                           borderColor="whiteAlpha.200"
                                         >
-                                          <HStack
-                                            align="center"
-                                            gap={2}
-                                            wrap="wrap"
-                                          >
+                                          <Box>
                                             <Text
                                               fontSize="xs"
                                               color="gray.300"
-                                              minW="4rem"
+                                              mb={1}
                                             >
                                               {equipmentSlot.label}
                                             </Text>
-                                            {EQUIPMENT_STATS.map((stat) => (
-                                              <HStack key={stat.key} gap={1}>
-                                                <Text
-                                                  fontSize="xs"
-                                                  color="gray.400"
-                                                >
-                                                  {stat.label}
-                                                </Text>
-                                                <Input
-                                                  type="number"
-                                                  step={0.1}
-                                                  size="xs"
-                                                  w="52px"
-                                                  value={
-                                                    slot.equipment[
-                                                      equipmentSlot.key
-                                                    ][stat.key] === 0
-                                                      ? ""
-                                                      : slot.equipment[
-                                                          equipmentSlot.key
-                                                        ][stat.key]
-                                                  }
-                                                  onChange={(e) => {
-                                                    const nextValue =
-                                                      normalizeEquipmentInput(
-                                                        e.target.value
+                                            <Flex gap={2} wrap="wrap">
+                                              {EQUIPMENT_STATS.map((stat) => (
+                                                <HStack key={stat.key} gap={1}>
+                                                  <Text
+                                                    fontSize="xs"
+                                                    color="gray.400"
+                                                  >
+                                                    {stat.label}
+                                                  </Text>
+                                                  <Input
+                                                    type="number"
+                                                    step={0.1}
+                                                    size="xs"
+                                                    w={{ base: "56px", md: "52px" }}
+                                                    minH="44px"
+                                                    value={
+                                                      slot.equipment[
+                                                        equipmentSlot.key
+                                                      ][stat.key] === 0
+                                                        ? ""
+                                                        : slot.equipment[
+                                                            equipmentSlot.key
+                                                          ][stat.key]
+                                                    }
+                                                    onChange={(e) => {
+                                                      const nextValue =
+                                                        normalizeEquipmentInput(
+                                                          e.target.value
+                                                        );
+                                                      updateEquipmentStat(
+                                                        slot.index,
+                                                        equipmentSlot.key,
+                                                        stat.key,
+                                                        nextValue
                                                       );
-                                                    updateEquipmentStat(
-                                                      slot.index,
-                                                      equipmentSlot.key,
-                                                      stat.key,
-                                                      nextValue
-                                                    );
-                                                  }}
-                                                  bg="gray.900"
-                                                  borderColor="whiteAlpha.300"
-                                                />
-                                              </HStack>
-                                            ))}
-                                          </HStack>
+                                                    }}
+                                                    bg="gray.900"
+                                                    borderColor="whiteAlpha.300"
+                                                  />
+                                                </HStack>
+                                              ))}
+                                            </Flex>
+                                          </Box>
                                         </Box>
                                       ))}
                                     </VStack>
@@ -1619,7 +1630,7 @@ export default function FormationBuilderPage() {
                                   );
                                   return (
                                     <Box key={i} mb={2}>
-                                      <Flex gap={1} align="center">
+                                      <Flex gap={1} align="center" wrap="wrap">
                                         <select
                                           value={skId}
                                           onChange={(e) => {
@@ -1632,13 +1643,15 @@ export default function FormationBuilderPage() {
                                           }}
                                           style={{
                                             flex: 1,
+                                            minWidth: "120px",
                                             fontSize: "12px",
                                             background: "#1a1a2e",
                                             color: "white",
                                             border:
                                               "1px solid rgba(255,255,255,0.2)",
                                             borderRadius: "6px",
-                                            padding: "4px 6px",
+                                            padding: "8px 6px",
+                                            minHeight: "44px",
                                           }}
                                         >
                                           <option value={0}>-- 選択 --</option>
@@ -1648,7 +1661,7 @@ export default function FormationBuilderPage() {
                                             </option>
                                           ))}
                                         </select>
-                                        <NativeSelect.Root size="xs" w="70px">
+                                        <NativeSelect.Root size="sm" w="70px">
                                           <NativeSelect.Field
                                             value={String(
                                               slot.skillLevels[i] ?? 1
@@ -1662,6 +1675,7 @@ export default function FormationBuilderPage() {
                                             }
                                             bg="gray.900"
                                             borderColor="whiteAlpha.300"
+                                            minH="44px"
                                           >
                                             {Array.from(
                                               { length: 10 },
@@ -1678,6 +1692,8 @@ export default function FormationBuilderPage() {
                                         </NativeSelect.Root>
                                         <Button
                                           size="xs"
+                                          minW="44px"
+                                          minH="44px"
                                           variant="ghost"
                                           colorPalette="red"
                                           onClick={() =>
@@ -1704,6 +1720,7 @@ export default function FormationBuilderPage() {
                                   maxSkillSlots(slot.role) && (
                                   <Button
                                     size="xs"
+                                    minH="44px"
                                     variant="outline"
                                     colorPalette="teal"
                                     onClick={() =>
@@ -1810,7 +1827,7 @@ export default function FormationBuilderPage() {
                   borderRadius="2xl"
                   borderWidth="1px"
                   borderColor="whiteAlpha.200"
-                  p={5}
+                  p={{ base: 3, md: 5 }}
                 >
                   <Collapsible.Trigger asChild>
                     <Button
@@ -1818,8 +1835,9 @@ export default function FormationBuilderPage() {
                       w="100%"
                       justifyContent="space-between"
                       px={0}
+                      minH="44px"
                     >
-                      <Heading size="md">
+                      <Heading size={{ base: "sm", md: "md" }}>
                         保存済み編成（{savedFormations.length}件）
                       </Heading>
                       <Text fontSize="sm" color="gray.400">
@@ -1836,9 +1854,9 @@ export default function FormationBuilderPage() {
                           borderRadius="xl"
                           borderWidth="1px"
                           borderColor="whiteAlpha.200"
-                          p={4}
+                          p={{ base: 3, md: 4 }}
                         >
-                          <Flex justify="space-between" align="start" gap={3}>
+                          <Flex justify="space-between" align="start" gap={2}>
                             <VStack align="start" gap={1} flex="1">
                               <Text fontWeight="bold" fontSize="sm">
                                 {f.name}
@@ -1869,6 +1887,8 @@ export default function FormationBuilderPage() {
                             <VStack gap={1}>
                               <Button
                                 size="xs"
+                                minH="44px"
+                                minW="44px"
                                 colorPalette="blue"
                                 variant="outline"
                                 onClick={() => setLoadConfirm(f)}
@@ -1877,6 +1897,8 @@ export default function FormationBuilderPage() {
                               </Button>
                               <Button
                                 size="xs"
+                                minH="44px"
+                                minW="44px"
                                 colorPalette="red"
                                 variant="ghost"
                                 onClick={() => deleteFormation(f.id)}
@@ -1955,7 +1977,7 @@ export default function FormationBuilderPage() {
                         borderWidth="1px"
                         borderColor={isAssigned ? "gray.600" : "whiteAlpha.200"}
                         opacity={isAssigned ? 0.55 : 1}
-                        p={4}
+                        p={{ base: 3, md: 4 }}
                         w="100%"
                         border="1px solid"
                         _hover={
