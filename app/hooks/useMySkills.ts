@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { safeGetItem, safeRemoveItem, safeSetItem } from "../lib/storage";
 
 const STORAGE_KEY = "imperial_my_skills";
 
@@ -8,9 +9,9 @@ export function useMySkills() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
+    const raw = safeGetItem(STORAGE_KEY);
+    if (raw) {
+      try {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
           const ids = parsed
@@ -24,17 +25,16 @@ export function useMySkills() {
             .filter((id) => Number.isInteger(id) && id > 0);
           setSkillIds(ids);
         }
+      } catch {
+        safeRemoveItem(STORAGE_KEY);
       }
-    } catch {
-      window.localStorage.removeItem(STORAGE_KEY);
-    } finally {
-      setIsHydrated(true);
     }
+    setIsHydrated(true);
   }, []);
 
   useEffect(() => {
     if (!isHydrated || typeof window === "undefined") return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(skillIds));
+    safeSetItem(STORAGE_KEY, JSON.stringify(skillIds));
   }, [isHydrated, skillIds]);
 
   const add = (id: number) => {

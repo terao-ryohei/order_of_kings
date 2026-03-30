@@ -11,6 +11,7 @@ import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
+import { safeGetItem, safeSetItem } from "../lib/storage";
 import { sharedFormations, warriors } from "../../server/db/schema";
 
 type Slot = {
@@ -65,17 +66,21 @@ export default function FormationPage() {
 
   function handleCopy() {
     if (typeof window === "undefined") return;
-    const saved = localStorage.getItem("sharedFormationCopied") ?? "[]";
-    const list: string[] = JSON.parse(saved);
-    if (!list.includes(formation.uuid)) {
-      list.push(formation.uuid);
+    try {
+      const saved = safeGetItem("sharedFormationCopied") ?? "[]";
+      const list: string[] = JSON.parse(saved);
+      if (!list.includes(formation.uuid)) {
+        list.push(formation.uuid);
+      }
+      safeSetItem("sharedFormationCopied", JSON.stringify(list));
+      safeSetItem(
+        `formation_${formation.uuid}`,
+        JSON.stringify(formation)
+      );
+      alert("編成をコピーしました");
+    } catch {
+      alert("コピーに失敗しました");
     }
-    localStorage.setItem("sharedFormationCopied", JSON.stringify(list));
-    localStorage.setItem(
-      `formation_${formation.uuid}`,
-      JSON.stringify(formation)
-    );
-    alert("編成をコピーしました");
   }
 
   return (

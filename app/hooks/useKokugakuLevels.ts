@@ -1,4 +1,5 @@
 import { useCallback, useSyncExternalStore } from "react";
+import { safeGetItem, safeSetItem } from "../lib/storage";
 import {
   calcKokugakuBonuses,
   createDefaultKokugakuLevels,
@@ -34,7 +35,7 @@ function subscribe(listener: Listener) {
 }
 
 function getSnapshot(): string {
-  return localStorage.getItem(KOKUGAKU_STORAGE_KEY) ?? "{}";
+  return safeGetItem(KOKUGAKU_STORAGE_KEY) ?? "{}";
 }
 
 function getServerSnapshot(): string {
@@ -43,7 +44,7 @@ function getServerSnapshot(): string {
 
 export function readKokugakuLevels(): KokugakuLevels {
   try {
-    const raw = localStorage.getItem(KOKUGAKU_STORAGE_KEY);
+    const raw = safeGetItem(KOKUGAKU_STORAGE_KEY);
     if (!raw) {
       return createDefaultKokugakuLevels();
     }
@@ -55,7 +56,7 @@ export function readKokugakuLevels(): KokugakuLevels {
 }
 
 function writeKokugakuLevels(levels: KokugakuLevels) {
-  localStorage.setItem(KOKUGAKU_STORAGE_KEY, JSON.stringify(levels));
+  safeSetItem(KOKUGAKU_STORAGE_KEY, JSON.stringify(levels));
   notifyListeners();
 }
 

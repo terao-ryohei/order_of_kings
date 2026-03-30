@@ -12,6 +12,7 @@ import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { Link, useLoaderData, useParams } from "@remix-run/react";
 import { eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
+import { safeGetItem, safeSetItem } from "../lib/storage";
 import { sharedProfiles, skills, warriors } from "../../server/db/schema";
 
 type WarriorRow = {
@@ -157,7 +158,7 @@ export default function ShareViewPage() {
   const handleCopyFormation = (formation: SavedFormation) => {
     try {
       const existing: SavedFormation[] = (() => {
-        const raw = localStorage.getItem("saved_formations");
+        const raw = safeGetItem("saved_formations");
         if (!raw) return [];
         return JSON.parse(raw);
       })();
@@ -173,7 +174,7 @@ export default function ShareViewPage() {
         created_at: new Date().toISOString(),
         name: `${formation.name}（コピー）`,
       };
-      localStorage.setItem(
+      safeSetItem(
         "saved_formations",
         JSON.stringify([newEntry, ...existing])
       );

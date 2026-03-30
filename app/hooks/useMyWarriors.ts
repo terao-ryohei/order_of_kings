@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { safeGetItem, safeRemoveItem, safeSetItem } from "../lib/storage";
 
 const STORAGE_KEY = "imperial_my_warriors";
 
@@ -36,22 +37,21 @@ export function useMyWarriors() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
+    const raw = safeGetItem(STORAGE_KEY);
+    if (raw) {
+      try {
         const counts = migrateLegacy(raw);
         if (counts) setWarriorCounts(counts);
+      } catch {
+        safeRemoveItem(STORAGE_KEY);
       }
-    } catch {
-      window.localStorage.removeItem(STORAGE_KEY);
-    } finally {
-      setIsHydrated(true);
     }
+    setIsHydrated(true);
   }, []);
 
   useEffect(() => {
     if (!isHydrated || typeof window === "undefined") return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(warriorCounts));
+    safeSetItem(STORAGE_KEY, JSON.stringify(warriorCounts));
   }, [isHydrated, warriorCounts]);
 
   const toggle = (id: number) => {

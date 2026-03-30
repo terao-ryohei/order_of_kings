@@ -1,4 +1,5 @@
 import { useCallback, useSyncExternalStore } from "react";
+import { safeGetItem, safeSetItem } from "../lib/storage";
 
 const STORAGE_KEY = "saved_formations";
 const MAX_SAVED = 10;
@@ -44,7 +45,7 @@ function subscribe(listener: Listener) {
 }
 
 function getSnapshot(): string {
-  return localStorage.getItem(STORAGE_KEY) ?? "[]";
+  return safeGetItem(STORAGE_KEY) ?? "[]";
 }
 
 function getServerSnapshot(): string {
@@ -53,7 +54,7 @@ function getServerSnapshot(): string {
 
 function readFormations(): SavedFormation[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = safeGetItem(STORAGE_KEY);
     if (!raw) return [];
     return JSON.parse(raw) as SavedFormation[];
   } catch {
@@ -62,7 +63,7 @@ function readFormations(): SavedFormation[] {
 }
 
 function writeFormations(formations: SavedFormation[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(formations));
+  safeSetItem(STORAGE_KEY, JSON.stringify(formations));
   notifyListeners();
 }
 
