@@ -45,15 +45,15 @@ export default function Search() {
   const isSearching = navigation.state === "loading";
 
   return (
-    <Box minH="100vh" bg="gray.950" p={4}>
-      <VStack gap={6} align="stretch" maxW="900px" mx="auto">
+    <Box minH="100vh" bg="gray.950" p={{ base: 3, md: 4 }}>
+      <VStack gap={{ base: 4, md: 6 }} align="stretch" maxW="900px" mx="auto">
         <Flex align="center" justify="space-between" flexWrap="wrap" gap={2}>
-          <Heading size="xl" color="white">武将検索</Heading>
-          <Link to="/" style={{ color: "#ECC94B", fontSize: "14px" }}>← 武将一覧</Link>
+          <Heading size={{ base: "lg", md: "xl" }} color="white">武将検索</Heading>
+          <Link to="/" style={{ color: "#ECC94B", fontSize: "14px", minHeight: "44px", display: "inline-flex", alignItems: "center" }}>← 武将一覧</Link>
         </Flex>
 
         <Form method="get">
-          <Flex gap={3} align="center">
+          <Flex gap={3} align="center" flexWrap={{ base: "wrap", sm: "nowrap" }}>
             <input
               name="q"
               defaultValue={q}
@@ -67,6 +67,8 @@ export default function Search() {
                 background: "transparent",
                 color: "white",
                 fontSize: "16px",
+                minHeight: "44px",
+                minWidth: "0",
               }}
             />
             <button
@@ -80,6 +82,7 @@ export default function Search() {
                 cursor: "pointer",
                 fontSize: "16px",
                 fontWeight: 700,
+                minHeight: "44px",
               }}
             >
               検索

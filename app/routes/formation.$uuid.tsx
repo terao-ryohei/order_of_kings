@@ -79,9 +79,9 @@ export default function FormationPage() {
   }
 
   return (
-    <Box minH="100vh" bg="gray.950" p={4}>
-      <VStack gap={6} align="stretch" maxW="600px" mx="auto">
-        <Heading size="xl" color="white">
+    <Box minH="100vh" bg="gray.950" p={{ base: 3, md: 4 }}>
+      <VStack gap={{ base: 4, md: 6 }} align="stretch" maxW="600px" mx="auto">
+        <Heading size={{ base: "lg", md: "xl" }} color="white">
           {formation.name ?? "共有編成"}
         </Heading>
 

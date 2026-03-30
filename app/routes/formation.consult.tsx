@@ -146,14 +146,14 @@ export default function FormationConsultPage() {
   const canConsult = isHydrated && count > 0 && squadType !== null;
 
   return (
-    <Box minH="100vh" bg="gray.950" p={4}>
-      <VStack gap={6} align="stretch" maxW="900px" mx="auto">
+    <Box minH="100vh" bg="gray.950" p={{ base: 3, md: 4 }}>
+      <VStack gap={{ base: 4, md: 6 }} align="stretch" maxW="900px" mx="auto">
         {/* ヘッダー */}
         <Flex align="center" justify="space-between" flexWrap="wrap" gap={3}>
-          <Heading size="xl" color="white">
+          <Heading size={{ base: "lg", md: "xl" }} color="white">
             編成相談
           </Heading>
-          <Link to="/my-warriors" style={{ color: "#ECC94B", fontSize: "14px" }}>
+          <Link to="/my-warriors" style={{ color: "#ECC94B", fontSize: "14px", minHeight: "44px", display: "inline-flex", alignItems: "center" }}>
             ← 手持ち武将管理へ
           </Link>
         </Flex>
@@ -324,7 +324,7 @@ export default function FormationConsultPage() {
                   borderWidth="1px"
                   borderColor="whiteAlpha.200"
                 >
-                  <Flex justify="space-between" align="center" mb={3}>
+                  <Flex justify="space-between" align={{ base: "start", md: "center" }} mb={3} direction={{ base: "column", md: "row" }} gap={2}>
                     <Flex align="center" gap={2}>
                       <Badge
                         colorPalette={squad.rank === 1 ? "yellow" : squad.rank === 2 ? "gray" : "orange"}
@@ -333,7 +333,7 @@ export default function FormationConsultPage() {
                       >
                         #{squad.rank}
                       </Badge>
-                      <Text fontWeight="bold" fontSize="lg">
+                      <Text fontWeight="bold" fontSize={{ base: "md", md: "lg" }}>
                         総合スコア: {squad.totalScore}点
                       </Text>
                     </Flex>
@@ -359,22 +359,23 @@ export default function FormationConsultPage() {
                         px={3}
                         py={2}
                       >
-                        <Badge colorPalette="purple" size="sm" variant="outline" w="50px" textAlign="center">
+                        <Badge colorPalette="purple" size="sm" variant="outline" minW="50px" textAlign="center">
                           {slot.role}
                         </Badge>
-                        <Text fontWeight="bold" fontSize="sm">
+                        <Text fontWeight="bold" fontSize="sm" lineClamp={1}>
                           {slot.warrior.name}
                         </Text>
                         <Text
                           fontSize="xs"
                           color={slot.warrior.rarity >= 5 ? "orange.400" : slot.warrior.rarity >= 4 ? "purple.400" : "blue.400"}
                           fontWeight="bold"
+                          flexShrink={0}
                         >
                           {"★".repeat(slot.warrior.rarity)}
                         </Text>
                         {slot.role === "軍師" && (
-                          <Badge colorPalette="gray" variant="subtle" fontSize="xs">
-                            スキル効果のみ（ステータス加算なし）
+                          <Badge colorPalette="gray" variant="subtle" fontSize="xs" display={{ base: "none", sm: "inline-flex" }}>
+                            スキル効果のみ
                           </Badge>
                         )}
                       </Flex>

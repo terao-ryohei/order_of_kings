@@ -45,12 +45,12 @@ export default function SkillDetail() {
   const { skill, warriors: warriorList } = useLoaderData<typeof loader>();
 
   return (
-    <Box minH="100vh" bg="gray.950" p={4}>
-      <VStack gap={6} align="stretch" maxW="800px" mx="auto">
-        <Link to="/skills" style={{ color: "#ECC94B", fontSize: "14px" }}>← スキル一覧</Link>
+    <Box minH="100vh" bg="gray.950" p={{ base: 3, md: 4 }}>
+      <VStack gap={{ base: 4, md: 6 }} align="stretch" maxW="800px" mx="auto">
+        <Link to="/skills" style={{ color: "#ECC94B", fontSize: "14px", minHeight: "44px", display: "inline-flex", alignItems: "center" }}>← スキル一覧</Link>
 
         {/* スキル詳細 */}
-        <Box bg="whiteAlpha.100" borderRadius="xl" p={6} borderWidth="1px" borderColor="whiteAlpha.200">
+        <Box bg="whiteAlpha.100" borderRadius="xl" p={{ base: 4, md: 6 }} borderWidth="1px" borderColor="whiteAlpha.200">
           <VStack gap={4} align="start">
             <HStack gap={2} flexWrap="wrap">
               <Badge colorPalette={SKILL_TYPE_COLOR[skill.skill_type] ?? "gray"} size="lg">
@@ -77,7 +77,7 @@ export default function SkillDetail() {
 
         {/* このスキルを持つ武将 */}
         {warriorList.length > 0 && (
-          <Box bg="whiteAlpha.100" borderRadius="xl" p={6} borderWidth="1px" borderColor="whiteAlpha.200">
+          <Box bg="whiteAlpha.100" borderRadius="xl" p={{ base: 4, md: 6 }} borderWidth="1px" borderColor="whiteAlpha.200">
             <Heading size="md" mb={4}>このスキルを持つ武将</Heading>
             <SimpleGrid columns={{ base: 2, sm: 3, md: 4 }} gap={3}>
               {warriorList.map((w) => (

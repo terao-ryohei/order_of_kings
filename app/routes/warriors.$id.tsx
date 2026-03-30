@@ -68,9 +68,10 @@ function StatBox({ label, value, growth }: { label: string; value: number; growt
     <Box
       bg="whiteAlpha.100"
       borderRadius="lg"
-      p={3}
+      p={{ base: 2, md: 3 }}
       textAlign="center"
-      minW="80px"
+      minW={{ base: "70px", md: "80px" }}
+      flex="1"
     >
       <Text fontSize="xs" color="gray.400" mb={1}>{label}</Text>
       <Text fontWeight="bold" fontSize="xl">{value}</Text>
@@ -84,13 +85,13 @@ export default function WarriorDetail() {
   const { warrior, aptitudes, skills: skillLinks, roles } = useLoaderData<typeof loader>();
 
   return (
-    <Box minH="100vh" bg="gray.950" p={4}>
-      <VStack gap={6} align="stretch" maxW="800px" mx="auto">
+    <Box minH="100vh" bg="gray.950" p={{ base: 3, md: 4 }}>
+      <VStack gap={{ base: 4, md: 6 }} align="stretch" maxW="800px" mx="auto">
         {/* ナビ */}
-        <Link to="/" style={{ color: "#ECC94B", fontSize: "14px" }}>← 武将一覧</Link>
+        <Link to="/" style={{ color: "#ECC94B", fontSize: "14px", minHeight: "44px", display: "inline-flex", alignItems: "center" }}>← 武将一覧</Link>
 
         {/* ヘッダー */}
-        <Box bg="whiteAlpha.100" borderRadius="xl" p={6} border="1px solid" borderColor="whiteAlpha.200">
+        <Box bg="whiteAlpha.100" borderRadius="xl" p={{ base: 4, md: 6 }} border="1px solid" borderColor="whiteAlpha.200">
           <Flex gap={4} align="start" flexWrap="wrap">
             <VStack align="start" gap={2} flex={1}>
               <Text color="gray.400" fontSize="sm">{warrior.reading}</Text>
@@ -108,7 +109,7 @@ export default function WarriorDetail() {
         </Box>
 
         {/* ステータス */}
-        <Box bg="whiteAlpha.100" borderRadius="xl" p={6} border="1px solid" borderColor="whiteAlpha.200">
+        <Box bg="whiteAlpha.100" borderRadius="xl" p={{ base: 4, md: 6 }} border="1px solid" borderColor="whiteAlpha.200">
           <Heading size="md" mb={4}>ステータス</Heading>
           <Flex gap={3} flexWrap="wrap">
             <StatBox label="武力" value={warrior.atk} growth={warrior.atk_growth} />
@@ -120,7 +121,7 @@ export default function WarriorDetail() {
 
         {/* 兵種適性 */}
         {aptitudes.length > 0 && (
-          <Box bg="whiteAlpha.100" borderRadius="xl" p={6} border="1px solid" borderColor="whiteAlpha.200">
+          <Box bg="whiteAlpha.100" borderRadius="xl" p={{ base: 4, md: 6 }} border="1px solid" borderColor="whiteAlpha.200">
             <Heading size="md" mb={4}>兵種適性</Heading>
             <Flex gap={3} flexWrap="wrap">
               {aptitudes.map((apt) => (
@@ -137,7 +138,7 @@ export default function WarriorDetail() {
 
         {/* スキル */}
         {skillLinks.length > 0 && (
-          <Box bg="whiteAlpha.100" borderRadius="xl" p={6} border="1px solid" borderColor="whiteAlpha.200">
+          <Box bg="whiteAlpha.100" borderRadius="xl" p={{ base: 4, md: 6 }} border="1px solid" borderColor="whiteAlpha.200">
             <Heading size="md" mb={4}>スキル</Heading>
             <VStack gap={4} align="stretch">
               {skillLinks
@@ -177,7 +178,7 @@ export default function WarriorDetail() {
 
         {/* 列伝 */}
         {warrior.biography && (
-          <Box bg="whiteAlpha.100" borderRadius="xl" p={6} border="1px solid" borderColor="whiteAlpha.200">
+          <Box bg="whiteAlpha.100" borderRadius="xl" p={{ base: 4, md: 6 }} border="1px solid" borderColor="whiteAlpha.200">
             <Heading size="md" mb={4}>列伝</Heading>
             <Text color="gray.300" lineHeight="tall" whiteSpace="pre-wrap">
               {warrior.biography}

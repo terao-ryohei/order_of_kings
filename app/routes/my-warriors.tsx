@@ -57,18 +57,18 @@ export default function MyWarriorsPage() {
   } = useMyWarriors();
 
   return (
-    <Box minH="100vh" bg="gray.950" p={4}>
-      <VStack gap={6} align="stretch" maxW="1200px" mx="auto">
+    <Box minH="100vh" bg="gray.950" p={{ base: 3, md: 4 }}>
+      <VStack gap={{ base: 4, md: 6 }} align="stretch" maxW="1200px" mx="auto">
         <Flex align="center" justify="space-between" flexWrap="wrap" gap={3}>
           <VStack align="start" gap={1}>
-            <Heading size="xl" color="white">
+            <Heading size={{ base: "lg", md: "xl" }} color="white">
               手持ち武将管理
             </Heading>
             <Text fontSize="sm" color="gray.400">
               {isHydrated ? `${count}種 / ${totalCount}枚` : "0種 / 0枚"} 選択中
             </Text>
           </VStack>
-          <Link to="/" style={{ color: "#ECC94B", fontSize: "14px" }}>
+          <Link to="/" style={{ color: "#ECC94B", fontSize: "14px", minHeight: "44px", display: "inline-flex", alignItems: "center" }}>
             ← 武将一覧へ戻る
           </Link>
         </Flex>
@@ -185,6 +185,9 @@ export default function MyWarriorsPage() {
               background: "#3182ce",
               color: "white",
               fontWeight: "bold",
+              minHeight: "44px",
+              display: "inline-flex",
+              alignItems: "center",
             }}
           >
             → 編成相談へ

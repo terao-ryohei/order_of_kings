@@ -115,17 +115,17 @@ export default function Index() {
   };
 
   return (
-    <Box minH="100vh" bg="gray.950" p={4}>
-      <VStack gap={6} align="stretch">
+    <Box minH="100vh" bg="gray.950" p={{ base: 3, md: 4 }}>
+      <VStack gap={{ base: 4, md: 6 }} align="stretch">
         <Flex align="center" justify="space-between" flexWrap="wrap" gap={3}>
-          <Heading size="xl" color="white">
+          <Heading size={{ base: "lg", md: "xl" }} color="white">
             武将一覧
           </Heading>
           <Flex gap={4} wrap="wrap">
-            <Link to="/my-warriors" style={{ color: "#ECC94B", fontSize: "14px", fontWeight: 700 }}>
+            <Link to="/my-warriors" style={{ color: "#ECC94B", fontSize: "14px", fontWeight: 700, minHeight: "44px", display: "inline-flex", alignItems: "center" }}>
               手持ち武将を登録
             </Link>
-            <Link to="/formation" style={{ color: "#ECC94B", fontSize: "14px", fontWeight: 700 }}>
+            <Link to="/formation" style={{ color: "#ECC94B", fontSize: "14px", fontWeight: 700, minHeight: "44px", display: "inline-flex", alignItems: "center" }}>
               編成ビルダーへ
             </Link>
           </Flex>
@@ -142,12 +142,15 @@ export default function Index() {
                 defaultValue={filters.era ?? ""}
                 placeholder="例: 秦末"
                 style={{
-                  padding: "6px 12px",
+                  padding: "8px 12px",
                   borderRadius: "6px",
                   border: "1px solid rgba(255,255,255,0.16)",
                   background: "transparent",
                   color: "white",
-                  width: "120px",
+                  width: "100%",
+                  maxWidth: "120px",
+                  minHeight: "44px",
+                  fontSize: "16px",
                 }}
               />
             </Box>
@@ -160,16 +163,19 @@ export default function Index() {
                 defaultValue={filters.role ?? ""}
                 placeholder="例: 盾"
                 style={{
-                  padding: "6px 12px",
+                  padding: "8px 12px",
                   borderRadius: "6px",
                   border: "1px solid rgba(255,255,255,0.16)",
                   background: "transparent",
                   color: "white",
-                  width: "100px",
+                  width: "100%",
+                  maxWidth: "100px",
+                  minHeight: "44px",
+                  fontSize: "16px",
                 }}
               />
             </Box>
-            <Box>
+            <Box flex={1} minW="100px">
               <Text fontSize="sm" mb={1} color="gray.400">
                 武将名
               </Text>
@@ -179,12 +185,14 @@ export default function Index() {
                 onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="武将名で検索..."
                 style={{
-                  padding: "6px 12px",
+                  padding: "8px 12px",
                   borderRadius: "6px",
                   border: "1px solid rgba(255,255,255,0.16)",
                   background: "transparent",
                   color: "white",
-                  width: "140px",
+                  width: "100%",
+                  minHeight: "44px",
+                  fontSize: "16px",
                 }}
               />
             </Box>
@@ -199,6 +207,7 @@ export default function Index() {
                   border: "none",
                   cursor: "pointer",
                   fontWeight: 700,
+                  minHeight: "44px",
                 }}
               >
                 絞り込み
@@ -213,6 +222,9 @@ export default function Index() {
                     color: "#ECC94B",
                     textDecoration: "underline",
                     fontSize: "14px",
+                    minHeight: "44px",
+                    display: "inline-flex",
+                    alignItems: "center",
                   }}
                 >
                   クリア

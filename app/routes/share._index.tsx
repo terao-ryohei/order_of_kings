@@ -117,8 +117,8 @@ export default function ShareIndexPage() {
   };
 
   return (
-    <Box minH="100vh" bg="gray.950" p={4}>
-      <VStack gap={6} align="stretch" maxW="800px" mx="auto">
+    <Box minH="100vh" bg="gray.950" p={{ base: 3, md: 4 }}>
+      <VStack gap={{ base: 4, md: 6 }} align="stretch" maxW="800px" mx="auto">
         <Flex align="center" justify="space-between" flexWrap="wrap" gap={3}>
           <VStack align="start" gap={1}>
             <Heading size="xl" color="white">

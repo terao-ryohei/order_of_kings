@@ -121,6 +121,8 @@ export default function KokugakuPage() {
                             <Button
                               size="sm"
                               variant="outline"
+                              minH="44px"
+                              minW="44px"
                               onClick={() =>
                                 setLevel(
                                   entry.id,
@@ -130,7 +132,7 @@ export default function KokugakuPage() {
                             >
                               -
                             </Button>
-                            <VStack gap={0} minW="5rem">
+                            <VStack gap={0} minW={{ base: "3rem", md: "5rem" }}>
                               <Text fontSize="2xl" fontWeight="bold">
                                 {level}
                               </Text>
@@ -141,6 +143,8 @@ export default function KokugakuPage() {
                             <Button
                               size="sm"
                               colorPalette="yellow"
+                              minH="44px"
+                              minW="44px"
                               onClick={() =>
                                 setLevel(
                                   entry.id,

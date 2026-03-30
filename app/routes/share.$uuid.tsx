@@ -184,8 +184,8 @@ export default function ShareViewPage() {
   };
 
   return (
-    <Box minH="100vh" bg="gray.950" p={4}>
-      <VStack gap={6} align="stretch" maxW="1100px" mx="auto">
+    <Box minH="100vh" bg="gray.950" p={{ base: 3, md: 4 }}>
+      <VStack gap={{ base: 4, md: 6 }} align="stretch" maxW="1100px" mx="auto">
         <Flex align="center" justify="space-between" flexWrap="wrap" gap={3}>
           <VStack align="start" gap={1}>
             <Heading size="xl" color="white">
@@ -371,7 +371,7 @@ export default function ShareViewPage() {
                         </Button>
                       </Flex>
 
-                      <SimpleGrid columns={3} gap={2}>
+                      <SimpleGrid columns={{ base: 1, sm: 3 }} gap={2}>
                         {formation.slots.map((slot, i) => (
                           <Box
                             key={i}

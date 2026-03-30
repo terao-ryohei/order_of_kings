@@ -59,11 +59,11 @@ export default function MySkillsPage() {
     : data;
 
   return (
-    <Box minH="100vh" bg="gray.950" p={4}>
-      <VStack gap={6} align="stretch" maxW="1200px" mx="auto">
+    <Box minH="100vh" bg="gray.950" p={{ base: 3, md: 4 }}>
+      <VStack gap={{ base: 4, md: 6 }} align="stretch" maxW="1200px" mx="auto">
         <Flex align="center" justify="space-between" flexWrap="wrap" gap={3}>
           <VStack align="start" gap={1}>
-            <Heading size="xl" color="white">
+            <Heading size={{ base: "lg", md: "xl" }} color="white">
               手持ちスキル管理
             </Heading>
             <Text fontSize="sm" color="gray.400">
@@ -88,8 +88,9 @@ export default function MySkillsPage() {
               border: "1px solid rgba(255,255,255,0.2)",
               background: "rgba(255,255,255,0.05)",
               color: "white",
-              fontSize: "14px",
+              fontSize: "16px",
               outline: "none",
+              minHeight: "44px",
             }}
           />
         </Box>

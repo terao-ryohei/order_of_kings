@@ -134,11 +134,11 @@ export default function SkillsIndex() {
   };
 
   return (
-    <Box minH="100vh" bg="gray.950" p={4}>
-      <VStack gap={6} align="stretch">
+    <Box minH="100vh" bg="gray.950" p={{ base: 3, md: 4 }}>
+      <VStack gap={{ base: 4, md: 6 }} align="stretch">
         <Flex align="center" justify="space-between" flexWrap="wrap" gap={2}>
-          <Heading size="xl" color="white">スキル一覧</Heading>
-          <Link to="/" style={{ color: "#ECC94B", fontSize: "14px" }}>← 武将一覧</Link>
+          <Heading size={{ base: "lg", md: "xl" }} color="white">スキル一覧</Heading>
+          <Link to="/" style={{ color: "#ECC94B", fontSize: "14px", minHeight: "44px", display: "inline-flex", alignItems: "center" }}>← 武将一覧</Link>
         </Flex>
 
         {/* フィルタ */}
@@ -149,7 +149,7 @@ export default function SkillsIndex() {
               <select
                 name="skill_type"
                 defaultValue={filters.skill_type ?? ""}
-                style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.2)", background: "transparent", color: "white" }}
+                style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.2)", background: "transparent", color: "white", minHeight: "44px", fontSize: "16px" }}
               >
                 <option value="">全て</option>
                 <option value="パッシブ">パッシブ</option>
@@ -163,7 +163,7 @@ export default function SkillsIndex() {
               <select
                 name="weapon_restriction"
                 defaultValue={filters.weapon_restriction ?? ""}
-                style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.2)", background: "transparent", color: "white" }}
+                style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.2)", background: "transparent", color: "white", minHeight: "44px", fontSize: "16px" }}
               >
                 <option value="">全て</option>
                 <option value="刀">刀</option>
@@ -180,26 +180,28 @@ export default function SkillsIndex() {
                 onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="キーワード検索"
                 style={{
-                  padding: "6px 12px",
+                  padding: "8px 12px",
                   borderRadius: "6px",
                   border: "1px solid rgba(255,255,255,0.2)",
                   background: "transparent",
                   color: "white",
-                  width: "140px",
+                  width: "100%",
+                  minHeight: "44px",
+                  fontSize: "16px",
                 }}
               />
             </Box>
             <Box alignSelf="flex-end">
               <button
                 type="submit"
-                style={{ padding: "8px 20px", background: "#3182ce", color: "white", borderRadius: "6px", border: "none", cursor: "pointer" }}
+                style={{ padding: "8px 20px", background: "#3182ce", color: "white", borderRadius: "6px", border: "none", cursor: "pointer", minHeight: "44px" }}
               >
                 絞り込み
               </button>
             </Box>
             {(filters.skill_type || filters.weapon_restriction || filters.name) && (
               <Box alignSelf="flex-end">
-                <Link to="/skills" style={{ padding: "8px 16px", color: "#ECC94B", textDecoration: "underline", fontSize: "14px" }}>
+                <Link to="/skills" style={{ padding: "8px 16px", color: "#ECC94B", textDecoration: "underline", fontSize: "14px", minHeight: "44px", display: "inline-flex", alignItems: "center" }}>
                   クリア
                 </Link>
               </Box>
@@ -216,6 +218,7 @@ export default function SkillsIndex() {
                   border: `1px solid ${filters.showUnique ? "#805AD5" : "rgba(255,255,255,0.2)"}`,
                   cursor: "pointer",
                   fontSize: "14px",
+                  minHeight: "44px",
                 }}
               >
                 {filters.showUnique ? "固有スキルを非表示" : "固有スキルを表示"}
