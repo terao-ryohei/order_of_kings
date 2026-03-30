@@ -8,6 +8,7 @@ import {
   SimpleGrid,
   Text,
   VStack,
+  chakra,
 } from "@chakra-ui/react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
@@ -170,9 +171,8 @@ export default function FormationConsultPage() {
           </Text>
           <SimpleGrid columns={{ base: 2, sm: 3, md: 5 }} gap={3}>
             {SQUAD_TYPES.map((opt) => (
-              <Box
+              <chakra.button
                 key={opt.type}
-                as="button"
                 type="button"
                 onClick={() => {
                   setSquadType(opt.type);
@@ -201,7 +201,7 @@ export default function FormationConsultPage() {
                 <Text fontSize="xs" color="gray.400">
                   {opt.desc}
                 </Text>
-              </Box>
+              </chakra.button>
             ))}
           </SimpleGrid>
         </Box>

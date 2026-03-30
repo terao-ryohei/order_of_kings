@@ -21,7 +21,7 @@ export const meta: MetaFunction = () => [
   { name: "description", content: "天下の英傑を、汝の手で導く戦略絵巻。" },
 ];
 
-const features = [
+const features: { icon: string; title: string; description: string; href: string; spotlight?: boolean }[] = [
   {
     icon: "🏯",
     title: "軍略編成",
@@ -125,14 +125,18 @@ export default function Index() {
                   lineHeight="1.02"
                   fontSize={{ base: "4xl", md: "5xl", xl: "6xl" }}
                 >
-                  編成を起点に、
-                  <br />
-                  天下の采配を組み上げる
+                  王の算盤
                 </Heading>
               </Box>
-              <Text maxW="2xl" color="gray.300" lineHeight="1.9" fontSize={{ md: "lg" }}>
-                主役は軍略編成。武将、技能、国学、所持戦力の情報を一か所へ束ね、
-                まず部隊を組み、その後に細部を詰めるための司令卓として再構成した。
+              <Text
+                maxW="2xl"
+                color="gray.300"
+                lineHeight="1.9"
+                fontSize={{ md: "lg" }}
+              >
+                墨色の戦場に金の采配を走らせ、英傑・技能・編成を一望する戦略書
+                <br />
+                静かに構え、一手で戦局を変えるための御前会議がここにある
               </Text>
               <Link to="/formation" style={{ textDecoration: "none" }}>
                 <Button
@@ -146,33 +150,14 @@ export default function Index() {
                   fontSize={{ base: "md", md: "lg" }}
                   fontWeight="bold"
                   boxShadow="0 16px 40px rgba(249, 115, 22, 0.3)"
-                  _hover={{ transform: "translateY(-2px)", boxShadow: "0 20px 48px rgba(249, 115, 22, 0.38)" }}
+                  _hover={{
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 20px 48px rgba(249, 115, 22, 0.38)",
+                  }}
                 >
                   編成ビルダーへ
                 </Button>
               </Link>
-              <VStack align="flex-start" gap={3}>
-                <Text color="gray.500" fontSize="sm" letterSpacing="0.16em" textTransform="uppercase">
-                  関連導線
-                </Text>
-                <HStack gap={4} wrap="wrap">
-                  <Link to="/warriors" style={{ textDecoration: "none" }}>
-                    <Text color="yellow.200" fontSize="sm" fontWeight="semibold">
-                      武将一覧
-                    </Text>
-                  </Link>
-                  <Link to="/skills" style={{ textDecoration: "none" }}>
-                    <Text color="yellow.200" fontSize="sm" fontWeight="semibold">
-                      技能書庫
-                    </Text>
-                  </Link>
-                  <Link to="/kokugaku" style={{ textDecoration: "none" }}>
-                    <Text color="yellow.200" fontSize="sm" fontWeight="semibold">
-                      所持国学
-                    </Text>
-                  </Link>
-                </HStack>
-              </VStack>
             </VStack>
 
             <Box
@@ -236,26 +221,30 @@ export default function Index() {
                 >
                   Strategic Gateways
                 </Text>
-                <Heading size="2xl" fontWeight="extrabold">
+                <Heading size={{ base: "xl", md: "2xl" }} fontWeight="extrabold">
                   編成を核に、必要な情報へ素早く遷移する
                 </Heading>
               </Box>
               <SimpleGrid columns={{ base: 1, md: 2 }} gap={5}>
                 {features.map((feature) => (
-                  <Link
+                  <Box
                     key={feature.href}
+                    gridColumn={feature.spotlight ? { base: "auto", md: "span 2 / span 2" } : undefined}
+                  >
+                  <Link
                     to={feature.href}
                     style={{
                       textDecoration: "none",
                       display: "block",
-                      gridColumn: feature.spotlight ? "span 2 / span 2" : undefined,
                     }}
                   >
                     <Box
                       h="full"
                       rounded="2xl"
                       borderWidth="1px"
-                      borderColor={feature.spotlight ? "orange.300" : "whiteAlpha.200"}
+                      borderColor={
+                        feature.spotlight ? "orange.300" : "whiteAlpha.200"
+                      }
                       bg={
                         feature.spotlight
                           ? "linear-gradient(135deg, rgba(236, 201, 75, 0.18), rgba(249, 115, 22, 0.16), rgba(255,255,255,0.06))"
@@ -265,7 +254,9 @@ export default function Index() {
                       transition="transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease"
                       _hover={{
                         transform: "translateY(-4px)",
-                        borderColor: feature.spotlight ? "orange.200" : "yellow.400",
+                        borderColor: feature.spotlight
+                          ? "orange.200"
+                          : "yellow.400",
                         boxShadow: "0 20px 40px rgba(0, 0, 0, 0.25)",
                       }}
                     >
@@ -292,7 +283,9 @@ export default function Index() {
                               ? "rgba(249, 115, 22, 0.18)"
                               : "rgba(236, 201, 75, 0.14)"
                           }
-                          color={feature.spotlight ? "orange.100" : "yellow.200"}
+                          color={
+                            feature.spotlight ? "orange.100" : "yellow.200"
+                          }
                           fontSize={feature.spotlight ? "3xl" : "2xl"}
                         >
                           {feature.icon}
@@ -316,6 +309,7 @@ export default function Index() {
                       </VStack>
                     </Box>
                   </Link>
+                  </Box>
                 ))}
               </SimpleGrid>
             </VStack>

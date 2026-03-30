@@ -45,16 +45,6 @@ export default function Header() {
                 王の算盤
               </Text>
             </Link>
-
-            <Text
-              display={{ base: "none", md: "block" }}
-              color="gray.400"
-              fontSize="sm"
-              letterSpacing="0.12em"
-              textTransform="uppercase"
-            >
-              Formation First Command Desk
-            </Text>
           </Flex>
 
           <Box overflowX="auto" pb={1} css={{ scrollbarWidth: "none" }}>

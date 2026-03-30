@@ -22,7 +22,10 @@ import {
 
 export const meta: MetaFunction = () => [
   { title: "所持国学 | 王の算盤" },
-  { name: "description", content: "所持国学を調整し、編成全体にかかる補正を管理する。" },
+  {
+    name: "description",
+    content: "国学の研究進捗を保存し、編成全体にかかる補正を管理する",
+  },
 ];
 
 export default function KokugakuPage() {
@@ -39,24 +42,21 @@ export default function KokugakuPage() {
             gap={4}
           >
             <Box>
-              <Text color="yellow.300" fontSize="sm" letterSpacing="0.22em" textTransform="uppercase">
+              <Text
+                color="yellow.300"
+                fontSize="sm"
+                letterSpacing="0.22em"
+                textTransform="uppercase"
+              >
                 Kokugaku Command
               </Text>
               <Heading size="2xl" mt={2}>
                 所持国学
               </Heading>
               <Text color="gray.400" mt={3}>
-                人材国学の研究段階を保存し、編成ビルダーへ全武将補正として反映する。
+                国学の研究進捗を保存し、編成全体にかかる補正を管理する
               </Text>
             </Box>
-            <HStack gap={4} wrap="wrap">
-              <Link to="/formation" style={{ color: "#ECC94B", fontSize: "14px", fontWeight: 700 }}>
-                編成ビルダーへ
-              </Link>
-              <Link to="/" style={{ color: "#A0AEC0", fontSize: "14px" }}>
-                ← 兵站一覧へ戻る
-              </Link>
-            </HStack>
           </Flex>
 
           <SimpleGrid columns={{ base: 1, xl: 3 }} gap={6}>
@@ -70,7 +70,12 @@ export default function KokugakuPage() {
             >
               <VStack align="stretch" gap={5}>
                 <Box>
-                  <Text color="yellow.300" fontSize="sm" letterSpacing="0.18em" textTransform="uppercase">
+                  <Text
+                    color="yellow.300"
+                    fontSize="sm"
+                    letterSpacing="0.18em"
+                    textTransform="uppercase"
+                  >
                     Research Levels
                   </Text>
                   <Heading size="lg" mt={2}>
@@ -106,8 +111,9 @@ export default function KokugakuPage() {
                               </Badge>
                             </HStack>
                             <Text color="gray.400" mt={2}>
-                              1Lvごとに{KOKUGAKU_STAT_LABELS[entry.stat]}+{entry.bonusPerLevel}。
-                              現在は全武将へ +{bonusValue}。
+                              1Lvごとに{KOKUGAKU_STAT_LABELS[entry.stat]}+
+                              {entry.bonusPerLevel}。 現在は全武将へ +
+                              {bonusValue}。
                             </Text>
                           </Box>
 
@@ -115,7 +121,12 @@ export default function KokugakuPage() {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => setLevel(entry.id, clampKokugakuLevel(level - 1, entry.maxLevel))}
+                              onClick={() =>
+                                setLevel(
+                                  entry.id,
+                                  clampKokugakuLevel(level - 1, entry.maxLevel)
+                                )
+                              }
                             >
                               -
                             </Button>
@@ -130,7 +141,12 @@ export default function KokugakuPage() {
                             <Button
                               size="sm"
                               colorPalette="yellow"
-                              onClick={() => setLevel(entry.id, clampKokugakuLevel(level + 1, entry.maxLevel))}
+                              onClick={() =>
+                                setLevel(
+                                  entry.id,
+                                  clampKokugakuLevel(level + 1, entry.maxLevel)
+                                )
+                              }
                             >
                               +
                             </Button>
@@ -152,7 +168,12 @@ export default function KokugakuPage() {
             >
               <VStack align="stretch" gap={5}>
                 <Box>
-                  <Text color="yellow.200" fontSize="sm" letterSpacing="0.18em" textTransform="uppercase">
+                  <Text
+                    color="yellow.200"
+                    fontSize="sm"
+                    letterSpacing="0.18em"
+                    textTransform="uppercase"
+                  >
                     Active Bonus
                   </Text>
                   <Heading size="lg" mt={2}>
@@ -166,21 +187,12 @@ export default function KokugakuPage() {
                       <Text color="gray.400" fontSize="sm">
                         {KOKUGAKU_STAT_LABELS[stat as keyof typeof bonuses]}
                       </Text>
-                      <Text fontSize="2xl" fontWeight="bold">
+                      <Text fontSize="2xl" fontWeight="bold" textAlign="right">
                         +{value}
                       </Text>
                     </Box>
                   ))}
                 </VStack>
-
-                <Separator borderColor="whiteAlpha.300" />
-
-                <Text color="gray.300" lineHeight="1.8" fontSize="sm">
-                  保存先: <Box as="span" color="yellow.200">{`localStorage["kokugaku_levels"]`}</Box>
-                </Text>
-                <Text color="gray.400" lineHeight="1.8" fontSize="sm">
-                  編成ビルダーは同じ保存値を読み込み、武力・知略・胆力・政治の補正を即時反映する。
-                </Text>
               </VStack>
             </Box>
           </SimpleGrid>

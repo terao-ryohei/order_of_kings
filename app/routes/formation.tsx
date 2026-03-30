@@ -11,6 +11,7 @@ import {
   SimpleGrid,
   Text,
   VStack,
+  chakra,
 } from "@chakra-ui/react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { Link, useLoaderData, useNavigate } from "@remix-run/react";
@@ -39,12 +40,12 @@ const SQUAD_SLOTS = [
   {
     role: "主将" as const,
     label: "主将",
-    description: "怒気スキル発動・部隊の核",
+    description: "",
   },
   {
     role: "副将" as const,
     label: "副将",
-    description: "ステータス加算・サブアタッカー",
+    description: "",
   },
   {
     role: "軍師" as const,
@@ -105,13 +106,14 @@ const BASE_MOVE_SPEED: Record<WeaponType, number> = {
   投: 240,
 };
 
-const APTITUDE_BONUS: Record<string, { statMult: number; speedMult: number }> = {
-  "極": { statMult: 1.2, speedMult: 0 },
-  "優": { statMult: 1.05, speedMult: 0 },
-  "良": { statMult: 1.0, speedMult: -0.1 },
-  "凡": { statMult: 0.9, speedMult: -0.2 },
-  "下": { statMult: 0.8, speedMult: -0.2 },
-};
+const APTITUDE_BONUS: Record<string, { statMult: number; speedMult: number }> =
+  {
+    極: { statMult: 1.2, speedMult: 0 },
+    優: { statMult: 1.05, speedMult: 0 },
+    良: { statMult: 1.0, speedMult: -0.1 },
+    凡: { statMult: 0.9, speedMult: -0.2 },
+    下: { statMult: 0.8, speedMult: -0.2 },
+  };
 
 const WEAPON_TYPE_ALIASES: Record<WeaponType, string[]> = {
   刀: ["刀"],
@@ -140,7 +142,9 @@ function getAptitude(aptitudes: string[], weaponType: WeaponType): string {
     return "凡";
   }
 
-  const matchedPrefix = candidates.find((candidate) => found.startsWith(candidate));
+  const matchedPrefix = candidates.find((candidate) =>
+    found.startsWith(candidate)
+  );
   return matchedPrefix ? found.slice(matchedPrefix.length) : "凡";
 }
 
@@ -152,7 +156,13 @@ function getAptitudeBonus(aptitudes: string[], weaponType: WeaponType) {
   };
 }
 
-function calcStat(base: number, growth: number, level: number, bonus: number, mult: number): number {
+function calcStat(
+  base: number,
+  growth: number,
+  level: number,
+  bonus: number,
+  mult: number
+): number {
   return (base + growth * (level - 1) + bonus) * mult;
 }
 
@@ -279,7 +289,10 @@ function parseSavedEquipment(
   };
 }
 
-function getEquipmentStatTotal(equipment: Equipment, stat: keyof EquipmentSlot): number {
+function getEquipmentStatTotal(
+  equipment: Equipment,
+  stat: keyof EquipmentSlot
+): number {
   return EQUIPMENT_SLOTS.reduce(
     (sum, slot) => sum + equipment[slot.key][stat],
     0
@@ -485,9 +498,39 @@ export default function FormationBuilderPage() {
       const equipmentGuts = getEquipmentStatTotal(slot.equipment, "guts");
 
       return {
-        atk: sum.atk + calcTotalStat(slot.warrior.atk, slot.warrior.atk_growth, slot.warriorLevel, slot.bonusPoints.atk, intGutsMult, equipmentAtk, kokugakuBonus.atk),
-        int: sum.int + calcTotalStat(slot.warrior.int, slot.warrior.int_growth, slot.warriorLevel, slot.bonusPoints.int, intGutsMult, equipmentInt, kokugakuBonus.int),
-        guts: sum.guts + calcTotalStat(slot.warrior.guts, slot.warrior.guts_growth, slot.warriorLevel, slot.bonusPoints.guts, intGutsMult, equipmentGuts, kokugakuBonus.guts),
+        atk:
+          sum.atk +
+          calcTotalStat(
+            slot.warrior.atk,
+            slot.warrior.atk_growth,
+            slot.warriorLevel,
+            slot.bonusPoints.atk,
+            intGutsMult,
+            equipmentAtk,
+            kokugakuBonus.atk
+          ),
+        int:
+          sum.int +
+          calcTotalStat(
+            slot.warrior.int,
+            slot.warrior.int_growth,
+            slot.warriorLevel,
+            slot.bonusPoints.int,
+            intGutsMult,
+            equipmentInt,
+            kokugakuBonus.int
+          ),
+        guts:
+          sum.guts +
+          calcTotalStat(
+            slot.warrior.guts,
+            slot.warrior.guts_growth,
+            slot.warriorLevel,
+            slot.bonusPoints.guts,
+            intGutsMult,
+            equipmentGuts,
+            kokugakuBonus.guts
+          ),
       };
     },
     { atk: 0, int: 0, guts: 0 }
@@ -504,16 +547,21 @@ export default function FormationBuilderPage() {
   const selectedFormation =
     savedFormations.find((formation) => formation.id === selectedFormationId) ??
     null;
+  const nextEmptySlot = slots.find((slot) => slot.warrior === null) ?? null;
 
-  const slotsWithWarrior = slots.filter(s => s.warrior && s.role !== "軍師");
-  const squadSpeed = weaponType && slotsWithWarrior.length > 0
-    ? Math.round(
-        slotsWithWarrior.reduce((total, slot) => {
-          const speedMult = getAptitudeBonus(slot.warrior!.aptitudes, weaponType).bonus.speedMult;
-          return total + BASE_MOVE_SPEED[weaponType] * speedMult;
-        }, BASE_MOVE_SPEED[weaponType])
-      )
-    : null;
+  const slotsWithWarrior = slots.filter((s) => s.warrior && s.role !== "軍師");
+  const squadSpeed =
+    weaponType && slotsWithWarrior.length > 0
+      ? Math.round(
+          slotsWithWarrior.reduce((total, slot) => {
+            const speedMult = getAptitudeBonus(
+              slot.warrior!.aptitudes,
+              weaponType
+            ).bonus.speedMult;
+            return total + BASE_MOVE_SPEED[weaponType] * speedMult;
+          }, BASE_MOVE_SPEED[weaponType])
+        )
+      : null;
 
   const assignWarrior = (warrior: WarriorData) => {
     if (assignedIds.has(warrior.id)) {
@@ -772,26 +820,9 @@ export default function FormationBuilderPage() {
               編成ビルダー
             </Heading>
             <Text fontSize="sm" color="gray.400">
-              主将・副将・軍師の3スロット編成を組み、合計能力を即時確認できるでござる
+              主将・副将・軍師の3スロット編成を組み、合計能力を即時確認できる
             </Text>
           </VStack>
-          <HStack gap={4} wrap="wrap">
-            <Link
-              to="/kokugaku"
-              style={{ color: "#ECC94B", fontSize: "14px", fontWeight: 700 }}
-            >
-              所持国学を調整
-            </Link>
-            <Link
-              to="/my-warriors"
-              style={{ color: "#ECC94B", fontSize: "14px", fontWeight: 700 }}
-            >
-              手持ち武将管理へ
-            </Link>
-            <Link to="/" style={{ color: "#A0AEC0", fontSize: "14px" }}>
-              ← 武将一覧へ戻る
-            </Link>
-          </HStack>
         </Flex>
 
         <Box
@@ -807,39 +838,6 @@ export default function FormationBuilderPage() {
           backdropFilter="blur(12px)"
         >
           <VStack align="stretch" gap={4}>
-            <Flex justify="space-between" align={{ base: "start", lg: "center" }} flexWrap="wrap" gap={3}>
-              <VStack align="start" gap={1}>
-                <Text fontSize="xs" color="yellow.300" letterSpacing="0.12em" textTransform="uppercase">
-                  Quick Command
-                </Text>
-                <Heading size="md" color="white">
-                  保存・読込と合計能力
-                </Heading>
-                <Text fontSize="sm" color="gray.300">
-                  上で編成を切り替え、そのまま保存まで進められるでござる。
-                </Text>
-              </VStack>
-              <Flex gap={2} wrap="wrap">
-                <Button variant="outline" onClick={clearAll} disabled={!hasAssignedWarrior}>
-                  全解除
-                </Button>
-                <Button
-                  colorPalette="yellow"
-                  onClick={() => setSaveMode((current) => !current)}
-                  disabled={!hasAssignedWarrior}
-                >
-                  {saveMode ? "保存を閉じる" : "現在の編成を保存"}
-                </Button>
-                <Button
-                  variant="subtle"
-                  disabled={!hasAssignedWarrior}
-                  onClick={() => navigate("/share")}
-                >
-                  共有する
-                </Button>
-              </Flex>
-            </Flex>
-
             <SimpleGrid columns={{ base: 1, xl: 5 }} gap={3}>
               <Box
                 gridColumn={{ base: "auto", xl: "span 2" }}
@@ -850,9 +848,13 @@ export default function FormationBuilderPage() {
                 borderColor="whiteAlpha.200"
               >
                 <Text fontSize="xs" color="gray.400" mb={1}>
-                  保存済み編成を即読込
+                  編成読込
                 </Text>
-                <Flex gap={2} align={{ base: "stretch", sm: "end" }} direction={{ base: "column", sm: "row" }}>
+                <Flex
+                  gap={2}
+                  align={{ base: "stretch", sm: "end" }}
+                  direction={{ base: "column", sm: "row" }}
+                >
                   <NativeSelect.Root size="sm" flex="1">
                     <NativeSelect.Field
                       value={selectedFormationId}
@@ -871,7 +873,9 @@ export default function FormationBuilderPage() {
                   <Button
                     colorPalette="blue"
                     variant="outline"
-                    onClick={() => selectedFormation && setLoadConfirm(selectedFormation)}
+                    onClick={() =>
+                      selectedFormation && setLoadConfirm(selectedFormation)
+                    }
                     disabled={!selectedFormation}
                   >
                     読み込む
@@ -880,37 +884,77 @@ export default function FormationBuilderPage() {
                 <Text fontSize="xs" color="gray.500" mt={2}>
                   {selectedFormation
                     ? `武${selectedFormation.total_score.atk} / 知${selectedFormation.total_score.int} / 胆${selectedFormation.total_score.guts}`
-                    : savedFormations.length > 0
-                      ? "一覧詳細は下部に残しておる。"
-                      : "まだ保存済み編成は無いでござる。"}
+                    : savedFormations.length === 0 && "保存済み編成無し"}
                 </Text>
               </Box>
 
               <SimpleGrid
-                gridColumn={{ base: "auto", xl: "span 3" }}
-                columns={{ base: squadSpeed !== null ? 2 : 3, md: squadSpeed !== null ? 4 : 3 }}
+                gridColumn={{ base: "auto", xl: "span 2" }}
+                columns={{
+                  base: squadSpeed !== null ? 2 : 3,
+                  md: squadSpeed !== null ? 4 : 3,
+                }}
                 gap={3}
               >
-                <Box bg="whiteAlpha.100" borderRadius="xl" p={3} borderWidth="1px" borderColor="whiteAlpha.200">
-                  <Text fontSize="xs" color="gray.400">武力合計</Text>
-                  <Text fontSize="2xl" fontWeight="bold">{displayedTotals.atk}</Text>
-                  <Text fontSize="xs" color="gray.500">主将+副将+国学</Text>
+                <Box
+                  bg="whiteAlpha.100"
+                  borderRadius="xl"
+                  p={3}
+                  borderWidth="1px"
+                  borderColor="whiteAlpha.200"
+                >
+                  <Text fontSize="xs" color="gray.400">
+                    武力合計
+                  </Text>
+                  <Text fontSize="2xl" fontWeight="bold" textAlign="right">
+                    {displayedTotals.atk}
+                  </Text>
                 </Box>
-                <Box bg="whiteAlpha.100" borderRadius="xl" p={3} borderWidth="1px" borderColor="whiteAlpha.200">
-                  <Text fontSize="xs" color="gray.400">知略合計</Text>
-                  <Text fontSize="2xl" fontWeight="bold">{displayedTotals.int}</Text>
-                  <Text fontSize="xs" color="gray.500">主将+副将+国学</Text>
+                <Box
+                  bg="whiteAlpha.100"
+                  borderRadius="xl"
+                  p={3}
+                  borderWidth="1px"
+                  borderColor="whiteAlpha.200"
+                >
+                  <Text fontSize="xs" color="gray.400">
+                    知略合計
+                  </Text>
+                  <Text fontSize="2xl" fontWeight="bold" textAlign="right">
+                    {displayedTotals.int}
+                  </Text>
                 </Box>
-                <Box bg="whiteAlpha.100" borderRadius="xl" p={3} borderWidth="1px" borderColor="whiteAlpha.200">
-                  <Text fontSize="xs" color="gray.400">胆力合計</Text>
-                  <Text fontSize="2xl" fontWeight="bold">{displayedTotals.guts}</Text>
-                  <Text fontSize="xs" color="gray.500">主将+副将+国学</Text>
+                <Box
+                  bg="whiteAlpha.100"
+                  borderRadius="xl"
+                  p={3}
+                  borderWidth="1px"
+                  borderColor="whiteAlpha.200"
+                >
+                  <Text fontSize="xs" color="gray.400">
+                    胆力合計
+                  </Text>
+                  <Text fontSize="2xl" fontWeight="bold" textAlign="right">
+                    {displayedTotals.guts}
+                  </Text>
                 </Box>
                 {squadSpeed !== null && (
-                  <Box bg="whiteAlpha.100" borderRadius="xl" p={3} borderWidth="1px" borderColor="orange.700">
-                    <Text fontSize="xs" color="gray.400">移動速度</Text>
-                    <Text fontSize="2xl" fontWeight="bold">{squadSpeed}</Text>
-                    <Text fontSize="xs" color="gray.500">兵種基礎値込み</Text>
+                  <Box
+                    bg="whiteAlpha.100"
+                    borderRadius="xl"
+                    p={3}
+                    borderWidth="1px"
+                    borderColor="orange.700"
+                  >
+                    <Text fontSize="xs" color="gray.400">
+                      移動速度
+                    </Text>
+                    <Text fontSize="2xl" fontWeight="bold">
+                      {squadSpeed}
+                    </Text>
+                    <Text fontSize="xs" color="gray.500">
+                      兵種基礎値込み
+                    </Text>
                   </Box>
                 )}
               </SimpleGrid>
@@ -924,17 +968,98 @@ export default function FormationBuilderPage() {
               bg="rgba(255,255,255,0.04)"
               borderRadius="xl"
               px={3}
-              py={2.5}
+              py={2}
               borderWidth="1px"
               borderColor="whiteAlpha.200"
             >
-              <Text fontSize="xs" color="yellow.200">
-                国学補正: <Text as="span" color="gray.200">{kokugakuSummary || "未設定"}</Text>
-              </Text>
-              <Text fontSize="xs" color="gray.400">
-                保存数 {savedFormations.length}/10{isFull ? " ・ 次回保存で入替確認あり" : ""}
+              <Text fontSize="11px" color="yellow.200">
+                国学補正:{" "}
+                <Text as="span" color="gray.200">
+                  {kokugakuSummary || "未設定"}
+                </Text>
               </Text>
             </Flex>
+
+            <Box
+              gridColumn={{ base: "auto", xl: "span 1" }}
+              bg="blackAlpha.400"
+              borderRadius="xl"
+              p={3}
+              borderWidth="1px"
+              borderColor="whiteAlpha.200"
+            >
+              <Text fontSize="xs" color="gray.400" mb={1}>
+                現在の編成を保存
+              </Text>
+              {overflowConfirm ? (
+                <VStack align="stretch" gap={2}>
+                  <Text fontSize="xs" color="yellow.200">
+                    保存上限です。最古の編成を上書きしますか？
+                  </Text>
+                  <Button
+                    size="sm"
+                    colorPalette="yellow"
+                    onClick={handleSaveForce}
+                  >
+                    削除して保存
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setOverflowConfirm(null)}
+                  >
+                    やめる
+                  </Button>
+                </VStack>
+              ) : saveMode ? (
+                <VStack align="stretch" gap={2}>
+                  <Input
+                    placeholder="編成名を入力"
+                    value={saveName}
+                    onChange={(e) => setSaveName(e.target.value)}
+                    size="sm"
+                    bg="gray.900"
+                    borderColor="yellow.700"
+                    _focus={{ borderColor: "yellow.400" }}
+                    onKeyDown={(e) => e.key === "Enter" && handleSave()}
+                  />
+                  <Flex gap={2}>
+                    <Button
+                      size="sm"
+                      colorPalette="yellow"
+                      onClick={handleSave}
+                      flex="1"
+                    >
+                      保存
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setSaveMode(false);
+                        setSaveName("");
+                      }}
+                    >
+                      閉じる
+                    </Button>
+                  </Flex>
+                </VStack>
+              ) : (
+                <VStack align="stretch" gap={2}>
+                  <Button
+                    colorPalette="yellow"
+                    onClick={() => setSaveMode(true)}
+                    disabled={!hasAssignedWarrior}
+                  >
+                    現在の編成を保存
+                  </Button>
+                  <Text fontSize="xs" color="gray.500">
+                    {hasAssignedWarrior &&
+                      `保存数 ${savedFormations.length}/10`}
+                  </Text>
+                </VStack>
+              )}
+            </Box>
           </VStack>
         </Box>
 
@@ -945,7 +1070,7 @@ export default function FormationBuilderPage() {
               borderRadius="2xl"
               borderWidth="1px"
               borderColor="whiteAlpha.200"
-              p={4}
+              p={{ base: 3, md: 4 }}
             >
               <Flex
                 justify="space-between"
@@ -954,97 +1079,70 @@ export default function FormationBuilderPage() {
                 gap={3}
               >
                 <VStack align="start" gap={1}>
-                  <Heading size="md">編成スロット</Heading>
-                  <Text fontSize="sm" color="gray.400">
-                    配置済み {assignedIds.size}/3人
+                  <Text
+                    fontSize="xs"
+                    color="yellow.300"
+                    letterSpacing="0.08em"
+                    textTransform="uppercase"
+                  >
+                    Formation Setup
                   </Text>
+                  <Heading size="md">編成スロット</Heading>
                 </VStack>
-                <Text fontSize="xs" color="gray.500">
-                  武将選択 → Lv/兵種 → ボーナス・装備・スキルの順で整える
-                </Text>
+                <Flex
+                  justify="space-between"
+                  align={{ base: "start", lg: "center" }}
+                  flexWrap="wrap"
+                  gap={3}
+                >
+                  <Flex gap={2} wrap="wrap">
+                    <Button
+                      variant="outline"
+                      onClick={clearAll}
+                      disabled={!hasAssignedWarrior}
+                    >
+                      全解除
+                    </Button>
+                    <Button
+                      variant="subtle"
+                      disabled={!hasAssignedWarrior}
+                      onClick={() => navigate("/share")}
+                    >
+                      共有する
+                    </Button>
+                  </Flex>
+                </Flex>
               </Flex>
 
               <Box mt={3} mb={2}>
-                <Text fontSize="xs" color="gray.400" mb={1}>兵種</Text>
+                <Text fontSize="xs" color="gray.400" mb={1}>
+                  兵種
+                </Text>
                 <HStack gap={2} flexWrap="wrap">
-                  {WEAPON_TYPES.map(wt => (
+                  {WEAPON_TYPES.map((wt) => (
                     <Button
                       key={wt}
                       size="xs"
                       variant={weaponType === wt ? "solid" : "outline"}
                       colorPalette={weaponType === wt ? "orange" : "gray"}
-                      onClick={() => setWeaponType(prev => prev === wt ? null : wt)}
+                      onClick={() =>
+                        setWeaponType((prev) => (prev === wt ? null : wt))
+                      }
                     >
                       {wt}
                     </Button>
                   ))}
                   {weaponType && (
-                    <Button size="xs" variant="ghost" onClick={() => setWeaponType(null)}>
+                    <Button
+                      size="xs"
+                      variant="ghost"
+                      onClick={() => setWeaponType(null)}
+                    >
                       解除
                     </Button>
                   )}
                 </HStack>
               </Box>
-
-              {saveMode && (
-                <Box
-                  mt={4}
-                  p={4}
-                  bg="yellow.950"
-                  borderRadius="xl"
-                  borderWidth="1px"
-                  borderColor="yellow.700"
-                >
-                  {overflowConfirm ? (
-                    <VStack align="stretch" gap={3}>
-                      <Text fontSize="sm" color="yellow.200">
-                        保存上限（10件）に達しています。最も古い保存を削除して保存しますか？
-                      </Text>
-                      <Flex gap={2}>
-                        <Button
-                          size="sm"
-                          colorPalette="yellow"
-                          onClick={handleSaveForce}
-                        >
-                          削除して保存
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setOverflowConfirm(null)}
-                        >
-                          やめる
-                        </Button>
-                      </Flex>
-                    </VStack>
-                  ) : (
-                    <VStack align="stretch" gap={3}>
-                      <Text fontSize="sm" color="yellow.200">
-                        編成に名前をつけて保存（{savedFormations.length}/10件）
-                      </Text>
-                      <Flex gap={2}>
-                        <Input
-                          placeholder="編成名を入力"
-                          value={saveName}
-                          onChange={(e) => setSaveName(e.target.value)}
-                          size="sm"
-                          bg="gray.900"
-                          borderColor="yellow.700"
-                          _focus={{ borderColor: "yellow.400" }}
-                          onKeyDown={(e) => e.key === "Enter" && handleSave()}
-                        />
-                        <Button
-                          size="sm"
-                          colorPalette="yellow"
-                          onClick={handleSave}
-                        >
-                          保存
-                        </Button>
-                      </Flex>
-                    </VStack>
-                  )}
-                </Box>
-              )}
 
               {loadConfirm && (
                 <Box
@@ -1084,17 +1182,22 @@ export default function FormationBuilderPage() {
                 <Box
                   mt={4}
                   p={4}
-                  bg="rgba(236, 201, 75, 0.08)"
+                  bg="linear-gradient(135deg, rgba(236, 201, 75, 0.16), rgba(44, 29, 0, 0.5))"
                   borderRadius="xl"
                   borderWidth="1px"
                   borderStyle="dashed"
                   borderColor="yellow.600"
                 >
+                  <Badge colorPalette="yellow" alignSelf="start" mb={2}>
+                    HINT
+                  </Badge>
                   <Text fontSize="sm" fontWeight="bold" color="yellow.200">
-                    まず下の手持ち武将から1人選び、主将から編成を始めるでござる
+                    まず下の手持ち武将から1人選び、
+                    {nextEmptySlot?.roleLabel ?? "主将"}から編成を始める
                   </Text>
                   <Text fontSize="xs" color="gray.400" mt={1}>
-                    配置後に Lv・兵種・ボーナス・装備・スキルを順に整えると迷いにくい。
+                    配置後に
+                    Lv・兵種・ボーナス・装備・スキルを順に整えると迷いにくい
                   </Text>
                 </Box>
               )}
@@ -1112,14 +1215,18 @@ export default function FormationBuilderPage() {
                       transition="all 0.2s"
                     >
                       <Collapsible.Trigger asChild>
-                        <Flex
-                          as="button"
+                        <chakra.button
                           type="button"
-                          justify="space-between"
+                          display="flex"
+                          justifyContent="space-between"
                           w="100%"
-                          align="center"
+                          alignItems="center"
                           cursor="pointer"
                           _hover={{ opacity: 0.8 }}
+                          background="none"
+                          border="none"
+                          p={0}
+                          color="inherit"
                         >
                           <Flex align="center" gap={2}>
                             <Badge
@@ -1138,15 +1245,21 @@ export default function FormationBuilderPage() {
                                 </Text>
                               </>
                             ) : (
-                              <Text fontSize="sm" color="gray.400">
-                                未配置
-                              </Text>
+                              <VStack align="start" gap={0}>
+                                <Text
+                                  fontSize="sm"
+                                  color="gray.300"
+                                  fontWeight="bold"
+                                >
+                                  武将を選んでください
+                                </Text>
+                              </VStack>
                             )}
                           </Flex>
                           <Text fontSize="xs" color="gray.500">
                             ▼
                           </Text>
-                        </Flex>
+                        </chakra.button>
                       </Collapsible.Trigger>
                       <Collapsible.Content>
                         <VStack align="start" gap={1} mt={3}>
@@ -1207,18 +1320,36 @@ export default function FormationBuilderPage() {
                                     ? slot.warrior.aptitudes.join(" / ")
                                     : "未登録"}
                                 </Text>
-                                {weaponType && slot.warrior && (() => {
-                                  const { aptitude, bonus } = getAptitudeBonus(slot.warrior.aptitudes, weaponType);
-                                  return (
-                                    <Badge
-                                      colorPalette={aptitude === "極" ? "orange" : aptitude === "優" ? "yellow" : aptitude === "良" ? "green" : "gray"}
-                                      variant="subtle"
-                                      fontSize="xs"
-                                    >
-                                      {weaponType}{aptitude} ({bonus.statMult >= 1 ? "+" : ""}{Math.round((bonus.statMult - 1) * 100)}%)
-                                    </Badge>
-                                  );
-                                })()}
+                                {weaponType &&
+                                  slot.warrior &&
+                                  (() => {
+                                    const { aptitude, bonus } =
+                                      getAptitudeBonus(
+                                        slot.warrior.aptitudes,
+                                        weaponType
+                                      );
+                                    return (
+                                      <Badge
+                                        colorPalette={
+                                          aptitude === "極"
+                                            ? "orange"
+                                            : aptitude === "優"
+                                            ? "yellow"
+                                            : aptitude === "良"
+                                            ? "green"
+                                            : "gray"
+                                        }
+                                        variant="subtle"
+                                        fontSize="xs"
+                                      >
+                                        {weaponType}
+                                        {aptitude} (
+                                        {bonus.statMult >= 1 ? "+" : ""}
+                                        {Math.round((bonus.statMult - 1) * 100)}
+                                        %)
+                                      </Badge>
+                                    );
+                                  })()}
                               </Flex>
                               {getTotalBonusMax(slot.warriorLevel) > 0 && (
                                 <VStack
@@ -1357,7 +1488,9 @@ export default function FormationBuilderPage() {
                                           key={equipmentSlot.key}
                                           pb={2}
                                           borderBottomWidth={
-                                            equipmentSlot.key === "mount" ? "0" : "1px"
+                                            equipmentSlot.key === "mount"
+                                              ? "0"
+                                              : "1px"
                                           }
                                           borderColor="whiteAlpha.200"
                                         >
@@ -1387,14 +1520,19 @@ export default function FormationBuilderPage() {
                                                   size="xs"
                                                   w="52px"
                                                   value={
-                                                    slot.equipment[equipmentSlot.key][stat.key] === 0
+                                                    slot.equipment[
+                                                      equipmentSlot.key
+                                                    ][stat.key] === 0
                                                       ? ""
-                                                      : slot.equipment[equipmentSlot.key][stat.key]
+                                                      : slot.equipment[
+                                                          equipmentSlot.key
+                                                        ][stat.key]
                                                   }
                                                   onChange={(e) => {
-                                                    const nextValue = normalizeEquipmentInput(
-                                                      e.target.value
-                                                    );
+                                                    const nextValue =
+                                                      normalizeEquipmentInput(
+                                                        e.target.value
+                                                      );
                                                     updateEquipmentStat(
                                                       slot.index,
                                                       equipmentSlot.key,
@@ -1581,29 +1719,76 @@ export default function FormationBuilderPage() {
                                   </Button>
                                 )}
                               </Box>
-                              {slot.role !== "軍師" && (() => {
-                                const slotStatMult = weaponType && slot.warrior
-                                  ? getAptitudeBonus(slot.warrior.aptitudes, weaponType).bonus.statMult
-                                  : 1.0;
-                                const slotIntGutsMult = (slotStatMult - 1) * 0.5 + 1;
-                                const equipmentAtk = getEquipmentStatTotal(slot.equipment, "atk");
-                                const equipmentInt = getEquipmentStatTotal(slot.equipment, "int");
-                                const equipmentGuts = getEquipmentStatTotal(slot.equipment, "guts");
-                                return (
-                                <VStack align="start" gap={0} mt={1}>
-                                  <Text fontSize="xs" color="gray.400">
-                                    武{Math.floor(calcTotalStat(slot.warrior.atk, slot.warrior.atk_growth, slot.warriorLevel, slot.bonusPoints.atk, slotIntGutsMult, equipmentAtk, kokugakuBonus.atk))}
-                                  </Text>
-                                  <Text fontSize="xs" color="gray.400">
-                                    知{Math.floor(calcTotalStat(slot.warrior.int, slot.warrior.int_growth, slot.warriorLevel, slot.bonusPoints.int, slotIntGutsMult, equipmentInt, kokugakuBonus.int))}
-                                  </Text>
-                                  <Text fontSize="xs" color="gray.400">
-                                    胆
-                                    {Math.floor(calcTotalStat(slot.warrior.guts, slot.warrior.guts_growth, slot.warriorLevel, slot.bonusPoints.guts, slotIntGutsMult, equipmentGuts, kokugakuBonus.guts))}
-                                  </Text>
-                                </VStack>
-                                );
-                              })()}
+                              {slot.role !== "軍師" &&
+                                (() => {
+                                  const slotStatMult =
+                                    weaponType && slot.warrior
+                                      ? getAptitudeBonus(
+                                          slot.warrior.aptitudes,
+                                          weaponType
+                                        ).bonus.statMult
+                                      : 1.0;
+                                  const slotIntGutsMult =
+                                    (slotStatMult - 1) * 0.5 + 1;
+                                  const equipmentAtk = getEquipmentStatTotal(
+                                    slot.equipment,
+                                    "atk"
+                                  );
+                                  const equipmentInt = getEquipmentStatTotal(
+                                    slot.equipment,
+                                    "int"
+                                  );
+                                  const equipmentGuts = getEquipmentStatTotal(
+                                    slot.equipment,
+                                    "guts"
+                                  );
+                                  return (
+                                    <VStack align="start" gap={0} mt={1}>
+                                      <Text fontSize="xs" color="gray.400">
+                                        武
+                                        {Math.floor(
+                                          calcTotalStat(
+                                            slot.warrior.atk,
+                                            slot.warrior.atk_growth,
+                                            slot.warriorLevel,
+                                            slot.bonusPoints.atk,
+                                            slotIntGutsMult,
+                                            equipmentAtk,
+                                            kokugakuBonus.atk
+                                          )
+                                        )}
+                                      </Text>
+                                      <Text fontSize="xs" color="gray.400">
+                                        知
+                                        {Math.floor(
+                                          calcTotalStat(
+                                            slot.warrior.int,
+                                            slot.warrior.int_growth,
+                                            slot.warriorLevel,
+                                            slot.bonusPoints.int,
+                                            slotIntGutsMult,
+                                            equipmentInt,
+                                            kokugakuBonus.int
+                                          )
+                                        )}
+                                      </Text>
+                                      <Text fontSize="xs" color="gray.400">
+                                        胆
+                                        {Math.floor(
+                                          calcTotalStat(
+                                            slot.warrior.guts,
+                                            slot.warrior.guts_growth,
+                                            slot.warriorLevel,
+                                            slot.bonusPoints.guts,
+                                            slotIntGutsMult,
+                                            equipmentGuts,
+                                            kokugakuBonus.guts
+                                          )
+                                        )}
+                                      </Text>
+                                    </VStack>
+                                  );
+                                })()}
                             </>
                           ) : (
                             <Text fontSize="sm" color="gray.400" mt={1}>
@@ -1718,6 +1903,14 @@ export default function FormationBuilderPage() {
           >
             <VStack align="stretch" gap={4}>
               <VStack align="start" gap={1}>
+                <Text
+                  fontSize="xs"
+                  color="yellow.300"
+                  letterSpacing="0.08em"
+                  textTransform="uppercase"
+                >
+                  Warrior Select
+                </Text>
                 <Heading size="md">手持ち武将</Heading>
                 <Text fontSize="sm" color="gray.400">
                   空きスロットへ自動配置。配置済み武将は再選択不可。
@@ -1751,9 +1944,8 @@ export default function FormationBuilderPage() {
                   {myWarriors.map((warrior) => {
                     const isAssigned = assignedIds.has(warrior.id);
                     return (
-                      <Box
+                      <chakra.button
                         key={warrior.id}
-                        as="button"
                         type="button"
                         onClick={() => assignWarrior(warrior)}
                         disabled={isAssigned || assignedIds.size >= 3}
@@ -1764,6 +1956,8 @@ export default function FormationBuilderPage() {
                         borderColor={isAssigned ? "gray.600" : "whiteAlpha.200"}
                         opacity={isAssigned ? 0.55 : 1}
                         p={4}
+                        w="100%"
+                        border="1px solid"
                         _hover={
                           isAssigned
                             ? undefined
@@ -1812,7 +2006,7 @@ export default function FormationBuilderPage() {
                             </Text>
                           </VStack>
                         </Flex>
-                      </Box>
+                      </chakra.button>
                     );
                   })}
                 </VStack>

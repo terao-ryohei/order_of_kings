@@ -8,6 +8,7 @@ import {
   SimpleGrid,
   Text,
   VStack,
+  chakra,
 } from "@chakra-ui/react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
@@ -84,9 +85,8 @@ export default function MyWarriorsPage() {
             const copyCount = isHydrated ? getCount(warrior.id) : 0;
 
             return (
-              <Box
+              <chakra.button
                 key={warrior.id}
-                as="button"
                 type="button"
                 onClick={() => toggle(warrior.id)}
                 textAlign="left"
@@ -95,6 +95,8 @@ export default function MyWarriorsPage() {
                 borderWidth="2px"
                 borderColor={selected ? "blue.400" : "whiteAlpha.200"}
                 p={4}
+                w="100%"
+                border="2px solid"
                 _hover={{ shadow: "lg", transform: "translateY(-2px)", borderColor: "blue.400" }}
                 transition="all 0.2s"
                 cursor="pointer"
@@ -169,7 +171,7 @@ export default function MyWarriorsPage() {
                     </Flex>
                   )}
                 </VStack>
-              </Box>
+              </chakra.button>
             );
           })}
         </SimpleGrid>

@@ -34,15 +34,23 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 
   if (!formation) throw new Response("Not Found", { status: 404 });
 
-  const slots: { warrior_id: number; role_label: string }[] = JSON.parse(formation.slots);
+  const slots: { warrior_id: number; role_label: string }[] = JSON.parse(
+    formation.slots
+  );
   const warriorIds = [...new Set(slots.map((s) => s.warrior_id))];
 
   const warriorRows = await Promise.all(
     warriorIds.map((id) =>
-      db.select().from(warriors).where(eq(warriors.id, id)).then((r) => r[0])
+      db
+        .select()
+        .from(warriors)
+        .where(eq(warriors.id, id))
+        .then((r) => r[0])
     )
   );
-  const warriorMap = new Map(warriorRows.filter(Boolean).map((w) => [w!.id, w!]));
+  const warriorMap = new Map(
+    warriorRows.filter(Boolean).map((w) => [w!.id, w!])
+  );
 
   const enrichedSlots: Slot[] = slots.map((slot) => ({
     ...slot,
@@ -63,8 +71,11 @@ export default function FormationPage() {
       list.push(formation.uuid);
     }
     localStorage.setItem("sharedFormationCopied", JSON.stringify(list));
-    localStorage.setItem(`formation_${formation.uuid}`, JSON.stringify(formation));
-    alert("編成をコピーしました（LocalStorageに保存）");
+    localStorage.setItem(
+      `formation_${formation.uuid}`,
+      JSON.stringify(formation)
+    );
+    alert("編成をコピーしました");
   }
 
   return (
@@ -75,9 +86,7 @@ export default function FormationPage() {
         </Heading>
 
         {formation.purpose && (
-          <Text color="gray.300">
-            目的: {formation.purpose}
-          </Text>
+          <Text color="gray.300">目的: {formation.purpose}</Text>
         )}
 
         {formation.total_score != null && (
