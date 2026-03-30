@@ -153,7 +153,7 @@ function getAptitudeBonus(aptitudes: string[], weaponType: WeaponType) {
 }
 
 function calcStat(base: number, growth: number, level: number, bonus: number, mult: number): number {
-  return Math.floor((base + growth * (level - 1) + bonus) * mult);
+  return (base + growth * (level - 1) + bonus) * mult;
 }
 
 function calcTotalStat(
