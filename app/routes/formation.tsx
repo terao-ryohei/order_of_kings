@@ -274,6 +274,15 @@ function getEquipmentStatTotal(equipment: Equipment, stat: keyof EquipmentSlot):
   );
 }
 
+function normalizeEquipmentInput(raw: string): number {
+  if (raw === "") {
+    return 0;
+  }
+
+  const parsed = parseInt(raw, 10);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
 export const meta: MetaFunction = () => [
   { title: "編成ビルダー - 王の算盤" },
   {
@@ -576,10 +585,8 @@ export default function FormationBuilderPage() {
     slotIndex: number,
     equipmentKey: keyof Equipment,
     stat: keyof EquipmentSlot,
-    value: string
+    value: number
   ) => {
-    const nextValue = Number(value);
-
     setSlots((current) =>
       current.map((slot) =>
         slot.index === slotIndex
@@ -589,7 +596,7 @@ export default function FormationBuilderPage() {
                 ...slot.equipment,
                 [equipmentKey]: {
                   ...slot.equipment[equipmentKey],
-                  [stat]: Number.isFinite(nextValue) ? nextValue : 0,
+                  [stat]: value,
                 },
               },
             }
@@ -1275,50 +1282,61 @@ export default function FormationBuilderPage() {
                                       borderColor="whiteAlpha.200"
                                     >
                                       {EQUIPMENT_SLOTS.map((equipmentSlot) => (
-                                        <VStack
+                                        <Box
                                           key={equipmentSlot.key}
-                                          align="stretch"
-                                          gap={1}
+                                          pb={2}
+                                          borderBottomWidth={
+                                            equipmentSlot.key === "mount" ? "0" : "1px"
+                                          }
+                                          borderColor="whiteAlpha.200"
                                         >
-                                          <Text fontSize="xs" color="gray.300">
-                                            {equipmentSlot.label}
-                                          </Text>
-                                          <SimpleGrid
-                                            columns={{ base: 1, md: 3 }}
+                                          <HStack
+                                            align="center"
                                             gap={2}
+                                            wrap="wrap"
                                           >
+                                            <Text
+                                              fontSize="xs"
+                                              color="gray.300"
+                                              minW="4rem"
+                                            >
+                                              {equipmentSlot.label}
+                                            </Text>
                                             {EQUIPMENT_STATS.map((stat) => (
-                                              <Box key={stat.key}>
+                                              <HStack key={stat.key} gap={1}>
                                                 <Text
                                                   fontSize="xs"
                                                   color="gray.400"
-                                                  mb={1}
                                                 >
                                                   {stat.label}
                                                 </Text>
                                                 <Input
                                                   type="number"
                                                   size="xs"
+                                                  w="52px"
                                                   value={
-                                                    slot.equipment[
-                                                      equipmentSlot.key
-                                                    ][stat.key]
+                                                    slot.equipment[equipmentSlot.key][stat.key] === 0
+                                                      ? ""
+                                                      : slot.equipment[equipmentSlot.key][stat.key]
                                                   }
-                                                  onChange={(e) =>
+                                                  onChange={(e) => {
+                                                    const nextValue = normalizeEquipmentInput(
+                                                      e.target.value
+                                                    );
                                                     updateEquipmentStat(
                                                       slot.index,
                                                       equipmentSlot.key,
                                                       stat.key,
-                                                      e.target.value
-                                                    )
-                                                  }
+                                                      nextValue
+                                                    );
+                                                  }}
                                                   bg="gray.900"
                                                   borderColor="whiteAlpha.300"
                                                 />
-                                              </Box>
+                                              </HStack>
                                             ))}
-                                          </SimpleGrid>
-                                        </VStack>
+                                          </HStack>
+                                        </Box>
                                       ))}
                                     </VStack>
                                   </Collapsible.Content>
