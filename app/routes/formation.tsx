@@ -153,7 +153,19 @@ function getAptitudeBonus(aptitudes: string[], weaponType: WeaponType) {
 }
 
 function calcStat(base: number, growth: number, level: number, bonus: number, mult: number): number {
-  return Math.round((base + growth * (level - 1) + bonus) * mult);
+  return Math.floor((base + growth * (level - 1) + bonus) * mult);
+}
+
+function calcTotalStat(
+  base: number,
+  growth: number,
+  level: number,
+  bonus: number,
+  mult: number,
+  equipment: number,
+  kokugaku: number
+): number {
+  return calcStat(base, growth, level, bonus, mult) + equipment + kokugaku;
 }
 
 const BONUS_STATS = [
@@ -471,17 +483,17 @@ export default function FormationBuilderPage() {
       const equipmentGuts = getEquipmentStatTotal(slot.equipment, "guts");
 
       return {
-        atk: sum.atk + calcStat(slot.warrior.atk, slot.warrior.atk_growth, slot.warriorLevel, slot.bonusPoints.atk + equipmentAtk, intGutsMult),
-        int: sum.int + calcStat(slot.warrior.int, slot.warrior.int_growth, slot.warriorLevel, slot.bonusPoints.int + equipmentInt, intGutsMult),
-        guts: sum.guts + calcStat(slot.warrior.guts, slot.warrior.guts_growth, slot.warriorLevel, slot.bonusPoints.guts + equipmentGuts, intGutsMult),
+        atk: sum.atk + calcTotalStat(slot.warrior.atk, slot.warrior.atk_growth, slot.warriorLevel, slot.bonusPoints.atk, intGutsMult, equipmentAtk, kokugakuBonus.atk),
+        int: sum.int + calcTotalStat(slot.warrior.int, slot.warrior.int_growth, slot.warriorLevel, slot.bonusPoints.int, intGutsMult, equipmentInt, kokugakuBonus.int),
+        guts: sum.guts + calcTotalStat(slot.warrior.guts, slot.warrior.guts_growth, slot.warriorLevel, slot.bonusPoints.guts, intGutsMult, equipmentGuts, kokugakuBonus.guts),
       };
     },
     { atk: 0, int: 0, guts: 0 }
   );
-  const totalsWithKokugaku = {
-    atk: totals.atk + kokugakuBonus.atk,
-    int: totals.int + kokugakuBonus.int,
-    guts: totals.guts + kokugakuBonus.guts,
+  const displayedTotals = {
+    atk: Math.floor(totals.atk),
+    int: Math.floor(totals.int),
+    guts: Math.floor(totals.guts),
   };
   const kokugakuSummary = (["atk", "int", "guts", "pol"] as const)
     .filter((stat) => kokugakuBonus[stat] > 0)
@@ -692,7 +704,7 @@ export default function FormationBuilderPage() {
     const result = saveFormation(
       saveName || "無名の編成",
       slotData,
-      totalsWithKokugaku,
+      displayedTotals,
       weaponType
     );
     if (!result.ok && result.overflowId) {
@@ -709,7 +721,7 @@ export default function FormationBuilderPage() {
     saveFormationForce(
       saveName || "無名の編成",
       slotData,
-      totalsWithKokugaku,
+      displayedTotals,
       overflowConfirm,
       weaponType
     );
@@ -790,7 +802,7 @@ export default function FormationBuilderPage() {
               武力合計
             </Text>
             <Text fontSize="2xl" fontWeight="bold">
-              {totalsWithKokugaku.atk}
+              {displayedTotals.atk}
             </Text>
             <Text fontSize="xs" color="gray.500">
               主将+副将+国学
@@ -807,7 +819,7 @@ export default function FormationBuilderPage() {
               知略合計
             </Text>
             <Text fontSize="2xl" fontWeight="bold">
-              {totalsWithKokugaku.int}
+              {displayedTotals.int}
             </Text>
             <Text fontSize="xs" color="gray.500">
               主将+副将+国学
@@ -824,7 +836,7 @@ export default function FormationBuilderPage() {
               胆力合計
             </Text>
             <Text fontSize="2xl" fontWeight="bold">
-              {totalsWithKokugaku.guts}
+              {displayedTotals.guts}
             </Text>
             <Text fontSize="xs" color="gray.500">
               主将+副将+国学
@@ -1521,14 +1533,14 @@ export default function FormationBuilderPage() {
                                 return (
                                 <VStack align="start" gap={0} mt={1}>
                                   <Text fontSize="xs" color="gray.400">
-                                    武{calcStat(slot.warrior.atk, slot.warrior.atk_growth, slot.warriorLevel, slot.bonusPoints.atk + equipmentAtk, slotIntGutsMult)}
+                                    武{Math.floor(calcTotalStat(slot.warrior.atk, slot.warrior.atk_growth, slot.warriorLevel, slot.bonusPoints.atk, slotIntGutsMult, equipmentAtk, kokugakuBonus.atk))}
                                   </Text>
                                   <Text fontSize="xs" color="gray.400">
-                                    知{calcStat(slot.warrior.int, slot.warrior.int_growth, slot.warriorLevel, slot.bonusPoints.int + equipmentInt, slotIntGutsMult)}
+                                    知{Math.floor(calcTotalStat(slot.warrior.int, slot.warrior.int_growth, slot.warriorLevel, slot.bonusPoints.int, slotIntGutsMult, equipmentInt, kokugakuBonus.int))}
                                   </Text>
                                   <Text fontSize="xs" color="gray.400">
                                     胆
-                                    {calcStat(slot.warrior.guts, slot.warrior.guts_growth, slot.warriorLevel, slot.bonusPoints.guts + equipmentGuts, slotIntGutsMult)}
+                                    {Math.floor(calcTotalStat(slot.warrior.guts, slot.warrior.guts_growth, slot.warriorLevel, slot.bonusPoints.guts, slotIntGutsMult, equipmentGuts, kokugakuBonus.guts))}
                                   </Text>
                                 </VStack>
                                 );
