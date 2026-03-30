@@ -15,7 +15,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { warriors, weaponAptitudes, skills, warriorSkills, warriorRoles } from "../../server/db/schema";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => [
-  { title: `${data?.warrior.name ?? "武将"} - 王の算盤` },
+  { title: `${data?.warrior.name ?? "武将"} - 王の碁盤` },
 ];
 
 export async function loader({ params, context }: LoaderFunctionArgs) {

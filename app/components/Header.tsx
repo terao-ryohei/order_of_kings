@@ -42,7 +42,7 @@ export default function Header() {
                 textTransform="uppercase"
                 whiteSpace="nowrap"
               >
-                王の算盤
+                王の碁盤
               </Text>
             </Link>
           </Flex>

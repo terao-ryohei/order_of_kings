@@ -21,7 +21,7 @@ import {
 } from "../lib/kokugaku";
 
 export const meta: MetaFunction = () => [
-  { title: "所持国学 | 王の算盤" },
+  { title: "所持国学 | 王の碁盤" },
   {
     name: "description",
     content: "国学の研究進捗を保存し、編成全体にかかる補正を管理する",

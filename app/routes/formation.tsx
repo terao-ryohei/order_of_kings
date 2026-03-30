@@ -309,7 +309,7 @@ function normalizeEquipmentInput(raw: string): number {
 }
 
 export const meta: MetaFunction = () => [
-  { title: "編成ビルダー - 王の算盤" },
+  { title: "編成ビルダー - 王の碁盤" },
   {
     name: "description",
     content: "手持ち武将から3枠編成（主将/副将/軍師）を組むページ",
@@ -812,8 +812,8 @@ export default function FormationBuilderPage() {
   };
 
   return (
-    <Box minH="100vh" bg="gray.950" p={4}>
-      <VStack gap={5} align="stretch" maxW="1200px" mx="auto">
+    <Box minH="100vh" bg="gray.950" p={{ base: 2, md: 4 }}>
+      <VStack gap={{ base: 3, md: 5 }} align="stretch" maxW="1200px" mx="auto">
         <Flex align="center" justify="space-between" flexWrap="wrap" gap={3}>
           <VStack align="start" gap={1}>
             <Heading size="xl" color="white">
@@ -891,50 +891,50 @@ export default function FormationBuilderPage() {
               <SimpleGrid
                 gridColumn={{ base: "auto", xl: "span 2" }}
                 columns={{
-                  base: squadSpeed !== null ? 2 : 3,
+                  base: 2,
                   md: squadSpeed !== null ? 4 : 3,
                 }}
-                gap={3}
+                gap={{ base: 2, md: 3 }}
               >
                 <Box
                   bg="whiteAlpha.100"
                   borderRadius="xl"
-                  p={3}
+                  p={{ base: 2, md: 3 }}
                   borderWidth="1px"
                   borderColor="whiteAlpha.200"
                 >
                   <Text fontSize="xs" color="gray.400">
                     武力合計
                   </Text>
-                  <Text fontSize="2xl" fontWeight="bold" textAlign="right">
+                  <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="bold" textAlign="right">
                     {displayedTotals.atk}
                   </Text>
                 </Box>
                 <Box
                   bg="whiteAlpha.100"
                   borderRadius="xl"
-                  p={3}
+                  p={{ base: 2, md: 3 }}
                   borderWidth="1px"
                   borderColor="whiteAlpha.200"
                 >
                   <Text fontSize="xs" color="gray.400">
                     知略合計
                   </Text>
-                  <Text fontSize="2xl" fontWeight="bold" textAlign="right">
+                  <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="bold" textAlign="right">
                     {displayedTotals.int}
                   </Text>
                 </Box>
                 <Box
                   bg="whiteAlpha.100"
                   borderRadius="xl"
-                  p={3}
+                  p={{ base: 2, md: 3 }}
                   borderWidth="1px"
                   borderColor="whiteAlpha.200"
                 >
                   <Text fontSize="xs" color="gray.400">
                     胆力合計
                   </Text>
-                  <Text fontSize="2xl" fontWeight="bold" textAlign="right">
+                  <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="bold" textAlign="right">
                     {displayedTotals.guts}
                   </Text>
                 </Box>
@@ -942,14 +942,14 @@ export default function FormationBuilderPage() {
                   <Box
                     bg="whiteAlpha.100"
                     borderRadius="xl"
-                    p={3}
+                    p={{ base: 2, md: 3 }}
                     borderWidth="1px"
                     borderColor="orange.700"
                   >
                     <Text fontSize="xs" color="gray.400">
                       移動速度
                     </Text>
-                    <Text fontSize="2xl" fontWeight="bold">
+                    <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="bold">
                       {squadSpeed}
                     </Text>
                     <Text fontSize="xs" color="gray.500">
@@ -1385,7 +1385,7 @@ export default function FormationBuilderPage() {
                                         </Text>
                                         <SimpleGrid
                                           columns={{ base: 2, md: 4 }}
-                                          gap={1}
+                                          gap={{ base: 2, md: 1 }}
                                         >
                                           {BONUS_STATS.map((stat) => (
                                             <Flex
