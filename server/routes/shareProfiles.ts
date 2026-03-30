@@ -36,6 +36,9 @@ export const shareProfile = factory.createHandlers(async (c) => {
 // GET /api/share-profile/:uuid
 export const getShareProfile = factory.createHandlers(async (c) => {
   const uuid = c.req.param("uuid");
+  if (!uuid) {
+    throw new AppError(400, "UUIDは必須です", "MISSING_UUID");
+  }
   const db = dbClient(c.env.DB);
 
   const [profile] = await db

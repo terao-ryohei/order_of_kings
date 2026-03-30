@@ -36,6 +36,9 @@ export const shareFormation = factory.createHandlers(async (c) => {
 // GET /api/formation/:uuid
 export const getFormation = factory.createHandlers(async (c) => {
   const uuid = c.req.param("uuid");
+  if (!uuid) {
+    throw new AppError(400, "UUIDは必須です", "MISSING_UUID");
+  }
   const db = dbClient(c.env.DB);
 
   const [formation] = await db
