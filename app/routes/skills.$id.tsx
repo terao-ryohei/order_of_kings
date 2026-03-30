@@ -20,6 +20,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => [
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const id = Number(params.id);
+  if (isNaN(id) || id <= 0) throw new Response("Not Found", { status: 404 });
   const db = drizzle((context.cloudflare as any).env.DB);
 
   const [skill] = await db.select().from(skills).where(eq(skills.id, id));

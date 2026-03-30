@@ -20,6 +20,8 @@ function notifyListeners() {
 function subscribe(listener: Listener) {
   listeners.add(listener);
 
+  if (typeof window === "undefined") return () => {};
+
   const handleStorage = (event: StorageEvent) => {
     if (event.key === KOKUGAKU_STORAGE_KEY) {
       listener();

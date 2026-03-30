@@ -12,6 +12,7 @@ import {
 } from "../../server/db/schema";
 import FormationBuilder from "../components/FormationBuilder";
 import type { WarriorData, SkillData } from "../lib/formation-shared";
+import { safeJsonParse } from "../lib/storage";
 
 export const meta: MetaFunction = () => [
   { title: "共有手持ち編成ビルダー - 王の碁盤" },
@@ -33,9 +34,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   if (!profile) throw new Response("Not Found", { status: 404 });
 
   // Parse shared warrior IDs (with duplicates for count)
-  const rawWarriorIds: number[] = profile.warriorIds
-    ? JSON.parse(profile.warriorIds)
-    : [];
+  const rawWarriorIds: number[] = safeJsonParse(profile.warriorIds, []);
   const uniqueWarriorIds = [...new Set(rawWarriorIds)];
 
   // Fetch full warrior data for the formation builder
@@ -129,9 +128,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   });
 
   // Fetch shared skills (equipment skills, not unique warrior skills)
-  const sharedSkillIds: number[] = profile.skillIds
-    ? JSON.parse(profile.skillIds)
-    : [];
+  const sharedSkillIds: number[] = safeJsonParse(profile.skillIds, []);
 
   const sharedSkills: SkillData[] =
     sharedSkillIds.length > 0

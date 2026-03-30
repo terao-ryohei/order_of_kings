@@ -12,7 +12,7 @@ import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { Link, useLoaderData, useParams } from "@remix-run/react";
 import { eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { safeGetItem, safeSetItem } from "../lib/storage";
+import { safeGetItem, safeJsonParse, safeSetItem } from "../lib/storage";
 import { sharedProfiles, skills, warriors } from "../../server/db/schema";
 
 type WarriorRow = {
@@ -59,13 +59,9 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 
   if (!profile) throw new Response("Not Found", { status: 404 });
 
-  const formations: SavedFormation[] = profile.formations
-    ? JSON.parse(profile.formations)
-    : [];
+  const formations: SavedFormation[] = safeJsonParse(profile.formations, []);
 
-  const rawWarriorIds: number[] = profile.warriorIds
-    ? JSON.parse(profile.warriorIds)
-    : [];
+  const rawWarriorIds: number[] = safeJsonParse(profile.warriorIds, []);
 
   // 出現回数を集計してユニークIDを取得
   const warriorCountMap: Record<number, number> = {};
@@ -94,9 +90,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
           .where(inArray(warriors.id, uniqueWarriorIds))
       : [];
 
-  const skillIds: number[] = profile.skillIds
-    ? JSON.parse(profile.skillIds)
-    : [];
+  const skillIds: number[] = safeJsonParse(profile.skillIds, []);
   const sharedSkills: SkillDetail[] =
     skillIds.length > 0
       ? await db

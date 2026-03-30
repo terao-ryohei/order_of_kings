@@ -11,7 +11,7 @@ import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { safeGetItem, safeSetItem } from "../lib/storage";
+import { safeGetItem, safeJsonParse, safeSetItem } from "../lib/storage";
 import { sharedFormations, warriors } from "../../server/db/schema";
 
 type Slot = {
@@ -35,8 +35,8 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 
   if (!formation) throw new Response("Not Found", { status: 404 });
 
-  const slots: { warrior_id: number; role_label: string }[] = JSON.parse(
-    formation.slots
+  const slots: { warrior_id: number; role_label: string }[] = safeJsonParse(
+    formation.slots, []
   );
   const warriorIds = [...new Set(slots.map((s) => s.warrior_id))];
 
