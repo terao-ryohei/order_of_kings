@@ -1,4 +1,4 @@
-import { ChakraProvider, createSystem, defaultConfig } from "@chakra-ui/react";
+import { Box, ChakraProvider, createSystem, defaultConfig, Heading, Text, VStack, Button } from "@chakra-ui/react";
 import type { LinksFunction } from "@remix-run/cloudflare";
 import {
   Links,
@@ -6,6 +6,8 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useRouteError,
+  isRouteErrorResponse,
 } from "@remix-run/react";
 import { ThemeProvider } from "next-themes";
 import Header from "~/components/Header";
@@ -30,11 +32,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("theme");if(t==="dark"||(!t&&true)){document.documentElement.classList.add("dark");document.documentElement.style.colorScheme="dark"}}catch(e){}})()`,
-          }}
-        />
       </head>
       <body>
         {children}
@@ -70,5 +67,40 @@ export default function App() {
         <Outlet />
       </ChakraProvider>
     </ThemeProvider>
+  );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+
+  const statusCode = isRouteErrorResponse(error) ? error.status : 500;
+  const message = isRouteErrorResponse(error)
+    ? error.status === 404
+      ? "ページが見つかりません"
+      : error.statusText
+    : "予期せぬエラーが発生しました";
+
+  return (
+    <ChakraProvider value={system}>
+      <Box minH="100vh" bg="gray.950" color="white" p={8}>
+        <VStack gap={6} maxW="600px" mx="auto" mt="20vh">
+          <Heading size="2xl" color="red.400">
+            {statusCode}
+          </Heading>
+          <Text fontSize="xl" textAlign="center">
+            {message}
+          </Text>
+          <Button
+            as="a"
+            href="/"
+            colorPalette="yellow"
+            size="lg"
+            rounded="full"
+          >
+            トップへ戻る
+          </Button>
+        </VStack>
+      </Box>
+    </ChakraProvider>
   );
 }
