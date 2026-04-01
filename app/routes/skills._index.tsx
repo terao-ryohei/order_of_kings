@@ -9,10 +9,10 @@ import {
 } from "@chakra-ui/react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { Form, Link, useLoaderData, useNavigate, useSearchParams } from "@remix-run/react";
-import { and, asc, eq, like } from "drizzle-orm";
+import { and, asc, eq, isNull, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { skills } from "../../server/db/schema";
+import { skills, warriorSkills } from "../../server/db/schema";
 
 function toKatakana(str: string): string {
   return str.replace(/[\u3041-\u3096]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) + 0x60));
@@ -51,20 +51,48 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   let result;
   if (!showUnique) {
-    // 共通スキルのみ表示: is_unique=0 で絞り込む
-    const commonOnly = eq(skills.is_unique, 0);
+    // 共通スキルのみ表示: warrior_skills に紐付きがないか is_unique=0
     result = await db
-      .select()
+      .selectDistinct({
+        id: skills.id,
+        name: skills.name,
+        color: skills.color,
+        weapon_restriction: skills.weapon_restriction,
+        skill_type: skills.skill_type,
+        description: skills.description,
+        rarity: skills.rarity,
+        sort_order: skills.sort_order,
+        is_delete: skills.is_delete,
+      })
       .from(skills)
-      .where(whereClause ? and(whereClause, commonOnly) : commonOnly)
+      .leftJoin(warriorSkills, eq(skills.id, warriorSkills.skill_id))
+      .where(
+        whereClause
+          ? and(whereClause, or(isNull(warriorSkills.is_unique), eq(warriorSkills.is_unique, false)))
+          : or(isNull(warriorSkills.is_unique), eq(warriorSkills.is_unique, false))
+      )
       .orderBy(asc(skills.sort_order));
   } else {
-    // 固有スキルのみ表示: is_unique=1 で絞り込む
-    const uniqueOnly = eq(skills.is_unique, 1);
+    // 固有スキルのみ表示: warrior_skills.is_unique=1
     result = await db
-      .select()
+      .selectDistinct({
+        id: skills.id,
+        name: skills.name,
+        color: skills.color,
+        weapon_restriction: skills.weapon_restriction,
+        skill_type: skills.skill_type,
+        description: skills.description,
+        rarity: skills.rarity,
+        sort_order: skills.sort_order,
+        is_delete: skills.is_delete,
+      })
       .from(skills)
-      .where(whereClause ? and(whereClause, uniqueOnly) : uniqueOnly)
+      .leftJoin(warriorSkills, eq(skills.id, warriorSkills.skill_id))
+      .where(
+        whereClause
+          ? and(whereClause, eq(warriorSkills.is_unique, true))
+          : eq(warriorSkills.is_unique, true)
+      )
       .orderBy(asc(skills.sort_order));
   }
 
