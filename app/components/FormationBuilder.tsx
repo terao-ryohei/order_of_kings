@@ -451,9 +451,9 @@ export default function FormationBuilder({
         </Flex>
 
         <Box
-          position={{ base: "static", lg: "sticky" }}
-          top={{ lg: 3 }}
-          zIndex={2}
+          position="sticky"
+          top={{ base: 2, lg: 3 }}
+          zIndex={3}
           bg="linear-gradient(135deg, rgba(21,28,40,0.96), rgba(56,35,8,0.92))"
           borderRadius="2xl"
           p={{ base: 4, md: 5 }}
@@ -472,8 +472,24 @@ export default function FormationBuilder({
                 borderWidth="1px"
                 borderColor="whiteAlpha.200"
               >
-                <Text fontSize="xs" color="gray.400" mb={1}>
-                  編成読込
+                <Flex justify="space-between" align="center" gap={2} mb={2}>
+                  <VStack align="start" gap={0}>
+                    <Text fontSize="xs" color="gray.400">
+                      保存済み編成
+                    </Text>
+                    <Text fontSize="sm" color="white" fontWeight="bold">
+                      上部から即読込
+                    </Text>
+                  </VStack>
+                  <Badge
+                    colorPalette={savedFormations.length > 0 ? "blue" : "gray"}
+                    variant="subtle"
+                  >
+                    {savedFormations.length}件
+                  </Badge>
+                </Flex>
+                <Text fontSize="xs" color="gray.500" mb={3}>
+                  スクロールせず、保存済み編成をここから切り替え
                 </Text>
                 <Flex
                   gap={2}
@@ -511,6 +527,91 @@ export default function FormationBuilder({
                     ? `武${selectedFormation.total_score.atk} / 知${selectedFormation.total_score.int} / 胆${selectedFormation.total_score.guts}`
                     : savedFormations.length === 0 && "保存済み編成無し"}
                 </Text>
+              </Box>
+
+              <Box
+                gridColumn={{ base: "auto", xl: "span 1" }}
+                bg="blackAlpha.400"
+                borderRadius="xl"
+                p={3}
+                borderWidth="1px"
+                borderColor="whiteAlpha.200"
+              >
+                <Text fontSize="xs" color="gray.400" mb={1}>
+                  現在の編成を保存
+                </Text>
+                <Text fontSize="xs" color="gray.500" mb={3}>
+                  途中保存して比較しながら編成を詰める
+                </Text>
+                {overflowConfirm ? (
+                  <VStack align="stretch" gap={2}>
+                    <Text fontSize="xs" color="yellow.200">
+                      保存上限です。最古の編成を上書きしますか？
+                    </Text>
+                    <Button
+                      size="sm"
+                      colorPalette="yellow"
+                      onClick={handleSaveForce}
+                    >
+                      削除して保存
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setOverflowConfirm(null)}
+                    >
+                      やめる
+                    </Button>
+                  </VStack>
+                ) : saveMode ? (
+                  <VStack align="stretch" gap={2}>
+                    <Input
+                      placeholder="編成名を入力"
+                      value={saveName}
+                      onChange={(e) => setSaveName(e.target.value)}
+                      size="sm"
+                      bg="gray.900"
+                      borderColor="yellow.700"
+                      _focus={{ borderColor: "yellow.400" }}
+                      onKeyDown={(e) => e.key === "Enter" && handleSave()}
+                    />
+                    <Flex gap={2}>
+                      <Button
+                        size="sm"
+                        colorPalette="yellow"
+                        onClick={handleSave}
+                        flex="1"
+                      >
+                        保存
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setSaveMode(false);
+                          setSaveName("");
+                        }}
+                      >
+                        閉じる
+                      </Button>
+                    </Flex>
+                  </VStack>
+                ) : (
+                  <VStack align="stretch" gap={2}>
+                    <Button
+                      colorPalette="yellow"
+                      onClick={() => setSaveMode(true)}
+                      disabled={!hasAssignedWarrior}
+                    >
+                      現在の編成を保存
+                    </Button>
+                    <Text fontSize="xs" color="gray.500">
+                      {hasAssignedWarrior
+                        ? `保存数 ${savedFormations.length}/10`
+                        : "武将を1人以上配置すると保存できます"}
+                    </Text>
+                  </VStack>
+                )}
               </Box>
 
               <SimpleGrid
@@ -597,94 +698,24 @@ export default function FormationBuilder({
               borderWidth="1px"
               borderColor="whiteAlpha.200"
             >
-              <Text fontSize="11px" color="yellow.200">
-                国学補正:{" "}
-                <Text as="span" color="gray.200">
-                  {kokugakuSummary || "未設定"}
+              <HStack gap={2} wrap="wrap">
+                <Badge
+                  colorPalette={hasAssignedWarrior ? "green" : "yellow"}
+                  variant="subtle"
+                >
+                  {hasAssignedWarrior ? "編成作成中" : "武将未配置"}
+                </Badge>
+                <Text fontSize="11px" color="yellow.200">
+                  国学補正:{" "}
+                  <Text as="span" color="gray.200">
+                    {kokugakuSummary || "未設定"}
+                  </Text>
                 </Text>
+              </HStack>
+              <Text fontSize="11px" color="gray.400">
+                武将選択 → Lv/兵種 → ボーナス/装備 → 保存 の順で整えると速い
               </Text>
             </Flex>
-
-            <Box
-              gridColumn={{ base: "auto", xl: "span 1" }}
-              bg="blackAlpha.400"
-              borderRadius="xl"
-              p={3}
-              borderWidth="1px"
-              borderColor="whiteAlpha.200"
-            >
-              <Text fontSize="xs" color="gray.400" mb={1}>
-                現在の編成を保存
-              </Text>
-              {overflowConfirm ? (
-                <VStack align="stretch" gap={2}>
-                  <Text fontSize="xs" color="yellow.200">
-                    保存上限です。最古の編成を上書きしますか？
-                  </Text>
-                  <Button
-                    size="sm"
-                    colorPalette="yellow"
-                    onClick={handleSaveForce}
-                  >
-                    削除して保存
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setOverflowConfirm(null)}
-                  >
-                    やめる
-                  </Button>
-                </VStack>
-              ) : saveMode ? (
-                <VStack align="stretch" gap={2}>
-                  <Input
-                    placeholder="編成名を入力"
-                    value={saveName}
-                    onChange={(e) => setSaveName(e.target.value)}
-                    size="sm"
-                    bg="gray.900"
-                    borderColor="yellow.700"
-                    _focus={{ borderColor: "yellow.400" }}
-                    onKeyDown={(e) => e.key === "Enter" && handleSave()}
-                  />
-                  <Flex gap={2}>
-                    <Button
-                      size="sm"
-                      colorPalette="yellow"
-                      onClick={handleSave}
-                      flex="1"
-                    >
-                      保存
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setSaveMode(false);
-                        setSaveName("");
-                      }}
-                    >
-                      閉じる
-                    </Button>
-                  </Flex>
-                </VStack>
-              ) : (
-                <VStack align="stretch" gap={2}>
-                  <Button
-                    colorPalette="yellow"
-                    onClick={() => setSaveMode(true)}
-                    disabled={!hasAssignedWarrior}
-                  >
-                    現在の編成を保存
-                  </Button>
-                  <Text fontSize="xs" color="gray.500">
-                    {hasAssignedWarrior &&
-                      `保存数 ${savedFormations.length}/10`}
-                  </Text>
-                </VStack>
-              )}
-            </Box>
           </VStack>
         </Box>
 
@@ -813,17 +844,50 @@ export default function FormationBuilder({
                   borderStyle="dashed"
                   borderColor="yellow.600"
                 >
-                  <Badge colorPalette="yellow" alignSelf="start" mb={2}>
-                    HINT
-                  </Badge>
-                  <Text fontSize="sm" fontWeight="bold" color="yellow.200">
-                    まず下の{warriorSectionTitle}から1人選び、
-                    {nextEmptySlot?.roleLabel ?? "主将"}から編成を始める
-                  </Text>
-                  <Text fontSize="xs" color="gray.400" mt={1}>
-                    配置後に
-                    Lv・兵種・ボーナス・装備・スキルを順に整えると迷いにくい
-                  </Text>
+                  <VStack align="start" gap={2}>
+                    <Badge colorPalette="yellow" alignSelf="start">
+                      START HERE
+                    </Badge>
+                    <Text fontSize="sm" fontWeight="bold" color="yellow.200">
+                      まず下の{warriorSectionTitle}から1人選び、
+                      {nextEmptySlot?.roleLabel ?? "主将"}に配置されたし
+                    </Text>
+                    <SimpleGrid columns={{ base: 1, sm: 3 }} gap={2} w="100%">
+                      <Box
+                        bg="blackAlpha.300"
+                        borderRadius="lg"
+                        px={3}
+                        py={2}
+                      >
+                        <Text fontSize="xs" color="yellow.100">
+                          1. 武将を選ぶ
+                        </Text>
+                      </Box>
+                      <Box
+                        bg="blackAlpha.300"
+                        borderRadius="lg"
+                        px={3}
+                        py={2}
+                      >
+                        <Text fontSize="xs" color="yellow.100">
+                          2. Lv・兵種を決める
+                        </Text>
+                      </Box>
+                      <Box
+                        bg="blackAlpha.300"
+                        borderRadius="lg"
+                        px={3}
+                        py={2}
+                      >
+                        <Text fontSize="xs" color="yellow.100">
+                          3. 装備とスキルを整える
+                        </Text>
+                      </Box>
+                    </SimpleGrid>
+                    <Text fontSize="xs" color="gray.400">
+                      保存と読込は画面上部に固定。比較しながら編成を詰められます。
+                    </Text>
+                  </VStack>
                 </Box>
               )}
 
