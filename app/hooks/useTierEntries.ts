@@ -1,4 +1,4 @@
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { safeGetItem, safeSetItem } from "../lib/storage";
 import type { TierEntry, TierStorage } from "../lib/tier-types";
 
@@ -9,19 +9,6 @@ const listeners = new Set<Listener>();
 
 function notifyListeners() {
   for (const l of listeners) l();
-}
-
-function subscribe(listener: Listener) {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
-
-function getSnapshot(): string {
-  return safeGetItem(STORAGE_KEY) ?? '{"version":1,"entries":[]}';
-}
-
-function getServerSnapshot(): string {
-  return '{"version":1,"entries":[]}';
 }
 
 function readStorage(): TierStorage {
@@ -46,15 +33,17 @@ export function useTierEntries(): {
   addEntry: (entry: Omit<TierEntry, "id" | "created_at" | "updated_at">) => void;
   deleteEntry: (id: string) => void;
 } {
-  const raw = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  const entries: TierEntry[] = (() => {
-    try {
-      const parsed = JSON.parse(raw) as TierStorage;
-      return parsed.entries;
-    } catch {
-      return [];
-    }
-  })();
+  const [entries, setEntries] = useState<TierEntry[]>([]);
+
+  useEffect(() => {
+    setEntries(readStorage().entries);
+
+    const listener = () => setEntries(readStorage().entries);
+    listeners.add(listener);
+    return () => {
+      listeners.delete(listener);
+    };
+  }, []);
 
   const addEntry = useCallback(
     (entry: Omit<TierEntry, "id" | "created_at" | "updated_at">) => {

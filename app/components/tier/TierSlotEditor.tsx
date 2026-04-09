@@ -153,7 +153,7 @@ export function TierSlotEditor({
       {selectedWarrior && (
         <HStack gap={2} mt={2} p={2} bg="whiteAlpha.100" borderRadius="md">
           <Image
-            src={`/hero/${selectedWarrior.name}.png`}
+            src={`/hero/${encodeURIComponent(selectedWarrior.name)}.png`}
             alt={selectedWarrior.name}
             boxSize="40px"
             borderRadius="md"
@@ -316,7 +316,7 @@ export function TierSlotEditor({
                   {altWarrior && (
                     <HStack gap={2} mt={1} p={2} bg="whiteAlpha.50" borderRadius="md">
                       <Image
-                        src={`/hero/${altWarrior.name}.png`}
+                        src={`/hero/${encodeURIComponent(altWarrior.name)}.png`}
                         alt={altWarrior.name}
                         boxSize="32px"
                         borderRadius="md"

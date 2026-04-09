@@ -50,7 +50,7 @@ function WarriorSlotDisplay({
       {warrior ? (
         <>
           <Image
-            src={`/hero/${warrior.name}.png`}
+            src={`/hero/${encodeURIComponent(warrior.name)}.png`}
             alt={warrior.name}
             boxSize="32px"
             borderRadius="md"
