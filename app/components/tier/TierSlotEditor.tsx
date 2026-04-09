@@ -3,6 +3,7 @@ import {
   Button,
   Collapsible,
   HStack,
+  Image,
   NativeSelect,
   Text,
   VStack,
@@ -13,6 +14,7 @@ type WarriorOption = {
   id: number;
   name: string;
   rarity: number;
+  uniqueSkillName: string | null;
 };
 
 type SkillOption = {
@@ -148,6 +150,31 @@ export function TierSlotEditor({
         </NativeSelect.Root>
       </HStack>
 
+      {selectedWarrior && (
+        <HStack gap={2} mt={2} p={2} bg="whiteAlpha.100" borderRadius="md">
+          <Image
+            src={`/hero/${selectedWarrior.name}.png`}
+            alt={selectedWarrior.name}
+            boxSize="40px"
+            borderRadius="md"
+            objectFit="cover"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = "none";
+            }}
+          />
+          <VStack align="start" gap={0}>
+            <Text fontSize="sm" fontWeight="bold" color="white">
+              {selectedWarrior.name}
+            </Text>
+            {selectedWarrior.uniqueSkillName && (
+              <Text fontSize="xs" color="yellow.300">
+                固有: {selectedWarrior.uniqueSkillName}
+              </Text>
+            )}
+          </VStack>
+        </HStack>
+      )}
+
       <VStack align="stretch" gap={2}>
         {slot.skills.map((skill, skillIdx) => (
           <Box key={skillIdx}>
@@ -255,35 +282,62 @@ export function TierSlotEditor({
         </Collapsible.Trigger>
         <Collapsible.Content>
           <VStack align="stretch" gap={2} mt={2} pl={4}>
-            {slot.alt_warrior_ids.map((altId, altIdx) => (
-              <HStack key={altIdx} gap={2}>
-                <NativeSelect.Root size="sm" flex="1">
-                  <NativeSelect.Field
-                    value={altId || ""}
-                    onChange={(e) =>
-                      handleAltWarriorChange(altIdx, Number(e.target.value))
-                    }
-                    bg="gray.900"
-                    borderColor="whiteAlpha.300"
-                  >
-                    <option value="">代用武将を選択</option>
-                    {allWarriors.map((w) => (
-                      <option key={w.id} value={w.id}>
-                        {"★".repeat(w.rarity)} {w.name}
-                      </option>
-                    ))}
-                  </NativeSelect.Field>
-                </NativeSelect.Root>
-                <Button
-                  size="xs"
-                  variant="ghost"
-                  colorPalette="red"
-                  onClick={() => handleRemoveAltWarrior(altIdx)}
-                >
-                  ×
-                </Button>
-              </HStack>
-            ))}
+            {slot.alt_warrior_ids.map((altId, altIdx) => {
+              const altWarrior = altId > 0 ? allWarriors.find((w) => w.id === altId) : null;
+              return (
+                <Box key={altIdx}>
+                  <HStack gap={2}>
+                    <NativeSelect.Root size="sm" flex="1">
+                      <NativeSelect.Field
+                        value={altId || ""}
+                        onChange={(e) =>
+                          handleAltWarriorChange(altIdx, Number(e.target.value))
+                        }
+                        bg="gray.900"
+                        borderColor="whiteAlpha.300"
+                      >
+                        <option value="">代用武将を選択</option>
+                        {allWarriors.map((w) => (
+                          <option key={w.id} value={w.id}>
+                            {"★".repeat(w.rarity)} {w.name}
+                          </option>
+                        ))}
+                      </NativeSelect.Field>
+                    </NativeSelect.Root>
+                    <Button
+                      size="xs"
+                      variant="ghost"
+                      colorPalette="red"
+                      onClick={() => handleRemoveAltWarrior(altIdx)}
+                    >
+                      ×
+                    </Button>
+                  </HStack>
+                  {altWarrior && (
+                    <HStack gap={2} mt={1} p={2} bg="whiteAlpha.50" borderRadius="md">
+                      <Image
+                        src={`/hero/${altWarrior.name}.png`}
+                        alt={altWarrior.name}
+                        boxSize="32px"
+                        borderRadius="md"
+                        objectFit="cover"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                      <VStack align="start" gap={0}>
+                        <Text fontSize="xs" color="gray.300">{altWarrior.name}</Text>
+                        {altWarrior.uniqueSkillName && (
+                          <Text fontSize="xs" color="yellow.400">
+                            固有: {altWarrior.uniqueSkillName}
+                          </Text>
+                        )}
+                      </VStack>
+                    </HStack>
+                  )}
+                </Box>
+              );
+            })}
             {slot.alt_warrior_ids.length < 2 && (
               <Button
                 size="xs"

@@ -24,6 +24,7 @@ type WarriorOption = {
   id: number;
   name: string;
   rarity: number;
+  uniqueSkillName: string | null;
 };
 
 type SkillOption = {

@@ -1,9 +1,9 @@
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import { Box, Heading, Text } from "@chakra-ui/react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { warriors, skills } from "../../server/db/schema";
+import { warriors, skills, warriorSkills } from "../../server/db/schema";
 import { useTierEntries } from "../hooks/useTierEntries";
 import { TierEntryForm } from "../components/tier/TierEntryForm";
 import type { TierEntry } from "../lib/tier-types";
@@ -36,11 +36,25 @@ export async function loader({ context }: LoaderFunctionArgs) {
     .where(eq(skills.is_delete, false))
     .orderBy(asc(skills.sort_order));
 
+  const uniqueSkillRows = await db
+    .select({
+      warrior_id: warriorSkills.warrior_id,
+      skill_name: skills.name,
+    })
+    .from(warriorSkills)
+    .innerJoin(skills, eq(warriorSkills.skill_id, skills.id))
+    .where(eq(warriorSkills.is_unique, true));
+
+  const uniqueSkillMap = new Map(
+    uniqueSkillRows.map((r) => [r.warrior_id, r.skill_name]),
+  );
+
   return {
     warriors: warriorRows.map((w) => ({
       id: w.id,
       name: w.name,
       rarity: w.rarity,
+      uniqueSkillName: uniqueSkillMap.get(w.id) ?? null,
     })),
     allSkills,
   };
