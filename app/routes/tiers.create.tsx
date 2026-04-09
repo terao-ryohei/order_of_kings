@@ -1,14 +1,12 @@
-import { useLoaderData } from "@remix-run/react";
-import { Text, Box } from "@chakra-ui/react";
+import { useLoaderData, useNavigate } from "@remix-run/react";
+import { Box, Heading, Text } from "@chakra-ui/react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
-import { asc, eq, and, isNull, inArray } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import {
-  warriors,
-  weaponAptitudes,
-  warriorSkills,
-  skills,
-} from "../../server/db/schema";
+import { warriors, skills } from "../../server/db/schema";
+import { useTierEntries } from "../hooks/useTierEntries";
+import { TierEntryForm } from "../components/tier/TierEntryForm";
+import type { TierEntry } from "../lib/tier-types";
 
 export const meta: MetaFunction = () => [
   { title: "ティア表作成 - 王の碁盤" },
@@ -26,22 +24,17 @@ export async function loader({ context }: LoaderFunctionArgs) {
     .where(eq(warriors.is_delete, false))
     .orderBy(asc(warriors.sort_order));
 
-  const ids = warriorRows.map((w) => w.id);
-
-  const allSkills = ids.length
-    ? await db
-        .select({
-          id: skills.id,
-          name: skills.name,
-          skill_type: skills.skill_type,
-          color: skills.color,
-          description: skills.description,
-        })
-        .from(skills)
-        .leftJoin(warriorSkills, eq(skills.id, warriorSkills.skill_id))
-        .where(and(eq(skills.is_delete, false), isNull(warriorSkills.skill_id)))
-        .orderBy(asc(skills.sort_order))
-    : [];
+  const allSkills = await db
+    .select({
+      id: skills.id,
+      name: skills.name,
+      skill_type: skills.skill_type,
+      color: skills.color,
+      description: skills.description,
+    })
+    .from(skills)
+    .where(eq(skills.is_delete, false))
+    .orderBy(asc(skills.sort_order));
 
   return {
     warriors: warriorRows.map((w) => ({
@@ -54,11 +47,30 @@ export async function loader({ context }: LoaderFunctionArgs) {
 }
 
 export default function TiersCreatePage() {
+  const { warriors: allWarriors, allSkills } = useLoaderData<typeof loader>();
+  const { addEntry } = useTierEntries();
+  const navigate = useNavigate();
+
+  function handleSave(
+    entry: Omit<TierEntry, "id" | "created_at" | "updated_at">,
+  ) {
+    addEntry(entry);
+    navigate("/tiers");
+  }
+
   return (
-    <Box p={8} textAlign="center">
-      <Text fontSize="xl" fontWeight="bold">
-        Coming Soon — ティア表作成（実装中）
+    <Box p={{ base: 4, md: 8 }} maxW="800px" mx="auto">
+      <Heading size="lg" mb={2}>
+        ティア表作成
+      </Heading>
+      <Text color="gray.400" mb={6}>
+        編成をランク付けしてティア表に追加する
       </Text>
+      <TierEntryForm
+        allWarriors={allWarriors}
+        allSkills={allSkills}
+        onSave={handleSave}
+      />
     </Box>
   );
 }
