@@ -21,7 +21,7 @@ import {
   type WarriorOption,
   type SkillOption,
 } from "../../lib/tier-types";
-import { TierSlotEditor } from "./TierSlotEditor";
+import { TierCompositionEditor } from "./TierCompositionEditor";
 
 type TierEntryFormProps = {
   allWarriors: WarriorOption[];
@@ -143,17 +143,12 @@ export function TierEntryForm({
         <Heading size="sm" mb={3}>
           編成（3スロット）
         </Heading>
-        <VStack align="stretch" gap={3}>
-          {slots.map((slot, idx) => (
-            <TierSlotEditor
-              key={ROLES[idx]}
-              slot={slot}
-              allWarriors={allWarriors}
-              allSkills={allSkills}
-              onChange={(newSlot) => handleSlotChange(idx, newSlot)}
-            />
-          ))}
-        </VStack>
+        <TierCompositionEditor
+          slots={slots}
+          allWarriors={allWarriors}
+          allSkills={allSkills}
+          onChange={handleSlotChange}
+        />
       </Box>
 
       <Box>
