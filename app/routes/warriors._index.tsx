@@ -1,17 +1,16 @@
 import {
-  Badge,
   Box,
   Flex,
   Heading,
-  SimpleGrid,
+  Table,
   Text,
   VStack,
 } from "@chakra-ui/react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { Form, Link, useLoaderData, useNavigate, useSearchParams } from "@remix-run/react";
-import { and, asc, desc, eq, like, or } from "drizzle-orm";
+import { and, eq, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { warriorRoles, warriors } from "../../server/db/schema";
 
 export const meta: MetaFunction = () => [
@@ -53,35 +52,90 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     result = await db
       .select()
       .from(warriors)
-      .where(nameFilter ? and(eq(warriors.era, era), nameFilter) : eq(warriors.era, era))
-      .orderBy(desc(warriors.rarity), desc(warriors.cost), asc(warriors.sort_order));
+      .where(nameFilter ? and(eq(warriors.era, era), nameFilter) : eq(warriors.era, era));
   } else {
     result = await db
       .select()
       .from(warriors)
-      .where(nameFilter ? and(eq(warriors.is_delete, false), nameFilter) : eq(warriors.is_delete, false))
-      .orderBy(desc(warriors.rarity), desc(warriors.cost), asc(warriors.sort_order));
+      .where(nameFilter ? and(eq(warriors.is_delete, false), nameFilter) : eq(warriors.is_delete, false));
   }
 
   return { warriors: result, filters: { era, role, name } };
 }
 
-function RarityStars({ rarity }: { rarity: number }) {
-  const color = rarity >= 5 ? "yellow.400" : rarity >= 4 ? "purple.400" : "blue.400";
+type SortKey =
+  | "name" | "rarity" | "cost"
+  | "atk" | "int" | "guts" | "pol"
+  | "atk_growth" | "int_growth" | "guts_growth" | "pol_growth"
+  | "lv40_atk" | "lv40_int" | "lv40_guts" | "lv40_pol"
+  | "lv50_atk" | "lv50_int" | "lv50_guts" | "lv50_pol"
+  | "sort_order";
+
+type SortDir = "asc" | "desc";
+
+function SortableHeader({
+  label,
+  sortKeyValue,
+  currentKey,
+  currentDir,
+  onSort,
+}: {
+  label: string;
+  sortKeyValue: SortKey;
+  currentKey: SortKey;
+  currentDir: SortDir;
+  onSort: (key: SortKey) => void;
+}) {
+  const isActive = currentKey === sortKeyValue;
   return (
-    <Text color={color} fontWeight="bold" fontSize="sm">
-      {"★".repeat(rarity)}
-    </Text>
+    <Table.ColumnHeader
+      cursor="pointer"
+      color={isActive ? "yellow.300" : "gray.400"}
+      onClick={() => onSort(sortKeyValue)}
+      aria-sort={isActive ? (currentDir === "asc" ? "ascending" : "descending") : "none"}
+      whiteSpace="nowrap"
+      px={2}
+      py={2}
+      fontSize="xs"
+    >
+      <button
+        type="button"
+        style={{
+          background: "none",
+          border: "none",
+          color: "inherit",
+          cursor: "pointer",
+          padding: 0,
+          font: "inherit",
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+          onSort(sortKeyValue);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onSort(sortKeyValue);
+          }
+        }}
+      >
+        {label}
+        {isActive ? (currentDir === "asc" ? " ▲" : " ▼") : ""}
+      </button>
+    </Table.ColumnHeader>
   );
 }
 
 export default function Index() {
   const { warriors: data, filters } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [, startTransition] = useTransition();
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [nameValue, setNameValue] = useState(searchParams.get("name") ?? "");
+
+  const sortKey = (searchParams.get("sort") ?? "sort_order") as SortKey;
+  const sortDir = (searchParams.get("dir") ?? "asc") as SortDir;
 
   useEffect(() => {
     setNameValue(searchParams.get("name") ?? "");
@@ -113,6 +167,45 @@ export default function Index() {
       });
     }, 300);
   };
+
+  function handleSort(key: SortKey) {
+    const newDir: SortDir = sortKey === key && sortDir === "asc" ? "desc" : "asc";
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("sort", key);
+        next.set("dir", newDir);
+        return next;
+      },
+      { replace: true },
+    );
+  }
+
+  const sorted = useMemo(() => {
+    return [...data].sort((a, b) => {
+      const getValue = (w: typeof a): number | string => {
+        switch (sortKey) {
+          case "lv40_atk": return Math.round(w.atk + w.atk_growth * 39);
+          case "lv40_int": return Math.round(w.int + w.int_growth * 39);
+          case "lv40_guts": return Math.round(w.guts + w.guts_growth * 39);
+          case "lv40_pol": return Math.round(w.pol + w.pol_growth * 39);
+          case "lv50_atk": return Math.round(w.atk + w.atk_growth * 49);
+          case "lv50_int": return Math.round(w.int + w.int_growth * 49);
+          case "lv50_guts": return Math.round(w.guts + w.guts_growth * 49);
+          case "lv50_pol": return Math.round(w.pol + w.pol_growth * 49);
+          case "name": return w.name;
+          default: return (w as any)[sortKey] ?? 0;
+        }
+      };
+      const av = getValue(a);
+      const bv = getValue(b);
+      const cmp =
+        typeof av === "string"
+          ? av.localeCompare(bv as string)
+          : (av as number) - (bv as number);
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [data, sortKey, sortDir]);
 
   return (
     <Box minH="100vh" bg="gray.950" p={{ base: 3, md: 4 }}>
@@ -235,61 +328,99 @@ export default function Index() {
         </Form>
 
         <Text fontSize="sm" color="gray.400">
-          {data.length}件
+          {sorted.length}件
         </Text>
 
-        <SimpleGrid columns={{ base: 2, sm: 3, md: 4, lg: 5 }} gap={4}>
-          {data.map((warrior) => (
-            <Link key={warrior.id} to={`/warriors/${warrior.id}`}>
-              <Box
-                bg="whiteAlpha.100"
-                borderRadius="xl"
-                border="1px solid"
-                borderColor="whiteAlpha.200"
-                p={4}
-                _hover={{ shadow: "lg", transform: "translateY(-2px)", borderColor: "yellow.400" }}
-                transition="all 0.2s"
-                cursor="pointer"
-              >
-                <VStack gap={2} align="start">
-                  <Flex justify="space-between" w="100%" align="center">
-                    <RarityStars rarity={warrior.rarity} />
-                    <Badge colorPalette="gray" size="sm" variant="outline">
-                      コスト{warrior.cost}
-                    </Badge>
-                  </Flex>
-                  <Text fontWeight="bold" fontSize="sm" lineClamp={1}>
-                    {warrior.name}
-                  </Text>
-                  <Text fontSize="xs" color="gray.400">
-                    {warrior.reading}
-                  </Text>
-                  {warrior.era && (
-                    <Badge colorPalette="blue" size="sm">
-                      {warrior.era}
-                    </Badge>
-                  )}
-                  <Flex gap={2} wrap="wrap">
-                    <Text fontSize="xs" color="gray.300">
-                      武{warrior.atk}
-                    </Text>
-                    <Text fontSize="xs" color="gray.300">
-                      知{warrior.int}
-                    </Text>
-                    <Text fontSize="xs" color="gray.300">
-                      胆{warrior.guts}
-                    </Text>
-                    <Text fontSize="xs" color="gray.300">
-                      政{warrior.pol}
-                    </Text>
-                  </Flex>
-                </VStack>
-              </Box>
-            </Link>
-          ))}
-        </SimpleGrid>
+        <Box overflowX="auto">
+          <Table.Root size="sm" variant="outline">
+            <Table.Header>
+              <Table.Row bg="gray.900">
+                <Table.ColumnHeader px={2} py={2} fontSize="xs" color="gray.400">画像</Table.ColumnHeader>
+                <SortableHeader label="名前" sortKeyValue="name" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="★" sortKeyValue="rarity" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="コスト" sortKeyValue="cost" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="武" sortKeyValue="atk" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="知" sortKeyValue="int" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="胆" sortKeyValue="guts" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="政" sortKeyValue="pol" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="武↑" sortKeyValue="atk_growth" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="知↑" sortKeyValue="int_growth" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="胆↑" sortKeyValue="guts_growth" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="政↑" sortKeyValue="pol_growth" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="Lv40武" sortKeyValue="lv40_atk" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="Lv40知" sortKeyValue="lv40_int" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="Lv40胆" sortKeyValue="lv40_guts" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="Lv40政" sortKeyValue="lv40_pol" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="Lv50武" sortKeyValue="lv50_atk" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="Lv50知" sortKeyValue="lv50_int" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="Lv50胆" sortKeyValue="lv50_guts" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="Lv50政" sortKeyValue="lv50_pol" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+              </Table.Row>
+            </Table.Header>
+            <Table.Body>
+              {sorted.map((warrior) => {
+                const lv40atk = Math.round(warrior.atk + warrior.atk_growth * 39);
+                const lv40int = Math.round(warrior.int + warrior.int_growth * 39);
+                const lv40guts = Math.round(warrior.guts + warrior.guts_growth * 39);
+                const lv40pol = Math.round(warrior.pol + warrior.pol_growth * 39);
+                const lv50atk = Math.round(warrior.atk + warrior.atk_growth * 49);
+                const lv50int = Math.round(warrior.int + warrior.int_growth * 49);
+                const lv50guts = Math.round(warrior.guts + warrior.guts_growth * 49);
+                const lv50pol = Math.round(warrior.pol + warrior.pol_growth * 49);
+                return (
+                  <Table.Row
+                    key={warrior.id}
+                    _hover={{ bg: "whiteAlpha.100" }}
+                    cursor="pointer"
+                    onClick={() => navigate(`/warriors/${warrior.id}`)}
+                  >
+                    <Table.Cell px={2} py={1}>
+                      <img
+                        src={`/hero/${encodeURIComponent(warrior.name)}.png`}
+                        alt={warrior.name}
+                        width={48}
+                        height={48}
+                        style={{ objectFit: "cover", borderRadius: "4px" }}
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                    </Table.Cell>
+                    <Table.Cell px={2} py={1} whiteSpace="nowrap">
+                      <Link
+                        to={`/warriors/${warrior.id}`}
+                        style={{ color: "#ECC94B" }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {warrior.name}
+                      </Link>
+                    </Table.Cell>
+                    <Table.Cell px={2} py={1} whiteSpace="nowrap">{"★".repeat(warrior.rarity)}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{warrior.cost}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{warrior.atk}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{warrior.int}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{warrior.guts}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{warrior.pol}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{warrior.atk_growth.toFixed(2)}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{warrior.int_growth.toFixed(2)}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{warrior.guts_growth.toFixed(2)}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{warrior.pol_growth.toFixed(2)}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{lv40atk}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{lv40int}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{lv40guts}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{lv40pol}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{lv50atk}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{lv50int}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{lv50guts}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{lv50pol}</Table.Cell>
+                  </Table.Row>
+                );
+              })}
+            </Table.Body>
+          </Table.Root>
+        </Box>
 
-        {data.length === 0 && (
+        {sorted.length === 0 && (
           <Box textAlign="center" py={12} color="gray.400">
             <Text>武将が見つかりません</Text>
           </Box>
