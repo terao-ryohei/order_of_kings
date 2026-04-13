@@ -111,6 +111,17 @@ export const sharedProfiles = sqliteTable("shared_profiles", {
   createdAt: text("created_at").notNull(),
 });
 
+// 11. 編成ティア表
+export const tierEntries = sqliteTable("tier_entries", {
+  id: text("id").primaryKey(),
+  rank: text("rank").notNull(),
+  genres: text("genres").notNull().default("[]"),
+  slots: text("slots").notNull().default("[]"),
+  description: text("description").notNull().default(""),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
 // 9. ゲーム仕様テキスト
 export const gameMechanics = sqliteTable("game_mechanics", {
   id: integer("id").primaryKey({ autoIncrement: true }),
