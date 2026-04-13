@@ -1,14 +1,23 @@
 import { useState, useMemo } from "react";
-import { useLoaderData, Link as RemixLink } from "@remix-run/react";
-import { Box, Heading, Text, VStack, SimpleGrid, Button } from "@chakra-ui/react";
-import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
+import { useLoaderData, Link as RemixLink, useFetcher } from "@remix-run/react";
+import { Box, Heading, Text, SimpleGrid, Button } from "@chakra-ui/react";
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction,
+} from "@remix-run/cloudflare";
 import { asc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { warriors, skills } from "../../server/db/schema";
-import { useTierEntries } from "../hooks/useTierEntries";
+import { warriors, skills, tierEntries } from "../../server/db/schema";
 import { TierGenreFilter } from "../components/tier/TierGenreFilter";
 import { TierEntryCard } from "../components/tier/TierEntryCard";
-import { TIER_RANKS, type TierGenre } from "../lib/tier-types";
+import {
+  TIER_RANKS,
+  type TierEntry,
+  type TierGenre,
+  type TierRank,
+  type TierWarriorSlot,
+} from "../lib/tier-types";
 
 export const meta: MetaFunction = () => [
   { title: "ティア表一覧 - 王の碁盤" },
@@ -44,6 +53,25 @@ export async function loader({ context }: LoaderFunctionArgs) {
     .where(eq(skills.is_delete, false))
     .orderBy(asc(skills.sort_order));
 
+  const tierEntryRows = await db
+    .select()
+    .from(tierEntries)
+    .orderBy(asc(tierEntries.rank));
+
+  const entries: TierEntry[] = tierEntryRows.map((row) => ({
+    id: row.id,
+    rank: row.rank as TierRank,
+    genres: JSON.parse(row.genres) as TierGenre[],
+    slots: JSON.parse(row.slots) as [
+      TierWarriorSlot,
+      TierWarriorSlot,
+      TierWarriorSlot,
+    ],
+    description: row.description,
+    created_at: row.createdAt,
+    updated_at: row.updatedAt,
+  }));
+
   return {
     warriors: warriorRows.map((w) => ({
       id: w.id,
@@ -51,12 +79,26 @@ export async function loader({ context }: LoaderFunctionArgs) {
       rarity: w.rarity,
     })),
     allSkills,
+    entries,
   };
 }
 
+export async function action({ request, context }: ActionFunctionArgs) {
+  const db = drizzle((context.cloudflare as any).env.DB);
+  const formData = await request.formData();
+  const intent = formData.get("intent") as string;
+  const id = formData.get("id") as string;
+
+  if (intent === "delete" && id) {
+    await db.delete(tierEntries).where(eq(tierEntries.id, id));
+  }
+  return null;
+}
+
 export default function TiersIndexPage() {
-  const { warriors: allWarriors, allSkills } = useLoaderData<typeof loader>();
-  const { entries, deleteEntry } = useTierEntries();
+  const { warriors: allWarriors, allSkills, entries } =
+    useLoaderData<typeof loader>();
+  const fetcher = useFetcher();
   const [selectedGenre, setSelectedGenre] = useState<TierGenre | null>(null);
 
   const warriorMap = useMemo(() => {
@@ -75,15 +117,27 @@ export default function TiersIndexPage() {
     return map;
   }, [allSkills]);
 
+  const deletingId =
+    fetcher.state !== "idle" && fetcher.formData?.get("intent") === "delete"
+      ? (fetcher.formData.get("id") as string)
+      : null;
+
   const filteredEntries = useMemo(() => {
-    const filtered = selectedGenre
-      ? entries.filter((e) => e.genres.includes(selectedGenre))
+    const visible = deletingId
+      ? entries.filter((e) => e.id !== deletingId)
       : entries;
+    const filtered = selectedGenre
+      ? visible.filter((e) => e.genres.includes(selectedGenre))
+      : visible;
     const rankOrder = new Map(TIER_RANKS.map((r, i) => [r, i]));
     return [...filtered].sort(
       (a, b) => (rankOrder.get(a.rank) ?? 99) - (rankOrder.get(b.rank) ?? 99),
     );
-  }, [entries, selectedGenre]);
+  }, [entries, selectedGenre, deletingId]);
+
+  const handleDelete = (id: string) => {
+    fetcher.submit({ intent: "delete", id }, { method: "post" });
+  };
 
   return (
     <Box p={{ base: 4, md: 8 }} maxW="1200px" mx="auto">
@@ -112,7 +166,7 @@ export default function TiersIndexPage() {
               entry={entry}
               warriors={warriorMap}
               skills={skillsMap}
-              onDelete={deleteEntry}
+              onDelete={handleDelete}
             />
           ))}
         </SimpleGrid>

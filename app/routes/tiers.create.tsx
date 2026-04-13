@@ -1,10 +1,19 @@
-import { useLoaderData, useNavigate } from "@remix-run/react";
+import { useLoaderData, useFetcher } from "@remix-run/react";
 import { Box, Heading, Text } from "@chakra-ui/react";
-import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
-import { and, asc, eq } from "drizzle-orm";
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction,
+} from "@remix-run/cloudflare";
+import { redirect } from "@remix-run/cloudflare";
+import { asc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { warriors, skills, warriorSkills } from "../../server/db/schema";
-import { useTierEntries } from "../hooks/useTierEntries";
+import {
+  warriors,
+  skills,
+  warriorSkills,
+  tierEntries,
+} from "../../server/db/schema";
 import { TierEntryForm } from "../components/tier/TierEntryForm";
 import type { TierEntry } from "../lib/tier-types";
 
@@ -60,16 +69,36 @@ export async function loader({ context }: LoaderFunctionArgs) {
   };
 }
 
+export async function action({ request, context }: ActionFunctionArgs) {
+  const db = drizzle((context.cloudflare as any).env.DB);
+  const formData = await request.formData();
+  const entry = JSON.parse(formData.get("entry") as string) as Omit<
+    TierEntry,
+    "id" | "created_at" | "updated_at"
+  >;
+
+  await db.insert(tierEntries).values({
+    id: crypto.randomUUID(),
+    rank: entry.rank,
+    genres: JSON.stringify(entry.genres),
+    slots: JSON.stringify(entry.slots),
+    description: entry.description,
+  });
+
+  return redirect("/tiers");
+}
+
 export default function TiersCreatePage() {
   const { warriors: allWarriors, allSkills } = useLoaderData<typeof loader>();
-  const { addEntry } = useTierEntries();
-  const navigate = useNavigate();
+  const fetcher = useFetcher();
 
   function handleSave(
     entry: Omit<TierEntry, "id" | "created_at" | "updated_at">,
   ) {
-    addEntry(entry);
-    navigate("/tiers");
+    fetcher.submit(
+      { entry: JSON.stringify(entry) },
+      { method: "post" },
+    );
   }
 
   return (
