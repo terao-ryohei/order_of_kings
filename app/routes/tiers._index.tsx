@@ -55,7 +55,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
 }
 
 export default function TiersIndexPage() {
-  const { warriors: allWarriors } = useLoaderData<typeof loader>();
+  const { warriors: allWarriors, allSkills } = useLoaderData<typeof loader>();
   const { entries, deleteEntry } = useTierEntries();
   const [selectedGenre, setSelectedGenre] = useState<TierGenre | null>(null);
 
@@ -66,6 +66,14 @@ export default function TiersIndexPage() {
     }
     return map;
   }, [allWarriors]);
+
+  const skillsMap = useMemo(() => {
+    const map = new Map<number, { id: number; name: string }>();
+    for (const s of allSkills) {
+      map.set(s.id, { id: s.id, name: s.name });
+    }
+    return map;
+  }, [allSkills]);
 
   const filteredEntries = useMemo(() => {
     const filtered = selectedGenre
@@ -103,6 +111,7 @@ export default function TiersIndexPage() {
               key={entry.id}
               entry={entry}
               warriors={warriorMap}
+              skills={skillsMap}
               onDelete={deleteEntry}
             />
           ))}
