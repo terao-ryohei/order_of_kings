@@ -30,3 +30,11 @@ export type TierStorage = {
   version: 1;
   entries: TierEntry[];
 };
+
+export const RANK_COLORS: Record<TierRank, { text: string; badge: string; bg: string }> = {
+  S: { text: "red.400", badge: "red.300", bg: "red.600" },
+  A: { text: "orange.400", badge: "orange.300", bg: "orange.600" },
+  B: { text: "yellow.400", badge: "yellow.300", bg: "yellow.600" },
+  C: { text: "green.400", badge: "green.300", bg: "green.600" },
+  D: { text: "gray.400", badge: "gray.300", bg: "gray.600" },
+};

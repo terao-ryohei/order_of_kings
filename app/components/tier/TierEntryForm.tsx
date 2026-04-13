@@ -11,6 +11,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import {
+  RANK_COLORS,
   TIER_RANKS,
   TIER_GENRES,
   type TierRank,
@@ -39,14 +40,6 @@ type TierEntryFormProps = {
   allWarriors: WarriorOption[];
   allSkills: SkillOption[];
   onSave: (entry: Omit<TierEntry, "id" | "created_at" | "updated_at">) => void;
-};
-
-const RANK_COLORS: Record<TierRank, string> = {
-  S: "red.400",
-  A: "orange.400",
-  B: "yellow.400",
-  C: "green.400",
-  D: "gray.400",
 };
 
 const ROLES = ["主将", "副将", "軍師"] as const;
@@ -124,7 +117,7 @@ export function TierEntryForm({
               onClick={() => setRank(r)}
               minW="3rem"
             >
-              <Text fontWeight="bold" color={rank === r ? "black" : RANK_COLORS[r]}>
+              <Text fontWeight="bold" color={rank === r ? "black" : RANK_COLORS[r].text}>
                 {r}
               </Text>
             </Button>

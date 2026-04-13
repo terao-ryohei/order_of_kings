@@ -1,5 +1,5 @@
 import { Box, Badge, Button, Flex, HStack, Image, Text, VStack } from "@chakra-ui/react";
-import type { TierEntry, TierRank } from "../../lib/tier-types";
+import { RANK_COLORS, type TierEntry } from "../../lib/tier-types";
 
 type WarriorData = {
   id: number;
@@ -11,22 +11,6 @@ type TierEntryCardProps = {
   entry: TierEntry;
   warriors: Map<number, WarriorData>;
   onDelete: (id: string) => void;
-};
-
-const RANK_BADGE_COLORS: Record<TierRank, string> = {
-  S: "yellow.300",
-  A: "gray.300",
-  B: "orange.400",
-  C: "gray.500",
-  D: "gray.600",
-};
-
-const RANK_BADGE_BG: Record<TierRank, string> = {
-  S: "yellow.600",
-  A: "gray.500",
-  B: "orange.700",
-  C: "gray.700",
-  D: "gray.800",
 };
 
 function WarriorSlotDisplay({
@@ -92,8 +76,8 @@ export function TierEntryCard({ entry, warriors, onDelete }: TierEntryCardProps)
       <Flex justify="space-between" align="center" mb={3}>
         <HStack gap={2}>
           <Badge
-            bg={RANK_BADGE_BG[entry.rank]}
-            color={RANK_BADGE_COLORS[entry.rank]}
+            bg={RANK_COLORS[entry.rank].bg}
+            color={RANK_COLORS[entry.rank].badge}
             fontSize="lg"
             fontWeight="bold"
             px={3}
