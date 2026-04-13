@@ -18,23 +18,10 @@ import {
   type TierGenre,
   type TierEntry,
   type TierWarriorSlot,
+  type WarriorOption,
+  type SkillOption,
 } from "../../lib/tier-types";
 import { TierSlotEditor } from "./TierSlotEditor";
-
-type WarriorOption = {
-  id: number;
-  name: string;
-  rarity: number;
-  uniqueSkillName: string | null;
-};
-
-type SkillOption = {
-  id: number;
-  name: string;
-  skill_type: string;
-  color: string | null;
-  description: string;
-};
 
 type TierEntryFormProps = {
   allWarriors: WarriorOption[];

@@ -81,6 +81,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     warriors: warriorRows.map((w) => ({
       id: w.id,
       name: w.name,
+      cost: w.cost,
       rarity: w.rarity,
       uniqueSkillName: uniqueSkillMap.get(w.id) ?? null,
     })),

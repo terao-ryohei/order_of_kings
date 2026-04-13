@@ -8,22 +8,11 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import type { TierSkillSlot, TierWarriorSlot } from "../../lib/tier-types";
-
-type WarriorOption = {
-  id: number;
-  name: string;
-  rarity: number;
-  uniqueSkillName: string | null;
-};
-
-type SkillOption = {
-  id: number;
-  name: string;
-  skill_type: string;
-  color: string | null;
-  description: string;
-};
+import type {
+  TierWarriorSlot,
+  WarriorOption,
+  SkillOption,
+} from "../../lib/tier-types";
 
 type TierSlotEditorProps = {
   slot: TierWarriorSlot;

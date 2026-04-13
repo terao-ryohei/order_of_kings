@@ -31,6 +31,22 @@ export type TierStorage = {
   entries: TierEntry[];
 };
 
+export type WarriorOption = {
+  id: number;
+  name: string;
+  cost: number;
+  rarity: number;
+  uniqueSkillName: string | null;
+};
+
+export type SkillOption = {
+  id: number;
+  name: string;
+  skill_type: string;
+  color: string | null;
+  description: string;
+};
+
 export const RANK_COLORS: Record<TierRank, { text: string; badge: string; bg: string }> = {
   S: { text: "red.400", badge: "red.300", bg: "red.600" },
   A: { text: "orange.400", badge: "orange.300", bg: "orange.600" },
