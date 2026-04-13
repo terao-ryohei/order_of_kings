@@ -57,9 +57,14 @@ export default function TierDetailPage() {
 
   return (
     <Box p={{ base: 4, md: 8 }} maxW="800px" mx="auto">
-      <Button asChild variant="ghost" size="sm" mb={4}>
-        <RemixLink to="/tiers">← 一覧に戻る</RemixLink>
-      </Button>
+      <HStack mb={4} justify="space-between">
+        <Button asChild variant="ghost" size="sm">
+          <RemixLink to="/tiers">← 一覧に戻る</RemixLink>
+        </Button>
+        <Button asChild colorPalette="yellow" size="sm">
+          <RemixLink to={`/tiers/${entry.id}/edit`}>編集</RemixLink>
+        </Button>
+      </HStack>
 
       <HStack gap={3} mb={4}>
         <Badge

@@ -55,8 +55,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
 
   const tierEntryRows = await db
     .select()
-    .from(tierEntries)
-    .orderBy(asc(tierEntries.rank));
+    .from(tierEntries);
 
   const entries: TierEntry[] = tierEntryRows.map((row) => ({
     id: row.id,

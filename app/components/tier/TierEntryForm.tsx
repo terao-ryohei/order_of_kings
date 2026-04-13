@@ -40,6 +40,7 @@ type TierEntryFormProps = {
   allWarriors: WarriorOption[];
   allSkills: SkillOption[];
   onSave: (entry: Omit<TierEntry, "id" | "created_at" | "updated_at">) => void;
+  initialEntry?: TierEntry;
 };
 
 const ROLES = ["主将", "副将", "軍師"] as const;
@@ -57,17 +58,20 @@ export function TierEntryForm({
   allWarriors,
   allSkills,
   onSave,
+  initialEntry,
 }: TierEntryFormProps) {
-  const [rank, setRank] = useState<TierRank>("S");
-  const [genres, setGenres] = useState<TierGenre[]>([]);
+  const [rank, setRank] = useState<TierRank>(initialEntry?.rank ?? "S");
+  const [genres, setGenres] = useState<TierGenre[]>(initialEntry?.genres ?? []);
   const [slots, setSlots] = useState<
     [TierWarriorSlot, TierWarriorSlot, TierWarriorSlot]
-  >([
-    createEmptySlot("主将"),
-    createEmptySlot("副将"),
-    createEmptySlot("軍師"),
-  ]);
-  const [description, setDescription] = useState("");
+  >(
+    initialEntry?.slots ?? [
+      createEmptySlot("主将"),
+      createEmptySlot("副将"),
+      createEmptySlot("軍師"),
+    ],
+  );
+  const [description, setDescription] = useState(initialEntry?.description ?? "");
 
   function handleGenreToggle(genre: TierGenre) {
     setGenres((prev) =>
