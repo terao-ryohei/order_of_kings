@@ -312,7 +312,7 @@ export function TierSlotCard({
                   )}
                 </HStack>
 
-                {isEditing && (
+                {isEditing && skillIdx > 0 && (
                   <VStack align="stretch" gap={1} mt={1} pl={10}>
                     {skillSlot.alt_skill_ids.map((altId, altIdx) => (
                       <HStack key={altIdx} gap={1}>
