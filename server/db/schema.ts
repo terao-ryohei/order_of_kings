@@ -111,16 +111,29 @@ export const sharedProfiles = sqliteTable("shared_profiles", {
   createdAt: text("created_at").notNull(),
 });
 
-// 11. 編成ティア表
-export const tierEntries = sqliteTable("tier_entries", {
+// 11. 編成
+export const formations = sqliteTable("formations", {
   id: text("id").primaryKey(),
-  rank: text("rank").notNull(),
+  name: text("name"),
   genres: text("genres").notNull().default("[]"),
   slots: text("slots").notNull().default("[]"),
   description: text("description").notNull().default(""),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
+
+// 12. 編成ティアランキング
+export const tierRankings = sqliteTable("tier_rankings", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  formationId: text("formation_id").notNull().references(() => formations.id),
+  rank: text("rank").notNull(),
+  note: text("note"),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  uniqFormation: uniqueIndex("tier_rankings_formation_unique").on(table.formationId),
+}));
 
 // 9. ゲーム仕様テキスト
 export const gameMechanics = sqliteTable("game_mechanics", {
