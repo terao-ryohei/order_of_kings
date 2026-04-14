@@ -1,6 +1,7 @@
 import { useLoaderData } from "@remix-run/react";
 import { Link as RemixLink } from "@remix-run/react";
 import { Box, Text, Badge, HStack, Button } from "@chakra-ui/react";
+import { useRef } from "react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { eq, asc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
@@ -8,6 +9,7 @@ import { warriors, skills, tierEntries } from "../../server/db/schema";
 import type { TierEntry, TierWarriorSlot, TierRank } from "../lib/tier-types";
 import { RANK_COLORS } from "../lib/tier-types";
 import { TierCompositionDisplay } from "../components/tier/TierCompositionDisplay";
+import { TierDownloadButton } from "../components/tier/TierDownloadButton";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => [
   { title: `ティア表詳細 - ${data?.entry.rank}ランク - 王の碁盤` },
@@ -52,6 +54,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 
 export default function TierDetailPage() {
   const { entry, warriors: allWarriors, allSkills } = useLoaderData<typeof loader>();
+  const captureRef = useRef<HTMLDivElement>(null);
 
   const warriorMap = new Map(
     allWarriors.map((w) => [w.id, { id: w.id, name: w.name, cost: w.cost }])
@@ -64,43 +67,48 @@ export default function TierDetailPage() {
         <Button asChild variant="ghost" size="sm">
           <RemixLink to="/tiers">← 一覧に戻る</RemixLink>
         </Button>
-        <Button asChild colorPalette="yellow" size="sm">
-          <RemixLink to={`/tiers/${entry.id}/edit`}>編集</RemixLink>
-        </Button>
-      </HStack>
-
-      <HStack gap={3} mb={4}>
-        <Badge
-          bg={RANK_COLORS[entry.rank].bg}
-          color="white"
-          fontSize="xl"
-          fontWeight="bold"
-          px={4}
-          py={2}
-          borderRadius="md"
-        >
-          {entry.rank}
-        </Badge>
         <HStack gap={2}>
-          {entry.genres.map((genre) => (
-            <Badge key={genre} variant="outline" colorPalette="blue">
-              {genre}
-            </Badge>
-          ))}
+          <TierDownloadButton captureRef={captureRef} rank={entry.rank} entryId={entry.id} />
+          <Button asChild colorPalette="yellow" size="sm">
+            <RemixLink to={`/tiers/${entry.id}/edit`}>編集</RemixLink>
+          </Button>
         </HStack>
       </HStack>
 
-      {entry.description && (
-        <Text color="gray.300" mb={6} fontSize="sm" whiteSpace="pre-wrap">
-          {entry.description}
-        </Text>
-      )}
+      <Box ref={captureRef} p={4} bg="#1a0505" borderRadius="lg">
+        <HStack gap={3} mb={4}>
+          <Badge
+            bg={RANK_COLORS[entry.rank].bg}
+            color="white"
+            fontSize="xl"
+            fontWeight="bold"
+            px={4}
+            py={2}
+            borderRadius="md"
+          >
+            {entry.rank}
+          </Badge>
+          <HStack gap={2}>
+            {entry.genres.map((genre) => (
+              <Badge key={genre} variant="outline" colorPalette="blue">
+                {genre}
+              </Badge>
+            ))}
+          </HStack>
+        </HStack>
 
-      <TierCompositionDisplay
-        slots={entry.slots as [TierWarriorSlot, TierWarriorSlot, TierWarriorSlot]}
-        warriorMap={warriorMap}
-        skillMap={skillMap}
-      />
+        {entry.description && (
+          <Text color="gray.300" mb={6} fontSize="sm" whiteSpace="pre-wrap">
+            {entry.description}
+          </Text>
+        )}
+
+        <TierCompositionDisplay
+          slots={entry.slots as [TierWarriorSlot, TierWarriorSlot, TierWarriorSlot]}
+          warriorMap={warriorMap}
+          skillMap={skillMap}
+        />
+      </Box>
     </Box>
   );
 }
