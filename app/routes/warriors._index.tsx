@@ -80,6 +80,7 @@ function SortableHeader({
   onSort,
   align = "center",
   borderRight,
+  borderLeft,
 }: {
   label: string;
   sortKeyValue: SortKey;
@@ -88,6 +89,7 @@ function SortableHeader({
   onSort: (key: SortKey) => void;
   align?: "left" | "center" | "right";
   borderRight?: string;
+  borderLeft?: string;
 }) {
   const isActive = currentKey === sortKeyValue;
   return (
@@ -102,6 +104,7 @@ function SortableHeader({
       fontSize="xs"
       textAlign={align}
       borderRight={borderRight}
+      borderLeft={borderLeft}
     >
       <button
         type="button"
@@ -344,7 +347,7 @@ export default function Index() {
                 <SortableHeader label="名前" sortKeyValue="name" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
                 <SortableHeader label="レア度" sortKeyValue="rarity" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
                 <SortableHeader label="コスト" sortKeyValue="cost" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} align="right" />
-                <SortableHeader label="武力" sortKeyValue="atk" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} align="right" />
+                <SortableHeader label="武力" sortKeyValue="atk" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} align="right" borderLeft="1px solid rgba(255,255,255,0.24)" />
                 <SortableHeader label="Lv40武力" sortKeyValue="lv40_atk" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} align="right" />
                 <SortableHeader label="Lv50武力" sortKeyValue="lv50_atk" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} align="right" borderRight="1px solid rgba(255,255,255,0.24)" />
                 <SortableHeader label="知力" sortKeyValue="int" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} align="right" />
@@ -398,7 +401,7 @@ export default function Index() {
                     </Table.Cell>
                     <Table.Cell px={2} py={1} whiteSpace="nowrap" textAlign="center">{"★".repeat(warrior.rarity)}</Table.Cell>
                     <Table.Cell px={2} py={1} textAlign="right">{warrior.cost}</Table.Cell>
-                    <Table.Cell px={2} py={1} textAlign="right">{warrior.atk}</Table.Cell>
+                    <Table.Cell px={2} py={1} textAlign="right" borderLeft="1px solid rgba(255,255,255,0.24)">{warrior.atk}</Table.Cell>
                     <Table.Cell px={2} py={1} textAlign="right">{lv40atk}</Table.Cell>
                     <Table.Cell px={2} py={1} textAlign="right" borderRight="1px solid rgba(255,255,255,0.24)">{lv50atk}</Table.Cell>
                     <Table.Cell px={2} py={1} textAlign="right">{warrior.int}</Table.Cell>
