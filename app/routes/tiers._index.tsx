@@ -215,19 +215,18 @@ function FormationCard({
         <input type="hidden" name="intent" value="upsert" />
         <input type="hidden" name="formation_id" value={entry.id} />
         <Flex gap={2} align="center">
-          <Box
-            as="select"
+          <select
             name="rank"
             defaultValue=""
-            bg="gray.800"
-            color="white"
-            borderWidth="1px"
-            borderColor="whiteAlpha.300"
-            borderRadius="md"
-            px={2}
-            py={1}
-            fontSize="sm"
-            flex="1"
+            style={{
+              flex: 1,
+              background: "#1a202c",
+              color: "white",
+              border: "1px solid rgba(255,255,255,0.2)",
+              borderRadius: "6px",
+              padding: "4px 8px",
+              fontSize: "0.875rem",
+            }}
           >
             <option value="" disabled>
               ランク選択
@@ -237,7 +236,7 @@ function FormationCard({
                 {r}
               </option>
             ))}
-          </Box>
+          </select>
           <Button
             type="submit"
             size="xs"

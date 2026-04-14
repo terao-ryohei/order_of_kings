@@ -85,12 +85,12 @@ export default function TierDetailPage() {
     <Box p={{ base: 4, md: 8 }} maxW="800px" mx="auto">
       <HStack mb={4} justify="space-between">
         <Button asChild variant="ghost" size="sm">
-          <RemixLink to="/tiers">← 一覧に戻る</RemixLink>
+          <RemixLink to="/formations">← 一覧に戻る</RemixLink>
         </Button>
         <HStack gap={2}>
           <TierDownloadButton captureRef={captureRef} rank={entry.rank} entryId={entry.id} />
           <Button asChild colorPalette="yellow" size="sm">
-            <RemixLink to={`/tiers/${entry.id}/edit`}>編集</RemixLink>
+            <RemixLink to={`/formations/${entry.id}/edit`}>編集</RemixLink>
           </Button>
         </HStack>
       </HStack>

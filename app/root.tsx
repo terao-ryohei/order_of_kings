@@ -90,14 +90,8 @@ export function ErrorBoundary() {
           <Text fontSize="xl" textAlign="center">
             {message}
           </Text>
-          <Button
-            as="a"
-            href="/"
-            colorPalette="yellow"
-            size="lg"
-            rounded="full"
-          >
-            トップへ戻る
+          <Button asChild colorPalette="yellow" size="lg" rounded="full">
+            <a href="/">トップへ戻る</a>
           </Button>
         </VStack>
       </Box>
