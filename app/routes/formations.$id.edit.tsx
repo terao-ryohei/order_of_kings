@@ -14,13 +14,12 @@ import {
   warriors,
   skills,
   warriorSkills,
-  tierRankings,
 } from "../../server/db/schema";
 import { TierEntryForm } from "../components/tier/TierEntryForm";
-import type { TierEntry, TierRank, TierGenre, TierWarriorSlot } from "../lib/tier-types";
+import type { Formation, TierGenre, TierWarriorSlot } from "../lib/tier-types";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => [
-  { title: `ティア表編集 - ${data?.entry.rank}ランク - 王の碁盤` },
+  { title: `編成編集 - ${data?.entry.id ?? ""} - 王の碁盤` },
 ];
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
@@ -35,30 +34,17 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
       description: formations.description,
       createdAt: formations.createdAt,
       updatedAt: formations.updatedAt,
-      rankingId: tierRankings.id,
-      rank: tierRankings.rank,
-      note: tierRankings.note,
-      sortOrder: tierRankings.sortOrder,
     })
     .from(formations)
-    .innerJoin(tierRankings, eq(tierRankings.formationId, formations.id))
     .where(eq(formations.id, id));
 
   if (!entryRow) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  const entry: TierEntry = {
+  const entry: Formation = {
     id: entryRow.id,
     name: null,
-    rank: entryRow.rank as TierRank,
-    ranking: {
-      id: entryRow.rankingId,
-      formationId: entryRow.id,
-      rank: entryRow.rank as TierRank,
-      note: entryRow.note,
-      sortOrder: entryRow.sortOrder ?? 0,
-    },
     genres: JSON.parse(entryRow.genres) as TierGenre[],
     slots: JSON.parse(entryRow.slots) as [TierWarriorSlot, TierWarriorSlot, TierWarriorSlot],
     description: entryRow.description,
@@ -130,7 +116,7 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
 
   const formData = await request.formData();
   const entry = JSON.parse(formData.get("entry") as string) as Omit<
-    TierEntry,
+    Formation,
     "id" | "created_at" | "updated_at"
   >;
 
@@ -153,22 +139,14 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
     })
     .where(eq(formations.id, id));
 
-  await db
-    .update(tierRankings)
-    .set({
-      rank: entry.rank,
-      updatedAt: sql`CURRENT_TIMESTAMP`,
-    })
-    .where(eq(tierRankings.formationId, id));
-
-  return redirect(`/tiers/${id}`);
+  return redirect(`/formations/${id}`);
 }
 
 export default function TierEditPage() {
   const { entry, warriors: allWarriors, allSkills } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
 
-  function handleSave(updated: Omit<TierEntry, "id" | "created_at" | "updated_at">) {
+  function handleSave(updated: Omit<Formation, "id" | "created_at" | "updated_at">) {
     fetcher.submit(
       { entry: JSON.stringify(updated) },
       { method: "post" },
@@ -178,7 +156,7 @@ export default function TierEditPage() {
   return (
     <Box p={{ base: 4, md: 8 }} maxW="800px" mx="auto">
       <Button asChild variant="ghost" size="sm" mb={6}>
-        <RemixLink to={`/tiers/${entry.id}`}>← 詳細に戻る</RemixLink>
+        <RemixLink to={`/formations/${entry.id}`}>← 詳細に戻る</RemixLink>
       </Button>
 
       <Heading size="lg" mb={2}>

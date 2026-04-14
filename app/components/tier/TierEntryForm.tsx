@@ -4,19 +4,15 @@ import {
   Button,
   Checkbox,
   Flex,
-  HStack,
   Heading,
   Text,
   Textarea,
   VStack,
 } from "@chakra-ui/react";
 import {
-  RANK_COLORS,
-  TIER_RANKS,
   TIER_GENRES,
-  type TierRank,
   type TierGenre,
-  type TierEntry,
+  type Formation,
   type TierWarriorSlot,
   type WarriorOption,
   type SkillOption,
@@ -26,8 +22,8 @@ import { TierCompositionEditor } from "./TierCompositionEditor";
 type TierEntryFormProps = {
   allWarriors: WarriorOption[];
   allSkills: SkillOption[];
-  onSave: (entry: Omit<TierEntry, "id" | "created_at" | "updated_at">) => void;
-  initialEntry?: TierEntry;
+  onSave: (entry: Omit<Formation, "id" | "created_at" | "updated_at">) => void;
+  initialEntry?: Formation;
 };
 
 const ROLES = ["主将", "副将", "軍師"] as const;
@@ -47,7 +43,6 @@ export function TierEntryForm({
   onSave,
   initialEntry,
 }: TierEntryFormProps) {
-  const [rank, setRank] = useState<TierRank>(initialEntry?.rank ?? "S");
   const [genres, setGenres] = useState<TierGenre[]>(initialEntry?.genres ?? []);
   const [slots, setSlots] = useState<
     [TierWarriorSlot, TierWarriorSlot, TierWarriorSlot]
@@ -83,7 +78,6 @@ export function TierEntryForm({
     if (!hasWarrior) return;
 
     onSave({
-      rank,
       genres,
       slots,
       description,
@@ -94,28 +88,6 @@ export function TierEntryForm({
 
   return (
     <VStack align="stretch" gap={6}>
-      <Box>
-        <Heading size="sm" mb={3}>
-          ランク
-        </Heading>
-        <HStack gap={2}>
-          {TIER_RANKS.map((r) => (
-            <Button
-              key={r}
-              size="sm"
-              variant={rank === r ? "solid" : "outline"}
-              colorPalette={rank === r ? "yellow" : "gray"}
-              onClick={() => setRank(r)}
-              minW="3rem"
-            >
-              <Text fontWeight="bold" color={rank === r ? "black" : RANK_COLORS[r].text}>
-                {r}
-              </Text>
-            </Button>
-          ))}
-        </HStack>
-      </Box>
-
       <Box>
         <Heading size="sm" mb={3}>
           ジャンル

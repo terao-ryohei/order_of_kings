@@ -13,10 +13,9 @@ import {
   warriors,
   skills,
   warriorSkills,
-  tierRankings,
 } from "../../server/db/schema";
 import { TierEntryForm } from "../components/tier/TierEntryForm";
-import type { TierEntry } from "../lib/tier-types";
+import type { Formation } from "../lib/tier-types";
 
 export const meta: MetaFunction = () => [
   { title: "ティア表作成 - 王の碁盤" },
@@ -89,7 +88,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const db = drizzle((context.cloudflare as any).env.DB);
   const formData = await request.formData();
   const entry = JSON.parse(formData.get("entry") as string) as Omit<
-    TierEntry,
+    Formation,
     "id" | "created_at" | "updated_at"
   >;
 
@@ -102,12 +101,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     description: entry.description,
   });
 
-  await db.insert(tierRankings).values({
-    formationId: id,
-    rank: entry.rank,
-  });
-
-  return redirect("/tiers");
+  return redirect("/formations");
 }
 
 export default function TiersCreatePage() {
@@ -115,7 +109,7 @@ export default function TiersCreatePage() {
   const fetcher = useFetcher();
 
   function handleSave(
-    entry: Omit<TierEntry, "id" | "created_at" | "updated_at">,
+    entry: Omit<Formation, "id" | "created_at" | "updated_at">,
   ) {
     fetcher.submit(
       { entry: JSON.stringify(entry) },
@@ -129,7 +123,7 @@ export default function TiersCreatePage() {
         ティア表作成
       </Heading>
       <Text color="gray.400" mb={6}>
-        編成をランク付けしてティア表に追加する
+        編成情報を入力して保存する
       </Text>
       <TierEntryForm
         allWarriors={allWarriors}
