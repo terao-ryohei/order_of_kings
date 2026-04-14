@@ -119,10 +119,6 @@ function SlotCard({
           {slot.skills.map((skillSlot, i) => {
             const skill = skillMap.get(skillSlot.skill_id);
             const skillName = skill?.name ?? `スキル#${skillSlot.skill_id}`;
-            const altSkillNames = skillSlot.alt_skill_ids
-              .map((id) => skillMap.get(id)?.name ?? `#${id}`)
-              .join(", ");
-
             return (
               <VStack key={i} align="start" gap={0} w="100%">
                 <HStack gap={2} align="start">
@@ -140,11 +136,6 @@ function SlotCard({
                     {slot.role === "軍師" && skill?.description && (
                       <Text fontSize="2xs" color="gray.500">
                         {skill.description}
-                      </Text>
-                    )}
-                    {skillSlot.alt_skill_ids.length > 0 && (
-                      <Text fontSize="2xs" color="gray.400">
-                        代用: {altSkillNames}
                       </Text>
                     )}
                   </VStack>
