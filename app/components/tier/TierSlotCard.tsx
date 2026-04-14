@@ -85,7 +85,7 @@ export function TierSlotCard({
         skill_id: fixedSkillId,
         alt_skill_ids: newSkills[0]?.alt_skill_ids ?? [],
       };
-      newSkills = [fixedSlot, ...newSkills.slice(1)];
+      newSkills = slot.role === "軍師" ? [fixedSlot] : [fixedSlot, ...newSkills.slice(1)];
     } else {
       newSkills = [];
     }
@@ -309,7 +309,7 @@ export function TierSlotCard({
           </Text>
         )}
 
-        {isEditing && (
+        {isEditing && slot.role !== "軍師" && (
           <HStack gap={1}>
             <Input
               size="xs"
@@ -402,7 +402,7 @@ export function TierSlotCard({
                       </Text>
                     )}
                   </VStack>
-                  {isEditing && skillIdx > 0 && (
+                  {isEditing && skillIdx > 0 && slot.role !== "軍師" && (
                     <Button
                       size="xs"
                       variant="ghost"
@@ -414,7 +414,7 @@ export function TierSlotCard({
                   )}
                 </HStack>
 
-                {isEditing && skillIdx > 0 && (
+                {isEditing && skillIdx > 0 && slot.role !== "軍師" && (
                   <VStack align="stretch" gap={1} mt={1} pl={10}>
                     {skillSlot.alt_skill_ids.map((altId, altIdx) => (
                       <HStack key={altIdx} gap={1}>
@@ -466,7 +466,7 @@ export function TierSlotCard({
               </Box>
             );
           })}
-          {isEditing && slot.skills.length < 3 && (
+          {isEditing && slot.skills.length < 3 && slot.role !== "軍師" && (
             <Button size="xs" variant="outline" onClick={handleAddSkill}>
               + スキル追加
             </Button>
