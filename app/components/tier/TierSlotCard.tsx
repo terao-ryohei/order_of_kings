@@ -262,7 +262,7 @@ export function TierSlotCard({
                 <option value="">武将を選択</option>
                 {filteredWarriors.map((w) => (
                   <option key={w.id} value={w.id}>
-                    {"★".repeat(w.rarity)} {w.name}
+                    {w.name}
                   </option>
                 ))}
               </NativeSelect.Field>
@@ -453,7 +453,7 @@ export function TierSlotCard({
                       <option value="">代用武将</option>
                       {allWarriors.map((w) => (
                         <option key={w.id} value={w.id}>
-                          {"★".repeat(w.rarity)} {w.name}
+                          {w.name}
                         </option>
                       ))}
                     </NativeSelect.Field>
