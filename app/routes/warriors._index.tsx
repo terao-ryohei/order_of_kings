@@ -66,7 +66,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 type SortKey =
   | "name" | "rarity" | "cost"
   | "atk" | "int" | "guts" | "pol"
-  | "atk_growth" | "int_growth" | "guts_growth" | "pol_growth"
   | "lv40_atk" | "lv40_int" | "lv40_guts" | "lv40_pol"
   | "lv50_atk" | "lv50_int" | "lv50_guts" | "lv50_pol"
   | "sort_order";
@@ -97,6 +96,7 @@ function SortableHeader({
       px={2}
       py={2}
       fontSize="xs"
+      textAlign="center"
     >
       <button
         type="button"
@@ -134,8 +134,8 @@ export default function Index() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [nameValue, setNameValue] = useState(searchParams.get("name") ?? "");
 
-  const sortKey = (searchParams.get("sort") ?? "sort_order") as SortKey;
-  const sortDir = (searchParams.get("dir") ?? "asc") as SortDir;
+  const sortKey = (searchParams.get("sort") ?? "rarity") as SortKey;
+  const sortDir = (searchParams.get("dir") ?? "desc") as SortDir;
 
   useEffect(() => {
     setNameValue(searchParams.get("name") ?? "");
@@ -335,26 +335,22 @@ export default function Index() {
           <Table.Root size="sm" variant="outline">
             <Table.Header>
               <Table.Row bg="gray.900">
-                <Table.ColumnHeader px={2} py={2} fontSize="xs" color="gray.400">画像</Table.ColumnHeader>
+                <Table.ColumnHeader px={2} py={2} fontSize="xs" color="gray.400" textAlign="center">画像</Table.ColumnHeader>
                 <SortableHeader label="名前" sortKeyValue="name" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="★" sortKeyValue="rarity" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="レア度" sortKeyValue="rarity" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
                 <SortableHeader label="コスト" sortKeyValue="cost" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="武" sortKeyValue="atk" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="知" sortKeyValue="int" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="胆" sortKeyValue="guts" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="政" sortKeyValue="pol" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="武↑" sortKeyValue="atk_growth" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="知↑" sortKeyValue="int_growth" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="胆↑" sortKeyValue="guts_growth" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="政↑" sortKeyValue="pol_growth" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Lv40武" sortKeyValue="lv40_atk" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Lv40知" sortKeyValue="lv40_int" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Lv40胆" sortKeyValue="lv40_guts" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Lv40政" sortKeyValue="lv40_pol" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Lv50武" sortKeyValue="lv50_atk" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Lv50知" sortKeyValue="lv50_int" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Lv50胆" sortKeyValue="lv50_guts" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Lv50政" sortKeyValue="lv50_pol" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="武力" sortKeyValue="atk" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="Lv40武力" sortKeyValue="lv40_atk" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="Lv50武力" sortKeyValue="lv50_atk" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="知力" sortKeyValue="int" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="Lv40知力" sortKeyValue="lv40_int" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="Lv50知力" sortKeyValue="lv50_int" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="胆力" sortKeyValue="guts" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="Lv40胆力" sortKeyValue="lv40_guts" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="Lv50胆力" sortKeyValue="lv50_guts" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="政治" sortKeyValue="pol" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="Lv40政治" sortKeyValue="lv40_pol" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="Lv50政治" sortKeyValue="lv50_pol" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
               </Table.Row>
             </Table.Header>
             <Table.Body>
@@ -398,20 +394,16 @@ export default function Index() {
                     <Table.Cell px={2} py={1} whiteSpace="nowrap">{"★".repeat(warrior.rarity)}</Table.Cell>
                     <Table.Cell px={2} py={1}>{warrior.cost}</Table.Cell>
                     <Table.Cell px={2} py={1}>{warrior.atk}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{warrior.int}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{warrior.guts}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{warrior.pol}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{warrior.atk_growth.toFixed(2)}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{warrior.int_growth.toFixed(2)}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{warrior.guts_growth.toFixed(2)}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{warrior.pol_growth.toFixed(2)}</Table.Cell>
                     <Table.Cell px={2} py={1}>{lv40atk}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{lv40int}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{lv40guts}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{lv40pol}</Table.Cell>
                     <Table.Cell px={2} py={1}>{lv50atk}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{warrior.int}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{lv40int}</Table.Cell>
                     <Table.Cell px={2} py={1}>{lv50int}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{warrior.guts}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{lv40guts}</Table.Cell>
                     <Table.Cell px={2} py={1}>{lv50guts}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{warrior.pol}</Table.Cell>
+                    <Table.Cell px={2} py={1}>{lv40pol}</Table.Cell>
                     <Table.Cell px={2} py={1}>{lv50pol}</Table.Cell>
                   </Table.Row>
                 );
