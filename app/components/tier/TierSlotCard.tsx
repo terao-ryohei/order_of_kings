@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Badge,
   Box,
@@ -40,19 +40,31 @@ export function TierSlotCard({
   const hasWarrior = slot.warrior_id > 0 && warrior;
   const [imageFailed, setImageFailed] = useState(false);
   const [warriorSearch, setWarriorSearch] = useState("");
+  const [debouncedWarriorSearch, setDebouncedWarriorSearch] = useState("");
   const [skillSearch, setSkillSearch] = useState("");
+  const [debouncedSkillSearch, setDebouncedSkillSearch] = useState("");
 
-  const filteredWarriors = warriorSearch
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedWarriorSearch(warriorSearch), 200);
+    return () => clearTimeout(t);
+  }, [warriorSearch]);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSkillSearch(skillSearch), 200);
+    return () => clearTimeout(t);
+  }, [skillSearch]);
+
+  const filteredWarriors = debouncedWarriorSearch
     ? allWarriors.filter((w) => {
-        const q = toKatakana(warriorSearch);
-        return w.name.includes(warriorSearch) || w.name.includes(q);
+        const q = toKatakana(debouncedWarriorSearch);
+        return w.name.includes(debouncedWarriorSearch) || w.name.includes(q);
       })
     : allWarriors;
 
-  const filteredSkills = skillSearch
+  const filteredSkills = debouncedSkillSearch
     ? allSkills.filter((s) => {
-        const q = toKatakana(skillSearch);
-        return s.name.includes(skillSearch) || s.name.includes(q);
+        const q = toKatakana(debouncedSkillSearch);
+        return s.name.includes(debouncedSkillSearch) || s.name.includes(q);
       })
     : allSkills;
 
@@ -242,15 +254,36 @@ export function TierSlotCard({
 
         {isEditing && (
           <VStack align="stretch" gap={1}>
-            <Input
-              size="xs"
-              placeholder="武将を検索..."
-              value={warriorSearch}
-              onChange={(e) => setWarriorSearch(e.target.value)}
-              bg="gray.800"
-              borderColor="whiteAlpha.300"
-              color="white"
-            />
+            <HStack gap={1}>
+              <Input
+                size="xs"
+                placeholder="武将を検索..."
+                value={warriorSearch}
+                onChange={(e) => setWarriorSearch(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && filteredWarriors.length === 1) {
+                    handleWarriorChange(filteredWarriors[0].id);
+                    setWarriorSearch("");
+                  }
+                }}
+                bg="gray.800"
+                borderColor="whiteAlpha.300"
+                color="white"
+                flex="1"
+              />
+              {warriorSearch && (
+                <Button
+                  size="xs"
+                  variant="ghost"
+                  colorPalette="gray"
+                  onClick={() => setWarriorSearch("")}
+                  minW="auto"
+                  px={1}
+                >
+                  ×
+                </Button>
+              )}
+            </HStack>
             <NativeSelect.Root size="xs">
               <NativeSelect.Field
                 value={slot.warrior_id || ""}
@@ -277,15 +310,39 @@ export function TierSlotCard({
         )}
 
         {isEditing && (
-          <Input
-            size="xs"
-            placeholder="スキルを検索..."
-            value={skillSearch}
-            onChange={(e) => setSkillSearch(e.target.value)}
-            bg="gray.800"
-            borderColor="whiteAlpha.300"
-            color="white"
-          />
+          <HStack gap={1}>
+            <Input
+              size="xs"
+              placeholder="スキルを検索..."
+              value={skillSearch}
+              onChange={(e) => setSkillSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && filteredSkills.length === 1) {
+                  const nextSkillIdx = slot.skills.findIndex((_, i) => i > 0);
+                  if (nextSkillIdx >= 0) {
+                    handleSkillChange(nextSkillIdx, filteredSkills[0].id);
+                    setSkillSearch("");
+                  }
+                }
+              }}
+              bg="gray.800"
+              borderColor="whiteAlpha.300"
+              color="white"
+              flex="1"
+            />
+            {skillSearch && (
+              <Button
+                size="xs"
+                variant="ghost"
+                colorPalette="gray"
+                onClick={() => setSkillSearch("")}
+                minW="auto"
+                px={1}
+              >
+                ×
+              </Button>
+            )}
+          </HStack>
         )}
 
         <VStack align="stretch" gap={2}>
@@ -300,7 +357,9 @@ export function TierSlotCard({
                   <VStack align="start" gap={0} flex="1" minW={0}>
                     {isEditing && skillIdx === 0 ? (
                       <Text fontSize="xs" color="yellow.200" fontWeight="bold">
-                        {skill?.name ?? "(固有スキル未設定)"}
+                        {(slot.role === "軍師"
+                          ? warrior?.gunshiSkillName
+                          : warrior?.uniqueSkillName) ?? "(固有スキル未設定)"}
                       </Text>
                     ) : isEditing ? (
                       <NativeSelect.Root size="xs" w="100%">
@@ -321,6 +380,12 @@ export function TierSlotCard({
                           ))}
                         </NativeSelect.Field>
                       </NativeSelect.Root>
+                    ) : skillIdx === 0 ? (
+                      <Text fontSize="xs" color="white">
+                        {(slot.role === "軍師"
+                          ? warrior?.gunshiSkillName
+                          : warrior?.uniqueSkillName) ?? "(未設定)"}
+                      </Text>
                     ) : (
                       <Text fontSize="xs" color="white">
                         {skill?.name ?? "(未設定)"}
