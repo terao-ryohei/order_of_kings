@@ -6,10 +6,15 @@ import {
   Flex,
   HStack,
   Image,
+  Input,
   NativeSelect,
   Text,
   VStack,
 } from "@chakra-ui/react";
+
+function toKatakana(str: string): string {
+  return str.replace(/[\u3041-\u3096]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) + 0x60));
+}
 import type {
   TierWarriorSlot,
   WarriorOption,
@@ -34,6 +39,22 @@ export function TierSlotCard({
   const warrior = allWarriors.find((w) => w.id === slot.warrior_id);
   const hasWarrior = slot.warrior_id > 0 && warrior;
   const [imageFailed, setImageFailed] = useState(false);
+  const [warriorSearch, setWarriorSearch] = useState("");
+  const [skillSearch, setSkillSearch] = useState("");
+
+  const filteredWarriors = warriorSearch
+    ? allWarriors.filter((w) => {
+        const q = toKatakana(warriorSearch);
+        return w.name.includes(warriorSearch) || w.name.includes(q);
+      })
+    : allWarriors;
+
+  const filteredSkills = skillSearch
+    ? allSkills.filter((s) => {
+        const q = toKatakana(skillSearch);
+        return s.name.includes(skillSearch) || s.name.includes(q);
+      })
+    : allSkills;
 
   function update(newSlot: TierWarriorSlot) {
     onChange?.(newSlot);
@@ -220,28 +241,51 @@ export function TierSlotCard({
         </Text>
 
         {isEditing && (
-          <NativeSelect.Root size="xs">
-            <NativeSelect.Field
-              value={slot.warrior_id || ""}
-              onChange={(e) => handleWarriorChange(Number(e.target.value))}
+          <VStack align="stretch" gap={1}>
+            <Input
+              size="xs"
+              placeholder="武将を検索..."
+              value={warriorSearch}
+              onChange={(e) => setWarriorSearch(e.target.value)}
               bg="gray.800"
               borderColor="whiteAlpha.300"
               color="white"
-            >
-              <option value="">武将を選択</option>
-              {allWarriors.map((w) => (
-                <option key={w.id} value={w.id}>
-                  {"★".repeat(w.rarity)} {w.name}
-                </option>
-              ))}
-            </NativeSelect.Field>
-          </NativeSelect.Root>
+            />
+            <NativeSelect.Root size="xs">
+              <NativeSelect.Field
+                value={slot.warrior_id || ""}
+                onChange={(e) => handleWarriorChange(Number(e.target.value))}
+                bg="gray.800"
+                borderColor="whiteAlpha.300"
+                color="white"
+              >
+                <option value="">武将を選択</option>
+                {filteredWarriors.map((w) => (
+                  <option key={w.id} value={w.id}>
+                    {"★".repeat(w.rarity)} {w.name}
+                  </option>
+                ))}
+              </NativeSelect.Field>
+            </NativeSelect.Root>
+          </VStack>
         )}
 
         {slot.role === "軍師" && (
           <Text fontSize="xs" color="yellow.300" fontWeight="bold" mb={1}>
             軍師スキル
           </Text>
+        )}
+
+        {isEditing && (
+          <Input
+            size="xs"
+            placeholder="スキルを検索..."
+            value={skillSearch}
+            onChange={(e) => setSkillSearch(e.target.value)}
+            bg="gray.800"
+            borderColor="whiteAlpha.300"
+            color="white"
+          />
         )}
 
         <VStack align="stretch" gap={2}>
@@ -270,7 +314,7 @@ export function TierSlotCard({
                           color="white"
                         >
                           <option value="">スキル選択</option>
-                          {allSkills.map((s) => (
+                          {filteredSkills.map((s) => (
                             <option key={s.id} value={s.id}>
                               {s.name}
                             </option>
@@ -324,7 +368,7 @@ export function TierSlotCard({
                             color="white"
                           >
                             <option value="">代用</option>
-                            {allSkills.map((s) => (
+                            {filteredSkills.map((s) => (
                               <option key={s.id} value={s.id}>
                                 {s.name}
                               </option>

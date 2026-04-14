@@ -33,7 +33,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
     .where(eq(warriors.is_delete, false))
     .orderBy(asc(warriors.sort_order));
 
-  const allSkills = await db
+  const allSkillRows = await db
     .select({
       id: skills.id,
       name: skills.name,
@@ -56,6 +56,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
     .innerJoin(skills, eq(warriorSkills.skill_id, skills.id))
     .where(eq(warriorSkills.is_unique, true));
 
+  const uniqueSkillIds = new Set(uniqueSkillRows.map((r) => r.skill_id));
   const uniqueSkillMap = new Map<number, { skillId: number; skillName: string }>();
   const gunshiSkillMap = new Map<number, { skillId: number; skillName: string }>();
   for (const r of uniqueSkillRows) {
@@ -65,6 +66,8 @@ export async function loader({ context }: LoaderFunctionArgs) {
       gunshiSkillMap.set(r.warrior_id, { skillId: r.skill_id, skillName: r.skill_name });
     }
   }
+
+  const allSkills = allSkillRows.filter((s) => !uniqueSkillIds.has(s.id));
 
   return {
     warriors: warriorRows.map((w) => ({
