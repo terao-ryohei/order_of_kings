@@ -78,12 +78,16 @@ function SortableHeader({
   currentKey,
   currentDir,
   onSort,
+  align = "center",
+  borderRight,
 }: {
   label: string;
   sortKeyValue: SortKey;
   currentKey: SortKey;
   currentDir: SortDir;
   onSort: (key: SortKey) => void;
+  align?: "left" | "center" | "right";
+  borderRight?: string;
 }) {
   const isActive = currentKey === sortKeyValue;
   return (
@@ -96,7 +100,8 @@ function SortableHeader({
       px={2}
       py={2}
       fontSize="xs"
-      textAlign="center"
+      textAlign={align}
+      borderRight={borderRight}
     >
       <button
         type="button"
@@ -338,19 +343,19 @@ export default function Index() {
                 <Table.ColumnHeader px={2} py={2} fontSize="xs" color="gray.400" textAlign="center">画像</Table.ColumnHeader>
                 <SortableHeader label="名前" sortKeyValue="name" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
                 <SortableHeader label="レア度" sortKeyValue="rarity" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="コスト" sortKeyValue="cost" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="武力" sortKeyValue="atk" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Lv40武力" sortKeyValue="lv40_atk" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Lv50武力" sortKeyValue="lv50_atk" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="知力" sortKeyValue="int" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Lv40知力" sortKeyValue="lv40_int" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Lv50知力" sortKeyValue="lv50_int" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="胆力" sortKeyValue="guts" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Lv40胆力" sortKeyValue="lv40_guts" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Lv50胆力" sortKeyValue="lv50_guts" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="政治" sortKeyValue="pol" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Lv40政治" sortKeyValue="lv40_pol" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Lv50政治" sortKeyValue="lv50_pol" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="コスト" sortKeyValue="cost" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} align="right" />
+                <SortableHeader label="武力" sortKeyValue="atk" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} align="right" />
+                <SortableHeader label="Lv40武力" sortKeyValue="lv40_atk" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} align="right" />
+                <SortableHeader label="Lv50武力" sortKeyValue="lv50_atk" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} align="right" borderRight="1px solid rgba(255,255,255,0.24)" />
+                <SortableHeader label="知力" sortKeyValue="int" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} align="right" />
+                <SortableHeader label="Lv40知力" sortKeyValue="lv40_int" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} align="right" />
+                <SortableHeader label="Lv50知力" sortKeyValue="lv50_int" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} align="right" borderRight="1px solid rgba(255,255,255,0.24)" />
+                <SortableHeader label="胆力" sortKeyValue="guts" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} align="right" />
+                <SortableHeader label="Lv40胆力" sortKeyValue="lv40_guts" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} align="right" />
+                <SortableHeader label="Lv50胆力" sortKeyValue="lv50_guts" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} align="right" borderRight="1px solid rgba(255,255,255,0.24)" />
+                <SortableHeader label="政治" sortKeyValue="pol" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} align="right" />
+                <SortableHeader label="Lv40政治" sortKeyValue="lv40_pol" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} align="right" />
+                <SortableHeader label="Lv50政治" sortKeyValue="lv50_pol" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} align="right" />
               </Table.Row>
             </Table.Header>
             <Table.Body>
@@ -370,19 +375,19 @@ export default function Index() {
                     cursor="pointer"
                     onClick={() => navigate(`/warriors/${warrior.id}`)}
                   >
-                    <Table.Cell px={2} py={1}>
+                    <Table.Cell px={2} py={1} textAlign="center">
                       <img
                         src={`/hero/${encodeURIComponent(warrior.name)}.png`}
                         alt={warrior.name}
                         width={48}
                         height={48}
-                        style={{ objectFit: "cover", borderRadius: "4px" }}
+                        style={{ objectFit: "cover", borderRadius: "4px", display: "inline-block" }}
                         onError={(e) => {
                           (e.currentTarget as HTMLImageElement).style.display = "none";
                         }}
                       />
                     </Table.Cell>
-                    <Table.Cell px={2} py={1} whiteSpace="nowrap">
+                    <Table.Cell px={2} py={1} whiteSpace="nowrap" textAlign="center">
                       <Link
                         to={`/warriors/${warrior.id}`}
                         style={{ color: "#ECC94B" }}
@@ -391,20 +396,20 @@ export default function Index() {
                         {warrior.name}
                       </Link>
                     </Table.Cell>
-                    <Table.Cell px={2} py={1} whiteSpace="nowrap">{"★".repeat(warrior.rarity)}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{warrior.cost}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{warrior.atk}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{lv40atk}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{lv50atk}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{warrior.int}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{lv40int}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{lv50int}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{warrior.guts}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{lv40guts}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{lv50guts}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{warrior.pol}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{lv40pol}</Table.Cell>
-                    <Table.Cell px={2} py={1}>{lv50pol}</Table.Cell>
+                    <Table.Cell px={2} py={1} whiteSpace="nowrap" textAlign="center">{"★".repeat(warrior.rarity)}</Table.Cell>
+                    <Table.Cell px={2} py={1} textAlign="right">{warrior.cost}</Table.Cell>
+                    <Table.Cell px={2} py={1} textAlign="right">{warrior.atk}</Table.Cell>
+                    <Table.Cell px={2} py={1} textAlign="right">{lv40atk}</Table.Cell>
+                    <Table.Cell px={2} py={1} textAlign="right" borderRight="1px solid rgba(255,255,255,0.24)">{lv50atk}</Table.Cell>
+                    <Table.Cell px={2} py={1} textAlign="right">{warrior.int}</Table.Cell>
+                    <Table.Cell px={2} py={1} textAlign="right">{lv40int}</Table.Cell>
+                    <Table.Cell px={2} py={1} textAlign="right" borderRight="1px solid rgba(255,255,255,0.24)">{lv50int}</Table.Cell>
+                    <Table.Cell px={2} py={1} textAlign="right">{warrior.guts}</Table.Cell>
+                    <Table.Cell px={2} py={1} textAlign="right">{lv40guts}</Table.Cell>
+                    <Table.Cell px={2} py={1} textAlign="right" borderRight="1px solid rgba(255,255,255,0.24)">{lv50guts}</Table.Cell>
+                    <Table.Cell px={2} py={1} textAlign="right">{warrior.pol}</Table.Cell>
+                    <Table.Cell px={2} py={1} textAlign="right">{lv40pol}</Table.Cell>
+                    <Table.Cell px={2} py={1} textAlign="right">{lv50pol}</Table.Cell>
                   </Table.Row>
                 );
               })}
