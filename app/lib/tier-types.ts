@@ -16,14 +16,30 @@ export type TierWarriorSlot = {
   alt_warrior_ids: number[]; // max 2
 };
 
-export type TierEntry = {
+export type Formation = {
   id: string;
-  rank: TierRank;
+  name?: string | null;
   genres: TierGenre[];
   slots: [TierWarriorSlot, TierWarriorSlot, TierWarriorSlot];
   description: string;
   created_at: string;
   updated_at: string;
+};
+
+export type Ranking = {
+  id: number;
+  formationId: string;
+  rank: TierRank;
+  note?: string | null;
+  sortOrder: number;
+};
+
+export type FormationWithRanking = Formation & {
+  ranking?: Ranking;
+};
+
+export type TierEntry = FormationWithRanking & {
+  rank: TierRank;
 };
 
 export type TierStorage = {

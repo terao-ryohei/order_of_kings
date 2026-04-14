@@ -9,10 +9,11 @@ import { redirect } from "@remix-run/cloudflare";
 import { asc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import {
+  formations,
   warriors,
   skills,
   warriorSkills,
-  tierEntries,
+  tierRankings,
 } from "../../server/db/schema";
 import { TierEntryForm } from "../components/tier/TierEntryForm";
 import type { TierEntry } from "../lib/tier-types";
@@ -92,12 +93,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
     "id" | "created_at" | "updated_at"
   >;
 
-  await db.insert(tierEntries).values({
-    id: crypto.randomUUID(),
-    rank: entry.rank,
+  const id = crypto.randomUUID();
+
+  await db.insert(formations).values({
+    id,
     genres: JSON.stringify(entry.genres),
     slots: JSON.stringify(entry.slots),
     description: entry.description,
+  });
+
+  await db.insert(tierRankings).values({
+    formationId: id,
+    rank: entry.rank,
   });
 
   return redirect("/tiers");

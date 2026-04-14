@@ -5,7 +5,7 @@ import { useRef } from "react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { eq, asc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { warriors, skills, tierEntries } from "../../server/db/schema";
+import { formations, skills, tierRankings, warriors } from "../../server/db/schema";
 import type { TierEntry, TierWarriorSlot, TierRank } from "../lib/tier-types";
 import { RANK_COLORS } from "../lib/tier-types";
 import { TierCompositionDisplay } from "../components/tier/TierCompositionDisplay";
@@ -20,9 +20,21 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   const id = params.id!;
 
   const [entryRow] = await db
-    .select()
-    .from(tierEntries)
-    .where(eq(tierEntries.id, id));
+    .select({
+      id: formations.id,
+      genres: formations.genres,
+      slots: formations.slots,
+      description: formations.description,
+      createdAt: formations.createdAt,
+      updatedAt: formations.updatedAt,
+      rankingId: tierRankings.id,
+      rank: tierRankings.rank,
+      note: tierRankings.note,
+      sortOrder: tierRankings.sortOrder,
+    })
+    .from(formations)
+    .innerJoin(tierRankings, eq(tierRankings.formationId, formations.id))
+    .where(eq(formations.id, id));
 
   if (!entryRow) {
     throw new Response("Not Found", { status: 404 });
@@ -30,7 +42,15 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 
   const entry: TierEntry = {
     id: entryRow.id,
+    name: null,
     rank: entryRow.rank as TierRank,
+    ranking: {
+      id: entryRow.rankingId,
+      formationId: entryRow.id,
+      rank: entryRow.rank as TierRank,
+      note: entryRow.note,
+      sortOrder: entryRow.sortOrder ?? 0,
+    },
     genres: JSON.parse(entryRow.genres),
     slots: JSON.parse(entryRow.slots),
     description: entryRow.description,

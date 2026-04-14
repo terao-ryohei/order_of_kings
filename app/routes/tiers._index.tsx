@@ -8,7 +8,7 @@ import type {
 } from "@remix-run/cloudflare";
 import { asc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { warriors, skills, tierEntries } from "../../server/db/schema";
+import { formations, skills, tierRankings, warriors } from "../../server/db/schema";
 import { TierGenreFilter } from "../components/tier/TierGenreFilter";
 import { TierEntryCard } from "../components/tier/TierEntryCard";
 import {
@@ -54,12 +54,32 @@ export async function loader({ context }: LoaderFunctionArgs) {
     .orderBy(asc(skills.sort_order));
 
   const tierEntryRows = await db
-    .select()
-    .from(tierEntries);
+    .select({
+      id: formations.id,
+      genres: formations.genres,
+      slots: formations.slots,
+      description: formations.description,
+      createdAt: formations.createdAt,
+      updatedAt: formations.updatedAt,
+      rankingId: tierRankings.id,
+      rank: tierRankings.rank,
+      note: tierRankings.note,
+      sortOrder: tierRankings.sortOrder,
+    })
+    .from(formations)
+    .innerJoin(tierRankings, eq(tierRankings.formationId, formations.id));
 
   const entries: TierEntry[] = tierEntryRows.map((row) => ({
     id: row.id,
+    name: null,
     rank: row.rank as TierRank,
+    ranking: {
+      id: row.rankingId,
+      formationId: row.id,
+      rank: row.rank as TierRank,
+      note: row.note,
+      sortOrder: row.sortOrder ?? 0,
+    },
     genres: JSON.parse(row.genres) as TierGenre[],
     slots: JSON.parse(row.slots) as [
       TierWarriorSlot,
@@ -89,7 +109,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const id = formData.get("id") as string;
 
   if (intent === "delete" && id) {
-    await db.delete(tierEntries).where(eq(tierEntries.id, id));
+    await db.delete(tierRankings).where(eq(tierRankings.formationId, id));
+    await db.delete(formations).where(eq(formations.id, id));
   }
   return null;
 }

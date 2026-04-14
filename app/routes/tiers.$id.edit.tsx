@@ -10,10 +10,11 @@ import { redirect } from "@remix-run/cloudflare";
 import { asc, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import {
+  formations,
   warriors,
   skills,
   warriorSkills,
-  tierEntries,
+  tierRankings,
 } from "../../server/db/schema";
 import { TierEntryForm } from "../components/tier/TierEntryForm";
 import type { TierEntry, TierRank, TierGenre, TierWarriorSlot } from "../lib/tier-types";
@@ -27,9 +28,21 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   const id = params.id!;
 
   const [entryRow] = await db
-    .select()
-    .from(tierEntries)
-    .where(eq(tierEntries.id, id));
+    .select({
+      id: formations.id,
+      genres: formations.genres,
+      slots: formations.slots,
+      description: formations.description,
+      createdAt: formations.createdAt,
+      updatedAt: formations.updatedAt,
+      rankingId: tierRankings.id,
+      rank: tierRankings.rank,
+      note: tierRankings.note,
+      sortOrder: tierRankings.sortOrder,
+    })
+    .from(formations)
+    .innerJoin(tierRankings, eq(tierRankings.formationId, formations.id))
+    .where(eq(formations.id, id));
 
   if (!entryRow) {
     throw new Response("Not Found", { status: 404 });
@@ -37,7 +50,15 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 
   const entry: TierEntry = {
     id: entryRow.id,
+    name: null,
     rank: entryRow.rank as TierRank,
+    ranking: {
+      id: entryRow.rankingId,
+      formationId: entryRow.id,
+      rank: entryRow.rank as TierRank,
+      note: entryRow.note,
+      sortOrder: entryRow.sortOrder ?? 0,
+    },
     genres: JSON.parse(entryRow.genres) as TierGenre[],
     slots: JSON.parse(entryRow.slots) as [TierWarriorSlot, TierWarriorSlot, TierWarriorSlot],
     description: entryRow.description,
@@ -115,23 +136,30 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
 
   const [existing] = await db
     .select()
-    .from(tierEntries)
-    .where(eq(tierEntries.id, id));
+    .from(formations)
+    .where(eq(formations.id, id));
 
   if (!existing) {
     throw new Response("Not Found", { status: 404 });
   }
 
   await db
-    .update(tierEntries)
+    .update(formations)
     .set({
-      rank: entry.rank,
       genres: JSON.stringify(entry.genres),
       slots: JSON.stringify(entry.slots),
       description: entry.description,
       updatedAt: sql`CURRENT_TIMESTAMP`,
     })
-    .where(eq(tierEntries.id, id));
+    .where(eq(formations.id, id));
+
+  await db
+    .update(tierRankings)
+    .set({
+      rank: entry.rank,
+      updatedAt: sql`CURRENT_TIMESTAMP`,
+    })
+    .where(eq(tierRankings.formationId, id));
 
   return redirect(`/tiers/${id}`);
 }
