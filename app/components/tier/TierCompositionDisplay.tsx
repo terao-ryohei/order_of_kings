@@ -121,25 +121,14 @@ function SlotCard({
             const skillName = skill?.name ?? `スキル#${skillSlot.skill_id}`;
             return (
               <VStack key={i} align="start" gap={0} w="100%">
-                <HStack gap={2} align="start">
-                  <Box
-                    w="28px"
-                    h="28px"
-                    borderRadius="full"
-                    bg={skill?.color ?? "gray.600"}
-                    flexShrink={0}
-                  />
-                  <VStack align="start" gap={0}>
-                    <Text fontSize="xs" color="white">
-                      {skillName}
-                    </Text>
-                    {slot.role === "軍師" && skill?.description && (
-                      <Text fontSize="2xs" color="gray.500">
-                        {skill.description}
-                      </Text>
-                    )}
-                  </VStack>
-                </HStack>
+                <Text fontSize="xs" color="white">
+                  {skillName}
+                </Text>
+                {slot.role === "軍師" && skill?.description && (
+                  <Text fontSize="2xs" color="gray.500">
+                    {skill.description}
+                  </Text>
+                )}
               </VStack>
             );
           })}

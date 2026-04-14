@@ -436,6 +436,15 @@ export default function FormationBuilder({
     setLoadConfirm(null);
   };
 
+  const handleFormationSelect = (formationId: string) => {
+    setSelectedFormationId(formationId);
+    const formation =
+      savedFormations.find((item) => item.id === formationId) ?? null;
+    if (formation) {
+      setLoadConfirm(formation);
+    }
+  };
+
   return (
     <Box minH="100vh" bg="gray.950" p={4}>
       <VStack gap={5} align="stretch" maxW="1200px" mx="auto">
@@ -463,7 +472,7 @@ export default function FormationBuilder({
           backdropFilter="blur(12px)"
         >
           <VStack align="stretch" gap={4}>
-            <SimpleGrid columns={{ base: 1, xl: 5 }} gap={3}>
+            <SimpleGrid columns={{ base: 1, xl: 6 }} gap={3}>
               <Box
                 gridColumn={{ base: "auto", xl: "span 2" }}
                 bg="blackAlpha.400"
@@ -499,7 +508,7 @@ export default function FormationBuilder({
                   <NativeSelect.Root size="sm" flex="1">
                     <NativeSelect.Field
                       value={selectedFormationId}
-                      onChange={(e) => setSelectedFormationId(e.target.value)}
+                      onChange={(e) => handleFormationSelect(e.target.value)}
                       bg="gray.900"
                       borderColor="whiteAlpha.300"
                     >
@@ -519,7 +528,7 @@ export default function FormationBuilder({
                     }
                     disabled={!selectedFormation}
                   >
-                    読み込む
+                    再確認
                   </Button>
                 </Flex>
                 <Text fontSize="xs" color="gray.500" mt={2}>
@@ -612,6 +621,46 @@ export default function FormationBuilder({
                     </Text>
                   </VStack>
                 )}
+              </Box>
+
+              <Box
+                gridColumn={{ base: "auto", xl: "span 1" }}
+                bg="blackAlpha.400"
+                borderRadius="xl"
+                p={3}
+                borderWidth="1px"
+                borderColor="whiteAlpha.200"
+              >
+                <Text fontSize="xs" color="gray.400" mb={1}>
+                  兵種
+                </Text>
+                <Text fontSize="xs" color="gray.500" mb={3}>
+                  最初に決めると合計値と移動速度が安定します
+                </Text>
+                <HStack gap={2} flexWrap="wrap">
+                  {WEAPON_TYPES.map((wt) => (
+                    <Button
+                      key={wt}
+                      size="xs"
+                      variant={weaponType === wt ? "solid" : "outline"}
+                      colorPalette={weaponType === wt ? "orange" : "gray"}
+                      onClick={() =>
+                        setWeaponType((prev) => (prev === wt ? null : wt))
+                      }
+                    >
+                      {wt}
+                    </Button>
+                  ))}
+                  {weaponType && (
+                    <Button
+                      size="xs"
+                      variant="ghost"
+                      onClick={() => setWeaponType(null)}
+                    >
+                      解除
+                    </Button>
+                  )}
+                </HStack>
               </Box>
 
               <SimpleGrid
@@ -770,36 +819,6 @@ export default function FormationBuilder({
                 </Flex>
               </Flex>
 
-              <Box mt={3} mb={2}>
-                <Text fontSize="xs" color="gray.400" mb={1}>
-                  兵種
-                </Text>
-                <HStack gap={2} flexWrap="wrap">
-                  {WEAPON_TYPES.map((wt) => (
-                    <Button
-                      key={wt}
-                      size="xs"
-                      variant={weaponType === wt ? "solid" : "outline"}
-                      colorPalette={weaponType === wt ? "orange" : "gray"}
-                      onClick={() =>
-                        setWeaponType((prev) => (prev === wt ? null : wt))
-                      }
-                    >
-                      {wt}
-                    </Button>
-                  ))}
-                  {weaponType && (
-                    <Button
-                      size="xs"
-                      variant="ghost"
-                      onClick={() => setWeaponType(null)}
-                    >
-                      解除
-                    </Button>
-                  )}
-                </HStack>
-              </Box>
-
               {loadConfirm && (
                 <Box
                   mt={4}
@@ -813,6 +832,9 @@ export default function FormationBuilder({
                     <Text fontSize="sm" color="blue.200">
                       「{loadConfirm.name}
                       」を読み込みますか？現在の編成は上書きされます。
+                    </Text>
+                    <Text fontSize="xs" color="blue.100">
+                      上部セレクトから即座にここへ来られるため、比較読込がしやすくなっております。
                     </Text>
                     <Flex gap={2}>
                       <Button
@@ -899,7 +921,8 @@ export default function FormationBuilder({
                       bg={slot.warrior ? "blue.950" : "gray.900"}
                       borderRadius="xl"
                       borderWidth="1px"
-                      borderColor={slot.warrior ? "blue.300" : "whiteAlpha.200"}
+                      borderColor={slot.warrior ? "blue.300" : "yellow.700"}
+                      borderStyle={slot.warrior ? "solid" : "dashed"}
                       p={3}
                       transition="all 0.2s"
                     >
@@ -935,12 +958,18 @@ export default function FormationBuilder({
                               </>
                             ) : (
                               <VStack align="start" gap={0}>
+                                <Badge colorPalette="yellow" variant="subtle">
+                                  未設定
+                                </Badge>
                                 <Text
                                   fontSize="sm"
-                                  color="gray.300"
+                                  color="yellow.100"
                                   fontWeight="bold"
                                 >
                                   武将を選んでください
+                                </Text>
+                                <Text fontSize="xs" color="gray.400">
+                                  下の一覧から選ぶと、この枠へ自動配置されます
                                 </Text>
                               </VStack>
                             )}

@@ -253,13 +253,6 @@ export function TierSlotCard({
             return (
               <Box key={skillIdx}>
                 <HStack gap={2} align="start">
-                  <Box
-                    w="32px"
-                    h="32px"
-                    borderRadius="full"
-                    flexShrink={0}
-                    bg={skill?.color ?? "gray.600"}
-                  />
                   <VStack align="start" gap={0} flex="1" minW={0}>
                     {isEditing && skillIdx === 0 ? (
                       <Text fontSize="xs" color="yellow.200" fontWeight="bold">
