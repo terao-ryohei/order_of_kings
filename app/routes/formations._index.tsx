@@ -13,7 +13,7 @@ import { TierGenreFilter } from "../components/tier/TierGenreFilter";
 import { TierEntryCard } from "../components/tier/TierEntryCard";
 import {
   TIER_RANKS,
-  type TierEntry,
+  type FormationWithRanking,
   type TierGenre,
   type TierRank,
   type TierWarriorSlot,
@@ -67,19 +67,20 @@ export async function loader({ context }: LoaderFunctionArgs) {
       sortOrder: tierRankings.sortOrder,
     })
     .from(formations)
-    .innerJoin(tierRankings, eq(tierRankings.formationId, formations.id));
+    .leftJoin(tierRankings, eq(tierRankings.formationId, formations.id));
 
-  const entries: TierEntry[] = tierEntryRows.map((row) => ({
+  const entries: FormationWithRanking[] = tierEntryRows.map((row) => ({
     id: row.id,
     name: null,
-    rank: row.rank as TierRank,
-    ranking: {
-      id: row.rankingId,
-      formationId: row.id,
-      rank: row.rank as TierRank,
-      note: row.note,
-      sortOrder: row.sortOrder ?? 0,
-    },
+    ranking: row.rankingId
+      ? {
+          id: row.rankingId,
+          formationId: row.id,
+          rank: row.rank as TierRank,
+          note: row.note,
+          sortOrder: row.sortOrder ?? 0,
+        }
+      : undefined,
     genres: JSON.parse(row.genres) as TierGenre[],
     slots: JSON.parse(row.slots) as [
       TierWarriorSlot,
@@ -118,7 +119,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export default function TiersIndexPage() {
   const { warriors: allWarriors, allSkills, entries } =
     useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
+  const fetcher = useFetcher<typeof action>();
   const [selectedGenre, setSelectedGenre] = useState<TierGenre | null>(null);
 
   const warriorMap = useMemo(() => {
@@ -150,9 +151,11 @@ export default function TiersIndexPage() {
       ? visible.filter((e) => e.genres.includes(selectedGenre))
       : visible;
     const rankOrder = new Map(TIER_RANKS.map((r, i) => [r, i]));
-    return [...filtered].sort(
-      (a, b) => (rankOrder.get(a.rank) ?? 99) - (rankOrder.get(b.rank) ?? 99),
-    );
+    return [...filtered].sort((a, b) => {
+      const aRank = a.ranking?.rank;
+      const bRank = b.ranking?.rank;
+      return (rankOrder.get(aRank as TierRank) ?? 99) - (rankOrder.get(bRank as TierRank) ?? 99);
+    });
   }, [entries, selectedGenre, deletingId]);
 
   const handleDelete = (id: string) => {
@@ -162,10 +165,15 @@ export default function TiersIndexPage() {
   return (
     <Box p={{ base: 4, md: 8 }} maxW="1200px" mx="auto">
       <Box mb={6} display="flex" justifyContent="space-between" alignItems="center">
-        <Heading size="lg">ティア表一覧</Heading>
-        <Button asChild colorPalette="yellow" size="sm">
-          <RemixLink to="/tiers/create">新規作成</RemixLink>
-        </Button>
+        <Heading size="lg">編成一覧</Heading>
+        <Box display="flex" gap={2}>
+          <Button asChild colorPalette="blue" size="sm" variant="outline">
+            <RemixLink to="/tiers">ティア表で確認</RemixLink>
+          </Button>
+          <Button asChild colorPalette="yellow" size="sm">
+            <RemixLink to="/formations/create">新規作成</RemixLink>
+          </Button>
+        </Box>
       </Box>
 
       <TierGenreFilter selected={selectedGenre} onChange={setSelectedGenre} />

@@ -1,6 +1,6 @@
 import { Box, Badge, Button, Flex, HStack, Image, Text, VStack } from "@chakra-ui/react";
 import { useNavigate } from "@remix-run/react";
-import { RANK_COLORS, type TierEntry, type TierSkillSlot } from "../../lib/tier-types";
+import { RANK_COLORS, type FormationWithRanking, type TierSkillSlot } from "../../lib/tier-types";
 
 type WarriorData = {
   id: number;
@@ -14,7 +14,7 @@ type SkillData = {
 };
 
 type TierEntryCardProps = {
-  entry: TierEntry;
+  entry: FormationWithRanking;
   warriors: Map<number, WarriorData>;
   skills: Map<number, SkillData>;
   onDelete: (id: string) => void;
@@ -107,17 +107,31 @@ export function TierEntryCard({ entry, warriors, skills, onDelete }: TierEntryCa
     >
       <Flex justify="space-between" align="center" mb={3}>
         <HStack gap={2}>
-          <Badge
-            bg={RANK_COLORS[entry.rank].bg}
-            color={RANK_COLORS[entry.rank].badge}
-            fontSize="lg"
-            fontWeight="bold"
-            px={3}
-            py={1}
-            borderRadius="md"
-          >
-            {entry.rank}
-          </Badge>
+          {entry.ranking ? (
+            <Badge
+              bg={RANK_COLORS[entry.ranking.rank].bg}
+              color={RANK_COLORS[entry.ranking.rank].badge}
+              fontSize="lg"
+              fontWeight="bold"
+              px={3}
+              py={1}
+              borderRadius="md"
+            >
+              {entry.ranking.rank}
+            </Badge>
+          ) : (
+            <Badge
+              bg="gray.700"
+              color="gray.400"
+              fontSize="sm"
+              fontWeight="bold"
+              px={3}
+              py={1}
+              borderRadius="md"
+            >
+              未評価
+            </Badge>
+          )}
           {entry.genres.map((genre) => (
             <Badge key={genre} variant="outline" colorPalette="blue" fontSize="xs">
               {genre}
