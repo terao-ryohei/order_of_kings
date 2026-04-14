@@ -37,6 +37,9 @@ export type WarriorOption = {
   cost: number;
   rarity: number;
   uniqueSkillName: string | null;
+  uniqueSkillId: number | null;
+  gunshiSkillName: string | null;
+  gunshiSkillId: number | null;
 };
 
 export type SkillOption = {

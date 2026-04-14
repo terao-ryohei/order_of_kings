@@ -40,7 +40,24 @@ export function TierSlotCard({
   }
 
   function handleWarriorChange(warriorId: number) {
-    update({ ...slot, warrior_id: warriorId, alt_warrior_ids: [] });
+    const selectedWarrior = allWarriors.find((w) => w.id === warriorId);
+    let newSkills = [...slot.skills];
+
+    if (selectedWarrior && warriorId > 0) {
+      const fixedSkillId =
+        slot.role === "軍師"
+          ? (selectedWarrior.gunshiSkillId ?? 0)
+          : (selectedWarrior.uniqueSkillId ?? 0);
+      const fixedSlot = {
+        skill_id: fixedSkillId,
+        alt_skill_ids: newSkills[0]?.alt_skill_ids ?? [],
+      };
+      newSkills = [fixedSlot, ...newSkills.slice(1)];
+    } else {
+      newSkills = [];
+    }
+
+    update({ ...slot, warrior_id: warriorId, skills: newSkills, alt_warrior_ids: [] });
     setImageFailed(false);
   }
 
@@ -244,7 +261,11 @@ export function TierSlotCard({
                     bg={skill?.color ?? "gray.600"}
                   />
                   <VStack align="start" gap={0} flex="1" minW={0}>
-                    {isEditing ? (
+                    {isEditing && skillIdx === 0 ? (
+                      <Text fontSize="xs" color="yellow.200" fontWeight="bold">
+                        {skill?.name ?? "(固有スキル未設定)"}
+                      </Text>
+                    ) : isEditing ? (
                       <NativeSelect.Root size="xs" w="100%">
                         <NativeSelect.Field
                           value={skillSlot.skill_id || ""}
@@ -279,7 +300,7 @@ export function TierSlotCard({
                       </Text>
                     )}
                   </VStack>
-                  {isEditing && (
+                  {isEditing && skillIdx > 0 && (
                     <Button
                       size="xs"
                       variant="ghost"
