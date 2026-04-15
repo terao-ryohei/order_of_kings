@@ -74,7 +74,6 @@ export async function loader({ context }: LoaderFunctionArgs) {
     .innerJoin(skills, eq(warriorSkills.skill_id, skills.id))
     .where(eq(warriorSkills.is_unique, true));
 
-  const uniqueSkillIds = new Set(uniqueSkillRows.map((r) => r.skill_id));
   const uniqueSkillMap = new Map<number, { skillId: number; skillName: string }>();
   const gunshiSkillMap = new Map<number, { skillId: number; skillName: string }>();
   for (const r of uniqueSkillRows) {
@@ -84,8 +83,6 @@ export async function loader({ context }: LoaderFunctionArgs) {
       gunshiSkillMap.set(r.warrior_id, { skillId: r.skill_id, skillName: r.skill_name });
     }
   }
-
-  const filteredSkills = allSkillRows.filter((s) => !uniqueSkillIds.has(s.id));
 
   const rows = await db
     .select({
@@ -137,7 +134,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
       gunshiSkillName: gunshiSkillMap.get(w.id)?.skillName ?? null,
       gunshiSkillId: gunshiSkillMap.get(w.id)?.skillId ?? null,
     })),
-    allSkills: filteredSkills,
+    allSkills: allSkillRows,
     entries,
   };
 }
