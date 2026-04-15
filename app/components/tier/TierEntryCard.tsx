@@ -18,6 +18,7 @@ type TierEntryCardProps = {
   warriors: Map<number, WarriorData>;
   skills: Map<number, SkillData>;
   onDelete: (id: string) => void;
+  onEdit: (id: string) => void;
 };
 
 function WarriorSlotDisplay({
@@ -90,7 +91,7 @@ function WarriorSlotDisplay({
   );
 }
 
-export function TierEntryCard({ entry, warriors, skills, onDelete }: TierEntryCardProps) {
+export function TierEntryCard({ entry, warriors, skills, onDelete, onEdit }: TierEntryCardProps) {
   const navigate = useNavigate();
 
   return (
@@ -138,6 +139,17 @@ export function TierEntryCard({ entry, warriors, skills, onDelete }: TierEntryCa
             </Badge>
           ))}
         </HStack>
+        <Button
+          size="xs"
+          variant="ghost"
+          colorPalette="blue"
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(entry.id);
+          }}
+        >
+          編集
+        </Button>
         <Button
           size="xs"
           variant="ghost"
