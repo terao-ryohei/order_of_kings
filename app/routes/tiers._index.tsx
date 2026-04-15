@@ -15,7 +15,7 @@ import type {
   LoaderFunctionArgs,
   MetaFunction,
 } from "@remix-run/cloudflare";
-import { asc, eq, sql } from "drizzle-orm";
+import { asc, eq, gte, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import {
   formations,
@@ -60,7 +60,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
       description: skills.description,
     })
     .from(skills)
-    .where(eq(skills.is_delete, false))
+    .where(gte(skills.id, 1001))
     .orderBy(asc(skills.sort_order));
 
   const uniqueSkillRows = await db
