@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { useLoaderData, Link as RemixLink, useFetcher } from "@remix-run/react";
+import { useState, useMemo } from "react";
+import { useLoaderData, useFetcher } from "@remix-run/react";
 import {
   Box,
   Heading,
@@ -22,10 +22,13 @@ import {
   skills,
   tierRankings,
   warriors,
+  warriorSkills,
 } from "../../server/db/schema";
+import { TierEntryForm } from "../components/tier/TierEntryForm";
 import {
   TIER_RANKS,
   RANK_COLORS,
+  type Formation,
   type FormationWithRanking,
   type TierGenre,
   type TierRank,
@@ -48,10 +51,41 @@ export async function loader({ context }: LoaderFunctionArgs) {
     .where(eq(warriors.is_delete, false))
     .orderBy(asc(warriors.sort_order));
 
-  const allSkills = await db
-    .select({ id: skills.id, name: skills.name })
+  const allSkillRows = await db
+    .select({
+      id: skills.id,
+      name: skills.name,
+      skill_type: skills.skill_type,
+      color: skills.color,
+      description: skills.description,
+    })
     .from(skills)
-    .where(eq(skills.is_delete, false));
+    .where(eq(skills.is_delete, false))
+    .orderBy(asc(skills.sort_order));
+
+  const uniqueSkillRows = await db
+    .select({
+      warrior_id: warriorSkills.warrior_id,
+      skill_id: warriorSkills.skill_id,
+      skill_name: skills.name,
+      slot: warriorSkills.slot,
+    })
+    .from(warriorSkills)
+    .innerJoin(skills, eq(warriorSkills.skill_id, skills.id))
+    .where(eq(warriorSkills.is_unique, true));
+
+  const uniqueSkillIds = new Set(uniqueSkillRows.map((r) => r.skill_id));
+  const uniqueSkillMap = new Map<number, { skillId: number; skillName: string }>();
+  const gunshiSkillMap = new Map<number, { skillId: number; skillName: string }>();
+  for (const r of uniqueSkillRows) {
+    if (r.slot === 1) {
+      uniqueSkillMap.set(r.warrior_id, { skillId: r.skill_id, skillName: r.skill_name });
+    } else if (r.slot === 2) {
+      gunshiSkillMap.set(r.warrior_id, { skillId: r.skill_id, skillName: r.skill_name });
+    }
+  }
+
+  const filteredSkills = allSkillRows.filter((s) => !uniqueSkillIds.has(s.id));
 
   const rows = await db
     .select({
@@ -93,8 +127,17 @@ export async function loader({ context }: LoaderFunctionArgs) {
   }));
 
   return {
-    warriors: warriorRows.map((w) => ({ id: w.id, name: w.name, rarity: w.rarity })),
-    allSkills,
+    warriors: warriorRows.map((w) => ({
+      id: w.id,
+      name: w.name,
+      cost: w.cost,
+      rarity: w.rarity,
+      uniqueSkillName: uniqueSkillMap.get(w.id)?.skillName ?? null,
+      uniqueSkillId: uniqueSkillMap.get(w.id)?.skillId ?? null,
+      gunshiSkillName: gunshiSkillMap.get(w.id)?.skillName ?? null,
+      gunshiSkillId: gunshiSkillMap.get(w.id)?.skillId ?? null,
+    })),
+    allSkills: filteredSkills,
     entries,
   };
 }
@@ -104,6 +147,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const formData = await request.formData();
   const intent = formData.get("intent") as string;
   const formationId = formData.get("formation_id") as string;
+  const id = formData.get("id") as string;
 
   if (intent === "upsert" && formationId) {
     const rank = formData.get("rank") as string;
@@ -117,6 +161,35 @@ export async function action({ request, context }: ActionFunctionArgs) {
       });
   } else if (intent === "delete_rank" && formationId) {
     await db.delete(tierRankings).where(eq(tierRankings.formationId, formationId));
+  } else if (intent === "delete" && id) {
+    await db.delete(tierRankings).where(eq(tierRankings.formationId, id));
+    await db.delete(formations).where(eq(formations.id, id));
+  } else if (intent === "create") {
+    const entry = JSON.parse(formData.get("entry") as string) as Omit<
+      Formation,
+      "id" | "created_at" | "updated_at"
+    >;
+    const newId = crypto.randomUUID();
+    await db.insert(formations).values({
+      id: newId,
+      genres: JSON.stringify(entry.genres),
+      slots: JSON.stringify(entry.slots),
+      description: entry.description,
+    });
+  } else if (intent === "update" && id) {
+    const entry = JSON.parse(formData.get("entry") as string) as Omit<
+      Formation,
+      "id" | "created_at" | "updated_at"
+    >;
+    await db
+      .update(formations)
+      .set({
+        genres: JSON.stringify(entry.genres),
+        slots: JSON.stringify(entry.slots),
+        description: entry.description,
+        updatedAt: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(eq(formations.id, id));
   }
 
   return null;
@@ -126,9 +199,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
 function FormationCard({
   entry,
   warriorMap,
+  onEdit,
 }: {
   entry: FormationWithRanking;
   warriorMap: Map<number, WarriorData>;
+  onEdit: (id: string) => void;
 }) {
   const fetcher = useFetcher();
 
@@ -154,7 +229,7 @@ function FormationCard({
       p={3}
       mb={3}
     >
-      {/* Header: rank badge + genres */}
+      {/* Header: rank badge + genres + edit button */}
       <Flex justify="space-between" align="center" mb={2}>
         <HStack gap={1} flexWrap="wrap">
           {hasRank && rankColors ? (
@@ -180,22 +255,35 @@ function FormationCard({
             </Badge>
           ))}
         </HStack>
-        {hasRank && (
-          <fetcher.Form method="post">
-            <input type="hidden" name="intent" value="delete_rank" />
-            <input type="hidden" name="formation_id" value={entry.id} />
-            <Button
-              type="submit"
-              size="xs"
-              variant="ghost"
-              colorPalette="red"
-              disabled={isPending}
-              onClick={(e) => e.stopPropagation()}
-            >
-              ×
-            </Button>
-          </fetcher.Form>
-        )}
+        <HStack gap={1}>
+          <Button
+            size="xs"
+            variant="ghost"
+            colorPalette="yellow"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(entry.id);
+            }}
+          >
+            編集
+          </Button>
+          {hasRank && (
+            <fetcher.Form method="post">
+              <input type="hidden" name="intent" value="delete_rank" />
+              <input type="hidden" name="formation_id" value={entry.id} />
+              <Button
+                type="submit"
+                size="xs"
+                variant="ghost"
+                colorPalette="red"
+                disabled={isPending}
+                onClick={(e) => e.stopPropagation()}
+              >
+                ×
+              </Button>
+            </fetcher.Form>
+          )}
+        </HStack>
       </Flex>
 
       {/* Warriors (compact) */}
@@ -253,11 +341,14 @@ function FormationCard({
 
 // ── Page ─────────────────────────────────────────────────────────────
 export default function TierBoardPage() {
-  const { warriors: allWarriors, entries } = useLoaderData<typeof loader>();
+  const { warriors: allWarriors, allSkills, entries } = useLoaderData<typeof loader>();
+  const saveFetcher = useFetcher();
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const warriorMap = useMemo(() => {
     const map = new Map<number, WarriorData>();
-    for (const w of allWarriors) map.set(w.id, w);
+    for (const w of allWarriors) map.set(w.id, { id: w.id, name: w.name, rarity: w.rarity });
     return map;
   }, [allWarriors]);
 
@@ -278,15 +369,88 @@ export default function TierBoardPage() {
 
   const allRanks: TierRank[] = ["S", "A", "B", "C", "D"];
 
+  const handleCreate = (entry: Omit<Formation, "id" | "created_at" | "updated_at">) => {
+    saveFetcher.submit(
+      { intent: "create", entry: JSON.stringify(entry) },
+      { method: "post" },
+    );
+    setShowCreateForm(false);
+  };
+
+  const handleUpdate =
+    (id: string) =>
+    (entry: Omit<Formation, "id" | "created_at" | "updated_at">) => {
+      saveFetcher.submit(
+        { intent: "update", id, entry: JSON.stringify(entry) },
+        { method: "post" },
+      );
+      setEditingId(null);
+    };
+
+  const editingEntry = editingId ? entries.find((e) => e.id === editingId) : null;
+
   return (
     <Box p={{ base: 4, md: 8 }} maxW="1400px" mx="auto">
       {/* Header */}
       <Box mb={6} display="flex" justifyContent="space-between" alignItems="center">
         <Heading size="lg">ティア表</Heading>
-        <Button asChild colorPalette="gray" size="sm" variant="outline">
-          <RemixLink to="/formations">← 編成一覧</RemixLink>
+        <Button
+          colorPalette="yellow"
+          size="sm"
+          onClick={() => {
+            setShowCreateForm((prev) => !prev);
+            setEditingId(null);
+          }}
+        >
+          {showCreateForm ? "閉じる" : "新規作成"}
         </Button>
       </Box>
+
+      {/* Inline create form */}
+      {showCreateForm && (
+        <Box
+          bg="gray.800"
+          borderWidth="1px"
+          borderColor="whiteAlpha.300"
+          borderRadius="lg"
+          p={6}
+          mb={6}
+        >
+          <Heading size="md" mb={4}>
+            新規作成
+          </Heading>
+          <TierEntryForm
+            allWarriors={allWarriors}
+            allSkills={allSkills}
+            onSave={handleCreate}
+          />
+        </Box>
+      )}
+
+      {/* Inline edit form */}
+      {editingEntry && (
+        <Box
+          bg="gray.800"
+          borderWidth="1px"
+          borderColor="yellow.500"
+          borderRadius="lg"
+          p={6}
+          mb={6}
+        >
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+            <Heading size="md">編集中</Heading>
+            <Button size="xs" variant="ghost" onClick={() => setEditingId(null)}>
+              キャンセル
+            </Button>
+          </Box>
+          <TierEntryForm
+            allWarriors={allWarriors}
+            allSkills={allSkills}
+            onSave={handleUpdate(editingEntry.id)}
+            initialEntry={editingEntry}
+          />
+        </Box>
+      )}
 
       {/* Rank columns */}
       <Box overflowX="auto">
@@ -328,6 +492,10 @@ export default function TierBoardPage() {
                       key={entry.id}
                       entry={entry}
                       warriorMap={warriorMap}
+                      onEdit={(id) => {
+                        setEditingId(id);
+                        setShowCreateForm(false);
+                      }}
                     />
                   ))
                 )}
@@ -369,6 +537,10 @@ export default function TierBoardPage() {
                   key={entry.id}
                   entry={entry}
                   warriorMap={warriorMap}
+                  onEdit={(id) => {
+                    setEditingId(id);
+                    setShowCreateForm(false);
+                  }}
                 />
               ))
             )}
