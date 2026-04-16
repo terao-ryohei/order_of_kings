@@ -1,13 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Badge,
   Box,
   Button,
+  ComboboxContent,
+  ComboboxControl,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxItemText,
+  ComboboxRoot,
+  ComboboxTrigger,
+  createListCollection,
   Flex,
   HStack,
   Image,
-  Input,
-  NativeSelect,
   Text,
   VStack,
 } from "@chakra-ui/react";
@@ -29,6 +35,100 @@ type TierSlotCardProps = {
   onChange?: (newSlot: TierWarriorSlot) => void;
 };
 
+type ComboboxOption = {
+  label: string;
+  value: string;
+};
+
+type SearchableComboboxProps = {
+  options: ComboboxOption[];
+  value: number;
+  placeholder: string;
+  emptyLabel: string;
+  onChange: (value: number) => void;
+};
+
+function filterOptions(options: ComboboxOption[], search: string) {
+  if (!search) return options;
+  const katakanaSearch = toKatakana(search);
+  return options.filter(
+    (option) =>
+      option.label.includes(search) || option.label.includes(katakanaSearch),
+  );
+}
+
+function SearchableCombobox({
+  options,
+  value,
+  placeholder,
+  emptyLabel,
+  onChange,
+}: SearchableComboboxProps) {
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 200);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const visibleOptions = useMemo(
+    () => filterOptions(options, debouncedSearch),
+    [options, debouncedSearch],
+  );
+  const items = useMemo(
+    () => [{ label: emptyLabel, value: "" }, ...visibleOptions],
+    [emptyLabel, visibleOptions],
+  );
+  const collection = useMemo(
+    () => createListCollection({ items }),
+    [items],
+  );
+
+  return (
+    <ComboboxRoot
+      collection={collection}
+      value={value > 0 ? [String(value)] : []}
+      onInputValueChange={({ inputValue }) => setSearch(inputValue)}
+      onValueChange={({ value: selectedValue }) => {
+        onChange(Number(selectedValue[0] ?? 0));
+        setSearch("");
+      }}
+      openOnClick
+      size="xs"
+      w="100%"
+    >
+      <ComboboxControl>
+        <ComboboxInput
+          placeholder={placeholder}
+          bg="gray.800"
+          borderColor="whiteAlpha.300"
+          color="white"
+        />
+        <ComboboxTrigger
+          bg="gray.800"
+          borderColor="whiteAlpha.300"
+          color="white"
+        />
+      </ComboboxControl>
+      <ComboboxContent
+        bg="gray.800"
+        borderColor="whiteAlpha.300"
+        color="white"
+        maxH="240px"
+        overflowY="auto"
+        zIndex="popover"
+      >
+        {items.map((item) => (
+          <ComboboxItem key={item.value || "empty"} item={item}>
+            <ComboboxItemText>{item.label}</ComboboxItemText>
+          </ComboboxItem>
+        ))}
+      </ComboboxContent>
+    </ComboboxRoot>
+  );
+}
+
 export function TierSlotCard({
   slot,
   allWarriors,
@@ -39,34 +139,14 @@ export function TierSlotCard({
   const warrior = allWarriors.find((w) => w.id === slot.warrior_id);
   const hasWarrior = slot.warrior_id > 0 && warrior;
   const [imageFailed, setImageFailed] = useState(false);
-  const [warriorSearch, setWarriorSearch] = useState("");
-  const [debouncedWarriorSearch, setDebouncedWarriorSearch] = useState("");
-  const [skillSearch, setSkillSearch] = useState("");
-  const [debouncedSkillSearch, setDebouncedSkillSearch] = useState("");
-
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedWarriorSearch(warriorSearch), 200);
-    return () => clearTimeout(t);
-  }, [warriorSearch]);
-
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedSkillSearch(skillSearch), 200);
-    return () => clearTimeout(t);
-  }, [skillSearch]);
-
-  const filteredWarriors = debouncedWarriorSearch
-    ? allWarriors.filter((w) => {
-        const q = toKatakana(debouncedWarriorSearch);
-        return w.name.includes(debouncedWarriorSearch) || w.name.includes(q);
-      })
-    : allWarriors;
-
-  const filteredSkills = debouncedSkillSearch
-    ? allSkills.filter((s) => {
-        const q = toKatakana(debouncedSkillSearch);
-        return s.name.includes(debouncedSkillSearch) || s.name.includes(q);
-      })
-    : allSkills;
+  const warriorOptions = useMemo(
+    () => allWarriors.map((w) => ({ label: w.name, value: String(w.id) })),
+    [allWarriors],
+  );
+  const skillOptions = useMemo(
+    () => allSkills.map((s) => ({ label: s.name, value: String(s.id) })),
+    [allSkills],
+  );
 
   function update(newSlot: TierWarriorSlot) {
     onChange?.(newSlot);
@@ -253,96 +333,19 @@ export function TierSlotCard({
         </Text>
 
         {isEditing && (
-          <VStack align="stretch" gap={1}>
-            <HStack gap={1}>
-              <Input
-                size="xs"
-                placeholder="武将を検索..."
-                value={warriorSearch}
-                onChange={(e) => setWarriorSearch(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && filteredWarriors.length === 1) {
-                    handleWarriorChange(filteredWarriors[0].id);
-                    setWarriorSearch("");
-                  }
-                }}
-                bg="gray.800"
-                borderColor="whiteAlpha.300"
-                color="white"
-                flex="1"
-              />
-              {warriorSearch && (
-                <Button
-                  size="xs"
-                  variant="ghost"
-                  colorPalette="gray"
-                  onClick={() => setWarriorSearch("")}
-                  minW="auto"
-                  px={1}
-                >
-                  ×
-                </Button>
-              )}
-            </HStack>
-            <NativeSelect.Root size="xs">
-              <NativeSelect.Field
-                value={slot.warrior_id || ""}
-                onChange={(e) => handleWarriorChange(Number(e.target.value))}
-                bg="gray.800"
-                borderColor="whiteAlpha.300"
-                color="white"
-              >
-                <option value="">武将を選択</option>
-                {filteredWarriors.map((w) => (
-                  <option key={w.id} value={w.id}>
-                    {w.name}
-                  </option>
-                ))}
-              </NativeSelect.Field>
-            </NativeSelect.Root>
-          </VStack>
+          <SearchableCombobox
+            options={warriorOptions}
+            value={slot.warrior_id}
+            placeholder="武将を検索..."
+            emptyLabel="武将を選択"
+            onChange={handleWarriorChange}
+          />
         )}
 
         {slot.role === "軍師" && (
           <Text fontSize="xs" color="yellow.300" fontWeight="bold" mb={1}>
             軍師スキル
           </Text>
-        )}
-
-        {isEditing && slot.role !== "軍師" && (
-          <HStack gap={1}>
-            <Input
-              size="xs"
-              placeholder="スキルを検索..."
-              value={skillSearch}
-              onChange={(e) => setSkillSearch(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && filteredSkills.length === 1) {
-                  const nextSkillIdx = slot.skills.findIndex((_, i) => i > 0);
-                  if (nextSkillIdx >= 0) {
-                    handleSkillChange(nextSkillIdx, filteredSkills[0].id);
-                    setSkillSearch("");
-                  }
-                }
-              }}
-              bg="gray.800"
-              borderColor="whiteAlpha.300"
-              color="white"
-              flex="1"
-            />
-            {skillSearch && (
-              <Button
-                size="xs"
-                variant="ghost"
-                colorPalette="gray"
-                onClick={() => setSkillSearch("")}
-                minW="auto"
-                px={1}
-              >
-                ×
-              </Button>
-            )}
-          </HStack>
         )}
 
         <VStack align="stretch" gap={2}>
@@ -362,24 +365,15 @@ export function TierSlotCard({
                           : warrior?.uniqueSkillName) ?? "(固有スキル未設定)"}
                       </Text>
                     ) : isEditing ? (
-                      <NativeSelect.Root size="xs" w="100%">
-                        <NativeSelect.Field
-                          value={skillSlot.skill_id || ""}
-                          onChange={(e) =>
-                            handleSkillChange(skillIdx, Number(e.target.value))
-                          }
-                          bg="gray.800"
-                          borderColor="whiteAlpha.300"
-                          color="white"
-                        >
-                          <option value="">スキル選択</option>
-                          {filteredSkills.map((s) => (
-                            <option key={s.id} value={s.id}>
-                              {s.name}
-                            </option>
-                          ))}
-                        </NativeSelect.Field>
-                      </NativeSelect.Root>
+                      <SearchableCombobox
+                        options={skillOptions}
+                        value={skillSlot.skill_id}
+                        placeholder="スキルを検索..."
+                        emptyLabel="スキル選択"
+                        onChange={(skillId) =>
+                          handleSkillChange(skillIdx, skillId)
+                        }
+                      />
                     ) : skillIdx === 0 ? (
                       <Text fontSize="xs" color="white">
                         {(slot.role === "軍師"
@@ -418,28 +412,17 @@ export function TierSlotCard({
                   <VStack align="stretch" gap={1} mt={1} pl={10}>
                     {skillSlot.alt_skill_ids.map((altId, altIdx) => (
                       <HStack key={altIdx} gap={1}>
-                        <NativeSelect.Root size="xs" flex="1">
-                          <NativeSelect.Field
-                            value={altId || ""}
-                            onChange={(e) =>
-                              handleAltSkillChange(
-                                skillIdx,
-                                altIdx,
-                                Number(e.target.value),
-                              )
+                        <Box flex="1">
+                          <SearchableCombobox
+                            options={skillOptions}
+                            value={altId}
+                            placeholder="代用スキルを検索..."
+                            emptyLabel="代用"
+                            onChange={(skillId) =>
+                              handleAltSkillChange(skillIdx, altIdx, skillId)
                             }
-                            bg="gray.800"
-                            borderColor="whiteAlpha.300"
-                            color="white"
-                          >
-                            <option value="">代用</option>
-                            {filteredSkills.map((s) => (
-                              <option key={s.id} value={s.id}>
-                                {s.name}
-                              </option>
-                            ))}
-                          </NativeSelect.Field>
-                        </NativeSelect.Root>
+                          />
+                        </Box>
                         <Button
                           size="xs"
                           variant="ghost"
@@ -505,24 +488,17 @@ export function TierSlotCard({
             <VStack align="stretch" gap={1}>
               {slot.alt_warrior_ids.map((altId, altIdx) => (
                 <HStack key={altIdx} gap={1}>
-                  <NativeSelect.Root size="xs" flex="1">
-                    <NativeSelect.Field
-                      value={altId || ""}
-                      onChange={(e) =>
-                        handleAltWarriorChange(altIdx, Number(e.target.value))
+                  <Box flex="1">
+                    <SearchableCombobox
+                      options={warriorOptions}
+                      value={altId}
+                      placeholder="代用武将を検索..."
+                      emptyLabel="代用武将"
+                      onChange={(warriorId) =>
+                        handleAltWarriorChange(altIdx, warriorId)
                       }
-                      bg="gray.800"
-                      borderColor="whiteAlpha.300"
-                      color="white"
-                    >
-                      <option value="">代用武将</option>
-                      {allWarriors.map((w) => (
-                        <option key={w.id} value={w.id}>
-                          {w.name}
-                        </option>
-                      ))}
-                    </NativeSelect.Field>
-                  </NativeSelect.Root>
+                    />
+                  </Box>
                   <Button
                     size="xs"
                     variant="ghost"
