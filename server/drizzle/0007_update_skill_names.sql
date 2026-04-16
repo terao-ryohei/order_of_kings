@@ -1,0 +1,45 @@
+-- 名前変更
+UPDATE skills SET name = '満弦' WHERE id = 1001;
+UPDATE skills SET name = '絶世の華' WHERE id = 1002;
+UPDATE skills SET name = '短矢と軽弓' WHERE id = 1003;
+UPDATE skills SET name = '英姿溢れ' WHERE id = 1006;
+UPDATE skills SET name = '吏政清明' WHERE id = 1011;
+UPDATE skills SET name = '豪傑登用' WHERE id = 1012;
+UPDATE skills SET name = '制怒' WHERE id = 1013;
+UPDATE skills SET name = '兵糧断ち' WHERE id = 1015;
+UPDATE skills SET name = '日貫矢' WHERE id = 1016;
+UPDATE skills SET name = '逆襲の一撃' WHERE id = 1018;
+UPDATE skills SET name = '波に乗る' WHERE id = 1022;
+UPDATE skills SET name = '三軍の勇' WHERE id = 1026;
+UPDATE skills SET name = '戦意昂揚' WHERE id = 1027;
+UPDATE skills SET name = '全民皆兵' WHERE id = 1028;
+UPDATE skills SET name = '上兵伐謀' WHERE id = 1030;
+UPDATE skills SET name = '万夫不抜' WHERE id = 1031;
+UPDATE skills SET name = '修養' WHERE id = 1032;
+UPDATE skills SET name = '満を持す' WHERE id = 1033;
+UPDATE skills SET name = '蓄力一撃' WHERE id = 1038;
+UPDATE skills SET name = '陣突衝軍' WHERE id = 1042;
+UPDATE skills SET name = '肉合戦' WHERE id = 1043;
+UPDATE skills SET name = '偕老同穴' WHERE id = 1045;
+UPDATE skills SET name = '虚を衝く' WHERE id = 1046;
+UPDATE skills SET name = '忠智尽くし' WHERE id = 1049;
+UPDATE skills SET name = '弦鳴雁落' WHERE id = 1051;
+UPDATE skills SET name = '天下独戦' WHERE id = 1059;
+UPDATE skills SET name = '力借りて' WHERE id = 1062;
+UPDATE skills SET name = '投筆従戎' WHERE id = 1077;
+UPDATE skills SET name = '一撃征戦' WHERE id = 1078;
+UPDATE skills SET name = '機略授く' WHERE id = 1091;
+
+-- 新規追加
+INSERT INTO skills (id, name, color, weapon_restriction, skill_type, description, sort_order) VALUES (1094, '摂政', '赤', NULL, '連鎖', '通常攻撃後、23%【50%】の確率で敵部隊に知攻ダメージ 80%【170%】を与える。', 1094);
+INSERT INTO skills (id, name, color, weapon_restriction, skill_type, description, sort_order) VALUES (1095, '戦に生きる', '赤', NULL, '連鎖', '通常攻撃後、25%【35%】の確率で敵部隊に武攻ダメージ （ダメージ率88%【160%】）を与え、ダメージ量×34%【70%】の兵力を獲得、2秒後にこの兵力が消去され、兵力損失時は優先的にこの兵力から減少し、負傷兵は発生しない', 1095);
+INSERT INTO skills (id, name, color, weapon_restriction, skill_type, description, sort_order) VALUES (1096, '槍鎮三関', '赤', NULL, '連鎖', '通常攻撃後、33%【60%】の確率で敵部隊に武攻ダメージ 110%【200%】を与える。このスキルは発動するたびに発動率が0.5%減少し、最低20%まで減少、戦闘終了まで継続', 1096);
+INSERT INTO skills (id, name, color, weapon_restriction, skill_type, description, sort_order) VALUES (1097, '戦には戦を', '赤', NULL, 'パッシブ', '部隊がダメージを受けた時、12%【30%】の確率で敵全武将を【止戈】状態にし、2秒間持続。各ダメージ元部隊は2秒ごとに1回判定。', 1097);
+INSERT INTO skills (id, name, color, weapon_restriction, skill_type, description, sort_order) VALUES (1098, '鞭法一条', '赤', NULL, 'パッシブ', '税務官に任命されている場合、徴発により追加で1400【5000】の銭貨を獲得可能', 1098);
+INSERT INTO skills (id, name, color, weapon_restriction, skill_type, description, sort_order) VALUES (1099, '天門粉砕', '赤', NULL, '連鎖', '通常攻撃後、16%【25%】の確率で敵部隊に武攻ダメージ （ダメージ率125%【260%】）を与え、更に部隊が【被ダメージ軽減】状態となり、受ける全ダメージが5.5%【10%】軽減、2秒間持続', 1099);
+INSERT INTO skills (id, name, color, weapon_restriction, skill_type, description, sort_order) VALUES (1100, '最後の舞', '赤', NULL, 'パッシブ', '部隊壊滅時、自身円形範囲内の最大6敵部隊に物理ダメージ1200%【3000%】。出撃時兵力基準。NPC戦：傷病率-50%・プレイヤー戦：傷病率-5%', 1100);
+INSERT INTO skills (id, name, color, weapon_restriction, skill_type, description, sort_order) VALUES (1101, '調弓驚猿', '赤', '弓のみ', 'パッシブ', '自身が攻撃するとき、距離2以内の1~2b謡の敵に同時に武攻ダメージ46%【100%】を与える。2秒ごとに最大1回発動する', 1101);
+INSERT INTO skills (id, name, color, weapon_restriction, skill_type, description, sort_order) VALUES (1102, '怒炎', '赤', NULL, '能動', '21%【30%】の確率で発動し、敵部隊に知攻ダメージ100%【280%】を与え、対象が燃焼地形にいる場合、このスキルの発動率が追加で11%【20%】増加', 1102);
+INSERT INTO skills (id, name, color, weapon_restriction, skill_type, description, sort_order) VALUES (1103, '爆裂矢', '赤', '弓のみ', '能動', '30%の確率で発動し、敵部隊を【爆裂】状態にし、6秒後、対象部隊及びその隣接の敵部隊に武攻ダメージ195%【420%】を与える', 1103);
+INSERT INTO skills (id, name, color, weapon_restriction, skill_type, description, sort_order) VALUES (1104, '勇敢無畏', '赤', NULL, 'パッシブ', '怒気技発動後、自身が円形範囲内の最大4部隊の敵部隊に武功ダメ―ジ240%【600%】を与える', 1104);
+INSERT INTO skills (id, name, color, weapon_restriction, skill_type, description, sort_order) VALUES (1105, '大放談', '青', NULL, '能動', '30%の確率で発動し、敵軍部隊に知攻ダメージ（ダメージ率 65%【200%】）を与える', 1105);
