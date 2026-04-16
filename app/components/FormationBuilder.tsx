@@ -1659,6 +1659,11 @@ export default function FormationBuilder({
                         type="button"
                         onClick={() => assignWarrior(warrior)}
                         disabled={isAssigned || assignedIds.size >= 3}
+                        cursor={
+                          isAssigned || assignedIds.size >= 3
+                            ? "not-allowed"
+                            : "pointer"
+                        }
                         textAlign="left"
                         bg={isAssigned ? "gray.700" : "gray.900"}
                         borderRadius="xl"
