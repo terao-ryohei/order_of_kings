@@ -45,6 +45,7 @@ type SearchableComboboxProps = {
   value: number;
   placeholder: string;
   emptyLabel: string;
+  noResultsLabel: string;
   onChange: (value: number) => void;
 };
 
@@ -62,6 +63,7 @@ function SearchableCombobox({
   value,
   placeholder,
   emptyLabel,
+  noResultsLabel,
   onChange,
 }: SearchableComboboxProps) {
   const [search, setSearch] = useState("");
@@ -95,7 +97,7 @@ function SearchableCombobox({
         setSearch("");
       }}
       openOnClick
-      size="xs"
+      size="sm"
       w="100%"
     >
       <ComboboxControl>
@@ -104,11 +106,27 @@ function SearchableCombobox({
           bg="gray.800"
           borderColor="whiteAlpha.300"
           color="white"
+          _hover={{ borderColor: "whiteAlpha.600" }}
+          _focus={{
+            borderColor: "yellow.400",
+            boxShadow: "0 0 0 1px var(--chakra-colors-yellow-400)",
+          }}
+          _focusVisible={{
+            borderColor: "yellow.400",
+            boxShadow: "0 0 0 1px var(--chakra-colors-yellow-400)",
+          }}
         />
         <ComboboxTrigger
           bg="gray.800"
           borderColor="whiteAlpha.300"
           color="white"
+          cursor="pointer"
+          _hover={{ borderColor: "whiteAlpha.600", bg: "whiteAlpha.100" }}
+          _open={{ borderColor: "yellow.400", bg: "whiteAlpha.200" }}
+          _focusVisible={{
+            borderColor: "yellow.400",
+            boxShadow: "0 0 0 1px var(--chakra-colors-yellow-400)",
+          }}
         />
       </ComboboxControl>
       <ComboboxContent
@@ -120,10 +138,44 @@ function SearchableCombobox({
         zIndex="popover"
       >
         {items.map((item) => (
-          <ComboboxItem key={item.value || "empty"} item={item}>
+          <ComboboxItem
+            key={item.value || "empty"}
+            item={item}
+            cursor="pointer"
+            minH="44px"
+            borderLeft="3px solid transparent"
+            px={3}
+            py={2}
+            _hover={{
+              bg: "whiteAlpha.300",
+              borderLeftColor: "yellow.300",
+            }}
+            _highlighted={{
+              bg: "yellow.900",
+              borderLeftColor: "yellow.300",
+              color: "yellow.50",
+            }}
+          >
             <ComboboxItemText>{item.label}</ComboboxItemText>
+            {item.value === (value > 0 ? String(value) : "") && (
+              <Text
+                as="span"
+                color="yellow.300"
+                fontWeight="bold"
+                fontSize="sm"
+                ml="auto"
+                aria-hidden="true"
+              >
+                ✓
+              </Text>
+            )}
           </ComboboxItem>
         ))}
+        {visibleOptions.length === 0 && (
+          <Text px={3} py={2} color="gray.400" fontSize="xs">
+            {noResultsLabel}
+          </Text>
+        )}
       </ComboboxContent>
     </ComboboxRoot>
   );
@@ -338,6 +390,7 @@ export function TierSlotCard({
             value={slot.warrior_id}
             placeholder="武将を検索..."
             emptyLabel="武将を選択"
+            noResultsLabel="該当する武将がいません"
             onChange={handleWarriorChange}
           />
         )}
@@ -370,6 +423,7 @@ export function TierSlotCard({
                         value={skillSlot.skill_id}
                         placeholder="スキルを検索..."
                         emptyLabel="スキル選択"
+                        noResultsLabel="該当するスキルがいません"
                         onChange={(skillId) =>
                           handleSkillChange(skillIdx, skillId)
                         }
@@ -418,6 +472,7 @@ export function TierSlotCard({
                             value={altId}
                             placeholder="代用スキルを検索..."
                             emptyLabel="代用"
+                            noResultsLabel="該当するスキルがいません"
                             onChange={(skillId) =>
                               handleAltSkillChange(skillIdx, altIdx, skillId)
                             }
@@ -494,6 +549,7 @@ export function TierSlotCard({
                       value={altId}
                       placeholder="代用武将を検索..."
                       emptyLabel="代用武将"
+                      noResultsLabel="該当する武将がいません"
                       onChange={(warriorId) =>
                         handleAltWarriorChange(altIdx, warriorId)
                       }
