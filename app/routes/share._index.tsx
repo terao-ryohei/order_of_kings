@@ -390,6 +390,7 @@ export default function ShareIndexPage() {
                 borderColor="whiteAlpha.300"
                 fontSize="sm"
                 onClick={(e) => (e.target as HTMLInputElement).select()}
+                cursor="pointer"
               />
               <Button
                 colorPalette={copied ? "green" : "yellow"}

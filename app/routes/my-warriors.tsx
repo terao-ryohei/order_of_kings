@@ -144,6 +144,7 @@ export default function MyWarriorsPage() {
                       w="100%"
                       pt={1}
                       onClick={(e) => e.stopPropagation()}
+                      cursor="pointer"
                     >
                       <IconButton
                         aria-label="1枚減らす"
