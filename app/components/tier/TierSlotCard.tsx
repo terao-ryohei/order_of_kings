@@ -78,9 +78,10 @@ function SearchableCombobox({
     () => filterOptions(options, debouncedSearch),
     [options, debouncedSearch],
   );
+  const hasNoResults = debouncedSearch.length > 0 && visibleOptions.length === 0;
   const items = useMemo(
-    () => [{ label: emptyLabel, value: "" }, ...visibleOptions],
-    [emptyLabel, visibleOptions],
+    () => (hasNoResults ? [] : [{ label: emptyLabel, value: "" }, ...visibleOptions]),
+    [emptyLabel, hasNoResults, visibleOptions],
   );
   const collection = useMemo(
     () => createListCollection({ items }),
@@ -137,42 +138,45 @@ function SearchableCombobox({
         overflowY="auto"
         zIndex="popover"
       >
-        {items.map((item) => (
-          <ComboboxItem
-            key={item.value || "empty"}
-            item={item}
-            cursor="pointer"
-            minH="44px"
-            borderLeft="3px solid transparent"
-            px={3}
-            py={2}
-            _hover={{
-              bg: "whiteAlpha.300",
-              borderLeftColor: "yellow.300",
-            }}
-            _highlighted={{
-              bg: "yellow.900",
-              borderLeftColor: "yellow.300",
-              color: "yellow.50",
-            }}
-          >
-            <ComboboxItemText>{item.label}</ComboboxItemText>
-            {item.value === (value > 0 ? String(value) : "") && (
-              <Text
-                as="span"
-                color="yellow.300"
-                fontWeight="bold"
-                fontSize="sm"
-                ml="auto"
-                aria-hidden="true"
-              >
-                ✓
-              </Text>
-            )}
-          </ComboboxItem>
-        ))}
-        {visibleOptions.length === 0 && (
-          <Text px={3} py={2} color="gray.400" fontSize="xs">
+        {items.map((item) => {
+          const isSelected = item.value === (value > 0 ? String(value) : "");
+          return (
+            <ComboboxItem
+              key={item.value || "empty"}
+              item={item}
+              cursor="pointer"
+              minH="44px"
+              borderLeft="3px solid transparent"
+              px={3}
+              py={2}
+              _hover={{
+                bg: "whiteAlpha.300",
+                borderLeftColor: "yellow.300",
+              }}
+              _highlighted={{
+                bg: "yellow.900",
+                borderLeftColor: "yellow.300",
+                color: "yellow.50",
+              }}
+            >
+              <ComboboxItemText>{item.label}</ComboboxItemText>
+              {isSelected && (
+                <Text
+                  as="span"
+                  color="yellow.300"
+                  fontWeight="bold"
+                  fontSize="sm"
+                  ml="auto"
+                  aria-label="選択中"
+                >
+                  ✓
+                </Text>
+              )}
+            </ComboboxItem>
+          );
+        })}
+        {hasNoResults && (
+          <Text px={3} py={3} color="gray.400" fontSize="xs" minH="44px">
             {noResultsLabel}
           </Text>
         )}
